@@ -121,9 +121,6 @@ const SettingsScreen: React.FC = () => {
             style={[styles.container, { paddingTop: insets.top + 16 }]}
             contentContainerStyle={styles.content}
             showsVerticalScrollIndicator={false}>
-            {/* Title */}
-            <Text style={styles.title}>⚙️ Cài đặt</Text>
-
             {/* ── App Info Card ── */}
             <GlassCard
                 style={styles.card}

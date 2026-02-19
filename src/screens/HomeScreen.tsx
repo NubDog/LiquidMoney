@@ -6,7 +6,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
     FlatList,
-    Pressable,
     StyleSheet,
     Text,
     View,
@@ -15,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store/useStore';
 import WalletCard from '../components/WalletCard';
 import WalletModal from '../components/WalletModal';
+import LiquidFAB from '../components/LiquidFAB';
 import type { Wallet } from '../database/queries';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -118,9 +118,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
     const ListHeader = useMemo(
         () => (
             <View style={styles.headerSection}>
-                {/* App title */}
-                <Text style={styles.title}>LiquidMoney</Text>
-
                 {/* Tổng số dư */}
                 {wallets.length > 0 && (
                     <View style={styles.totalSection}>
@@ -152,17 +149,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
             />
 
             {/* FAB — Nút tạo ví mới */}
-            <Pressable
-                onPress={openCreateModal}
-                style={({ pressed }) => [
-                    styles.fab,
-                    {
-                        bottom: 20,
-                        transform: [{ scale: pressed ? 0.9 : 1 }],
-                    },
-                ]}>
-                <Text style={styles.fabText}>+</Text>
-            </Pressable>
+            {/* FAB — Nút tạo ví mới */}
+            <LiquidFAB onPress={openCreateModal} />
 
             {/* Modal tạo/sửa ví */}
             <WalletModal
@@ -198,12 +186,6 @@ const styles = StyleSheet.create({
     headerSection: {
         paddingTop: 16,
         paddingBottom: 8,
-    },
-    title: {
-        fontSize: 34,
-        fontWeight: '800',
-        color: '#FFFFFF',
-        letterSpacing: -0.8,
     },
     totalSection: {
         marginTop: 20,

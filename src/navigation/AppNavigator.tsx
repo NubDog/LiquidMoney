@@ -1,13 +1,14 @@
 /**
  * AppNavigator.tsx — Navigation chính của LiquidMoney
- * Custom Tab Bar + Manual Stack — KHÔNG dùng react-navigation
- * (Vì react-native-screens native module chưa được build)
- *
- * Phong cách kính mờ (Glassmorphism) cho Tab Bar
+ * - Slide Transition giữa các tab
+ * - Floating Glass Tab Bar (VisionOS style)
+ * - Render đồng thời 3 màn hình để slide mượt mà
  */
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+    Animated,
+    Dimensions,
     Pressable,
     StyleSheet,
     Text,
@@ -17,38 +18,53 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import MeshBackground from '../components/MeshBackground';
+import GlassCard from '../components/GlassCard';
 import HomeScreen from '../screens/HomeScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import StatsScreen from '../screens/StatsScreen';
 import WalletDetailScreen from '../screens/WalletDetailScreen';
 
-// ─── Tab Type ─────────────────────────────────────────────────────────────────
+// ─── Tab Config ───────────────────────────────────────────────────────────────
 
 type TabName = 'home' | 'stats' | 'settings';
 
 interface TabConfig {
     key: TabName;
     label: string;
-    emoji: string;
+    icon: string;
 }
 
 const TABS: TabConfig[] = [
-    { key: 'home', label: 'Ví tiền', emoji: '🏠' },
-    { key: 'stats', label: 'Thống kê', emoji: '📊' },
-    { key: 'settings', label: 'Cài đặt', emoji: '⚙️' },
+    { key: 'home', label: 'Ví tiền', icon: '🏠' },
+    { key: 'stats', label: 'Thống kê', icon: '📊' },
+    { key: 'settings', label: 'Cài đặt', icon: '⚙️' },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const AppNavigator: React.FC = () => {
     const insets = useSafeAreaInsets();
-    const { width } = useWindowDimensions();
+    const { width, height } = useWindowDimensions();
 
-    // ─── Tab State ──────────────────────────────────────────────────────────────
+    // ─── Navigation State ───────────────────────────────────────────────────────
     const [activeTab, setActiveTab] = useState<TabName>('home');
-
-    // ─── Manual Stack State ─────────────────────────────────────────────────────
     const [activeWalletId, setActiveWalletId] = useState<string | null>(null);
+
+    // Slide animation value
+    const slideAnim = useRef(new Animated.Value(0)).current;
+
+    // Trigger slide animation when tab changes
+    useEffect(() => {
+        const targetIndex = TABS.findIndex(t => t.key === activeTab);
+        Animated.spring(slideAnim, {
+            toValue: -targetIndex * width,
+            useNativeDriver: true,
+            friction: 12,
+            tension: 50,
+        }).start();
+    }, [activeTab, width, slideAnim]);
+
+    // ─── Handlers ─────────────────────────────────────────────────────────────
 
     const navigateToWallet = useCallback((walletId: string) => {
         setActiveWalletId(walletId);
@@ -58,65 +74,78 @@ const AppNavigator: React.FC = () => {
         setActiveWalletId(null);
     }, []);
 
-    // Tab bar height
-    const tabBarHeight = 65 + insets.bottom;
-
-    // ─── Render ─────────────────────────────────────────────────────────────────
+    // ─── Render ───────────────────────────────────────────────────────────────
 
     return (
         <View style={styles.root}>
-            {/* Background gradient */}
             <MeshBackground />
 
-            {/* Nếu đang xem chi tiết ví → ẩn tabs, hiện WalletDetail */}
+            {/* Wallet Detail Modal/Screen (Overlay) */}
             {activeWalletId ? (
-                <WalletDetailScreen
-                    walletId={activeWalletId}
-                    onGoBack={goBackFromWallet}
-                />
+                <View style={StyleSheet.absoluteFill}>
+                    <WalletDetailScreen
+                        walletId={activeWalletId}
+                        onGoBack={goBackFromWallet}
+                    />
+                </View>
             ) : (
                 <>
-                    {/* Screen content */}
-                    <View style={[styles.screenContainer, { paddingBottom: tabBarHeight }]}>
-                        {activeTab === 'home' && (
-                            <HomeScreen onNavigateToWallet={navigateToWallet} />
-                        )}
-                        {activeTab === 'stats' && <StatsScreen />}
-                        {activeTab === 'settings' && <SettingsScreen />}
-                    </View>
-
-                    {/* Custom Glass Tab Bar */}
-                    <View
+                    {/* Sliding Container */}
+                    <Animated.View
                         style={[
-                            styles.tabBar,
+                            styles.screensContainer,
                             {
-                                paddingBottom: insets.bottom > 0 ? insets.bottom : 12,
-                                width,
+                                width: width * 3,
+                                transform: [{ translateX: slideAnim }],
                             },
                         ]}>
-                        {TABS.map(tab => {
-                            const isActive = activeTab === tab.key;
-                            const color = isActive
-                                ? '#FFFFFF'
-                                : 'rgba(255, 255, 255, 0.4)';
+                        <View style={{ width, height: '100%' }}>
+                            <HomeScreen onNavigateToWallet={navigateToWallet} />
+                        </View>
+                        <View style={{ width, height: '100%' }}>
+                            <StatsScreen />
+                        </View>
+                        <View style={{ width, height: '100%' }}>
+                            <SettingsScreen />
+                        </View>
+                    </Animated.View>
 
-                            return (
-                                <Pressable
-                                    key={tab.key}
-                                    onPress={() => setActiveTab(tab.key)}
-                                    style={styles.tabItem}>
-                                    <Text style={{ fontSize: 20 }}>{tab.emoji}</Text>
-                                    <Text
-                                        style={[
-                                            styles.tabLabel,
-                                            { color },
-                                            isActive && styles.tabLabelActive,
-                                        ]}>
-                                        {tab.label}
-                                    </Text>
-                                </Pressable>
-                            );
-                        })}
+                    {/* Floating Glass Tab Bar */}
+                    <View style={[styles.tabBarContainer, { paddingBottom: insets.bottom + 10 }]}>
+                        <GlassCard
+                            style={styles.floatingTabBar}
+                            borderRadius={32}
+                            backgroundOpacity={0.15}
+                            borderOpacity={0.25}
+                            intensity={40}>
+                            <View style={styles.tabBarContent}>
+                                {TABS.map(tab => {
+                                    const isActive = activeTab === tab.key;
+                                    return (
+                                        <Pressable
+                                            key={tab.key}
+                                            onPress={() => setActiveTab(tab.key)}
+                                            style={[
+                                                styles.tabItem,
+                                                isActive && styles.tabItemActive,
+                                            ]}>
+                                            <View
+                                                style={[
+                                                    styles.iconContainer,
+                                                    isActive && styles.activeIconContainer,
+                                                ]}>
+                                                <Text style={styles.tabIcon}>{tab.icon}</Text>
+                                            </View>
+                                            {isActive && (
+                                                <Text style={styles.tabLabel}>
+                                                    {tab.label}
+                                                </Text>
+                                            )}
+                                        </Pressable>
+                                    );
+                                })}
+                            </View>
+                        </GlassCard>
                     </View>
                 </>
             )}
@@ -129,33 +158,69 @@ const AppNavigator: React.FC = () => {
 const styles = StyleSheet.create({
     root: {
         flex: 1,
+        backgroundColor: '#000000',
     },
-    screenContainer: {
+    screensContainer: {
         flex: 1,
+        flexDirection: 'row',
     },
-    tabBar: {
+    tabBarContainer: {
         position: 'absolute',
         bottom: 0,
         left: 0,
-        flexDirection: 'row',
-        backgroundColor: 'rgba(10, 0, 30, 0.75)',
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(255, 255, 255, 0.12)',
-        paddingTop: 10,
-    },
-    tabItem: {
-        flex: 1,
+        right: 0,
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 4,
+        pointerEvents: 'box-none', // allow clicks pass through empty space? No, tabbar needs clicks
+    },
+    floatingTabBar: {
+        width: '85%',
+        maxWidth: 360,
+        height: 64,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.3,
+        shadowRadius: 20,
+        elevation: 10,
+    },
+    tabBarContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 6,
+        height: '100%',
+    },
+    tabItem: {
+        height: 52,
+        borderRadius: 26,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 16,
+    },
+    tabItemActive: {
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderWidth: 1,
+    },
+    iconContainer: {
+        width: 36,
+        height: 36,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 18,
+    },
+    activeIconContainer: {
+        // backgroundColor: 'rgba(255,255,255,0.1)', // optional highlight
+    },
+    tabIcon: {
+        fontSize: 22,
     },
     tabLabel: {
-        fontSize: 11,
-        fontWeight: '500',
-        letterSpacing: 0.2,
-    },
-    tabLabelActive: {
-        fontWeight: '700',
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#FFFFFF',
+        marginLeft: 8,
     },
 });
 

@@ -104,9 +104,6 @@ const StatsScreen: React.FC = () => {
     const ListHeader = useCallback(
         () => (
             <View>
-                {/* Title */}
-                <Text style={styles.title}>📊 Thống kê</Text>
-
                 {/* Overall Stats Card */}
                 <StatCard
                     totalIn={overallStats.totalIn}

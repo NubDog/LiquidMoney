@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GlassCard from '../components/GlassCard';
 import SegmentedControl from '../components/SegmentedControl';
 import TransactionModal from '../components/TransactionModal';
+import LiquidFAB from '../components/LiquidFAB';
 import { useStore } from '../store/useStore';
 import type { Transaction } from '../database/queries';
 
@@ -276,11 +277,7 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
             />
 
             {/* FAB */}
-            <Pressable
-                onPress={handleOpenCreate}
-                style={[styles.fab, { bottom: insets.bottom + 24 }]}>
-                <Text style={styles.fabText}>＋</Text>
-            </Pressable>
+            <LiquidFAB onPress={handleOpenCreate} />
 
             {/* Transaction Modal */}
             <TransactionModal
@@ -459,26 +456,6 @@ const styles = StyleSheet.create({
 
     // ── FAB ──
     fab: {
-        position: 'absolute',
-        right: 20,
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-        backgroundColor: 'rgba(168, 85, 247, 0.8)',
-        alignItems: 'center',
-        justifyContent: 'center',
-        shadowColor: '#a855f7',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.5,
-        shadowRadius: 12,
-        elevation: 8,
-        borderWidth: 1,
-        borderColor: 'rgba(168, 85, 247, 0.4)',
-    },
-    fabText: {
-        fontSize: 28,
-        color: '#FFFFFF',
-        fontWeight: '600',
     },
 });
 
