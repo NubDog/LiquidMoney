@@ -16,6 +16,7 @@ import WalletCard from '../components/WalletCard';
 import WalletModal from '../components/WalletModal';
 import LiquidFAB from '../components/LiquidFAB';
 import type { Wallet } from '../database/queries';
+import { Wallet as WalletIcon } from 'lucide-react-native';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -61,11 +62,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
     }, []);
 
     const handleSave = useCallback(
-        (name: string, initialBalance: number, imageUri?: string | null) => {
+        (name: string, initialBalance: number, imageUri?: string | null, icon?: string | null) => {
             if (editingWallet) {
-                editWallet(editingWallet.id, name, initialBalance, imageUri);
+                editWallet(editingWallet.id, name, initialBalance, imageUri, icon);
             } else {
-                addWallet(name, initialBalance, imageUri);
+                addWallet(name, initialBalance, imageUri, icon);
             }
         },
         [editingWallet, addWallet, editWallet],
@@ -87,6 +88,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
                     currentBalance={item.current_balance}
                     initialBalance={item.initial_balance}
                     imageUri={item.image_uri}
+                    icon={item.icon}
                     createdAt={item.created_at}
                     onPress={() => onNavigateToWallet?.(item.id)}
                     onLongPress={() => openEditModal(item)}
@@ -103,7 +105,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
     const EmptyState = useMemo(
         () => (
             <View style={styles.emptyContainer}>
-                <Text style={styles.emptyEmoji}>💰</Text>
+                <WalletIcon size={64} color="rgba(255,255,255,0.2)" strokeWidth={1} style={{ marginBottom: 16 }} />
                 <Text style={styles.emptyTitle}>Chưa có ví nào</Text>
                 <Text style={styles.emptySubtitle}>
                     Nhấn nút + bên dưới để tạo ví đầu tiên
@@ -150,7 +152,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
 
             {/* FAB — Nút tạo ví mới */}
             {/* FAB — Nút tạo ví mới */}
-            <LiquidFAB onPress={openCreateModal} />
+            <LiquidFAB onPress={openCreateModal} style={{ bottom: 140 }} />
 
             {/* Modal tạo/sửa ví */}
             <WalletModal
@@ -164,6 +166,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
                             name: editingWallet.name,
                             initialBalance: editingWallet.initial_balance,
                             imageUri: editingWallet.image_uri,
+                            icon: editingWallet.icon,
                         }
                         : null
                 }
@@ -226,10 +229,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingTop: 80,
     },
-    emptyEmoji: {
-        fontSize: 56,
-        marginBottom: 16,
-    },
     emptyTitle: {
         fontSize: 22,
         fontWeight: '700',
@@ -242,30 +241,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         lineHeight: 22,
     },
-    fab: {
-        position: 'absolute',
-        right: 24,
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-        backgroundColor: 'rgba(74, 0, 224, 0.75)',
-        borderWidth: 1,
-        borderColor: 'rgba(123, 47, 255, 0.6)',
-        alignItems: 'center',
-        justifyContent: 'center',
-        // Shadow
-        shadowColor: '#4A00E0',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.45,
-        shadowRadius: 12,
-        elevation: 8,
-    },
-    fabText: {
-        fontSize: 32,
-        fontWeight: '300',
-        color: '#FFFFFF',
-        marginTop: -2,
-    },
+
 });
 
 export default HomeScreen;

@@ -13,6 +13,7 @@ export interface Wallet {
     initial_balance: number;
     current_balance: number;
     image_uri: string | null;
+    icon: string | null;
     created_at: string;
 }
 
@@ -89,15 +90,17 @@ export function createWallet(
     name: string,
     initialBalance: number,
     imageUri?: string | null,
+    icon?: string | null,
 ): Wallet {
     const db = getDatabase();
     const id = generateUUID();
     const createdAt = nowISO();
+    const walletIcon = icon ?? 'Wallet';
 
     db.execute(
-        `INSERT INTO wallets (id, name, initial_balance, current_balance, image_uri, created_at)
-     VALUES (?, ?, ?, ?, ?, ?);`,
-        [id, name, initialBalance, initialBalance, imageUri ?? null, createdAt],
+        `INSERT INTO wallets (id, name, initial_balance, current_balance, image_uri, icon, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?);`,
+        [id, name, initialBalance, initialBalance, imageUri ?? null, walletIcon, createdAt],
     );
 
     return {
@@ -106,6 +109,7 @@ export function createWallet(
         initial_balance: initialBalance,
         current_balance: initialBalance,
         image_uri: imageUri ?? null,
+        icon: walletIcon,
         created_at: createdAt,
     };
 }
@@ -140,14 +144,15 @@ export function updateWallet(
     name: string,
     initialBalance: number,
     imageUri?: string | null,
+    icon?: string | null,
 ): void {
     const db = getDatabase();
 
     db.execute(
         `UPDATE wallets
-     SET name = ?, initial_balance = ?, image_uri = ?
+     SET name = ?, initial_balance = ?, image_uri = ?, icon = ?
      WHERE id = ?;`,
-        [name, initialBalance, imageUri ?? null, id],
+        [name, initialBalance, imageUri ?? null, icon ?? 'Wallet', id],
     );
 
     // Tính lại current_balance vì initial_balance có thể thay đổi
@@ -160,6 +165,50 @@ export function updateWallet(
 export function deleteWallet(id: string): void {
     const db = getDatabase();
     db.execute('DELETE FROM wallets WHERE id = ?;', [id]);
+}
+
+/**
+ * Cập nhật tên và số dư hiện tại trực tiếp
+ * Tự điều chỉnh initial_balance để giữ công thức domino nhất quán
+ * initial_balance = newCurrentBalance - SUM(IN) + SUM(OUT)
+ */
+export function updateWalletDirect(
+    id: string,
+    name: string,
+    newCurrentBalance: number,
+    icon?: string | null,
+): void {
+    const db = getDatabase();
+
+    // Tính tổng IN
+    const inResult = db.execute(
+        `SELECT COALESCE(SUM(amount), 0) as total
+     FROM transactions
+     WHERE wallet_id = ? AND type = 'IN';`,
+        [id],
+    );
+    const inRows = extractRows<{ total: number }>(inResult);
+    const totalIn = inRows.length > 0 ? inRows[0].total : 0;
+
+    // Tính tổng OUT
+    const outResult = db.execute(
+        `SELECT COALESCE(SUM(amount), 0) as total
+     FROM transactions
+     WHERE wallet_id = ? AND type = 'OUT';`,
+        [id],
+    );
+    const outRows = extractRows<{ total: number }>(outResult);
+    const totalOut = outRows.length > 0 ? outRows[0].total : 0;
+
+    // Điều chỉnh initial_balance
+    const newInitialBalance = newCurrentBalance - totalIn + totalOut;
+
+    db.execute(
+        `UPDATE wallets
+     SET name = ?, initial_balance = ?, current_balance = ?, icon = ?
+     WHERE id = ?;`,
+        [name, newInitialBalance, newCurrentBalance, icon ?? 'Wallet', id],
+    );
 }
 
 // ─── TRANSACTION CRUD ─────────────────────────────────────────────────────────
@@ -501,14 +550,15 @@ export function importData(data: ExportData): void {
     // Insert wallets
     for (const wallet of data.wallets) {
         db.execute(
-            `INSERT INTO wallets (id, name, initial_balance, current_balance, image_uri, created_at)
-       VALUES (?, ?, ?, ?, ?, ?);`,
+            `INSERT INTO wallets (id, name, initial_balance, current_balance, image_uri, icon, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?);`,
             [
                 wallet.id,
                 wallet.name,
                 wallet.initial_balance,
                 wallet.current_balance,
                 wallet.image_uri,
+                wallet.icon ?? 'Wallet',
                 wallet.created_at,
             ],
         );

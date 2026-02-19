@@ -1,23 +1,41 @@
 /**
  * WalletDetailScreen.tsx — Màn hình chi tiết ví + danh sách giao dịch
  * Dùng RN core FlatList, SegmentedControl, TransactionModal
+ * Hỗ trợ: 3-dot menu (Sửa ví / Xóa ví) + animated popup + custom confirm
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+    Animated,
     FlatList,
+    Keyboard,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
     Pressable,
     StyleSheet,
     Text,
+    TextInput,
     View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GlassCard from '../components/GlassCard';
+import GlassButton from '../components/GlassButton';
 import SegmentedControl from '../components/SegmentedControl';
 import TransactionModal from '../components/TransactionModal';
+import ConfirmDialog from '../components/ConfirmDialog';
 import LiquidFAB from '../components/LiquidFAB';
 import { useStore } from '../store/useStore';
 import type { Transaction } from '../database/queries';
+import {
+    ArrowDownLeft,
+    ArrowUpRight,
+    ChevronLeft,
+    ClipboardList,
+    MoreVertical,
+    Pencil,
+    Trash2,
+} from 'lucide-react-native';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -28,7 +46,7 @@ interface WalletDetailScreenProps {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const FILTER_SEGMENTS = ['Tất cả', '💰 Thu', '💸 Chi'];
+const FILTER_SEGMENTS = ['Tất cả', 'Thu', 'Chi'];
 
 function formatVND(n: number): string {
     return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' ₫';
@@ -63,14 +81,14 @@ const TransactionItem: React.FC<{
                 borderOpacity={0.12}
                 borderRadius={16}>
                 <View style={styles.txRow}>
-                    {/* Icon */}
                     <View style={[styles.txIcon, { backgroundColor: iconBg }]}>
-                        <Text style={styles.txEmoji}>
-                            {isIn ? '💰' : '💸'}
-                        </Text>
+                        {isIn ? (
+                            <ArrowDownLeft size={24} color="#4ade80" strokeWidth={2} />
+                        ) : (
+                            <ArrowUpRight size={24} color="#f87171" strokeWidth={2} />
+                        )}
                     </View>
 
-                    {/* Info */}
                     <View style={styles.txInfo}>
                         <Text style={styles.txReason} numberOfLines={1}>
                             {item.reason || (isIn ? 'Thu nhập' : 'Chi tiêu')}
@@ -80,7 +98,6 @@ const TransactionItem: React.FC<{
                         </Text>
                     </View>
 
-                    {/* Amount */}
                     <Text style={[styles.txAmount, { color: amountColor }]}>
                         {isIn ? '+' : '-'}
                         {formatVND(item.amount)}
@@ -90,6 +107,265 @@ const TransactionItem: React.FC<{
         </Pressable>
     );
 });
+
+// ─── Edit Wallet Modal ────────────────────────────────────────────────────────
+
+interface EditWalletModalProps {
+    visible: boolean;
+    onClose: () => void;
+    onSave: (name: string, currentBalance: number) => void;
+    walletName: string;
+    walletBalance: number;
+}
+
+const EditWalletModal: React.FC<EditWalletModalProps> = ({
+    visible,
+    onClose,
+    onSave,
+    walletName,
+    walletBalance,
+}) => {
+    const [name, setName] = useState(walletName);
+    const [balanceStr, setBalanceStr] = useState(walletBalance.toString());
+
+    // Animation
+    const overlayOpacity = useRef(new Animated.Value(0)).current;
+    const sheetTranslateY = useRef(new Animated.Value(400)).current;
+
+    useEffect(() => {
+        if (visible) {
+            setName(walletName);
+            setBalanceStr(walletBalance.toString());
+            overlayOpacity.setValue(0);
+            sheetTranslateY.setValue(400);
+            Animated.parallel([
+                Animated.timing(overlayOpacity, {
+                    toValue: 1,
+                    duration: 300,
+                    useNativeDriver: true,
+                }),
+                Animated.spring(sheetTranslateY, {
+                    toValue: 0,
+                    friction: 10,
+                    tension: 65,
+                    useNativeDriver: true,
+                }),
+            ]).start();
+        }
+    }, [visible, walletName, walletBalance, overlayOpacity, sheetTranslateY]);
+
+    const handleClose = useCallback(() => {
+        Animated.parallel([
+            Animated.timing(overlayOpacity, {
+                toValue: 0,
+                duration: 200,
+                useNativeDriver: true,
+            }),
+            Animated.timing(sheetTranslateY, {
+                toValue: 400,
+                duration: 250,
+                useNativeDriver: true,
+            }),
+        ]).start(() => onClose());
+    }, [overlayOpacity, sheetTranslateY, onClose]);
+
+    const handleSave = useCallback(() => {
+        const trimmedName = name.trim();
+        if (!trimmedName) {
+            return;
+        }
+        const balance = parseInt(balanceStr.replace(/[^0-9-]/g, ''), 10);
+        if (isNaN(balance)) {
+            return;
+        }
+        onSave(trimmedName, balance);
+        handleClose();
+    }, [name, balanceStr, onSave, handleClose]);
+
+    return (
+        <Modal
+            visible={visible}
+            transparent
+            animationType="none"
+            statusBarTranslucent
+            onRequestClose={handleClose}>
+            <View style={editStyles.root}>
+                {/* Animated overlay */}
+                <Animated.View
+                    style={[
+                        StyleSheet.absoluteFill,
+                        editStyles.overlay,
+                        { opacity: overlayOpacity },
+                    ]}
+                />
+                <Pressable
+                    style={StyleSheet.absoluteFill}
+                    onPress={() => {
+                        Keyboard.dismiss();
+                        handleClose();
+                    }}
+                />
+
+                {/* Sheet */}
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    style={editStyles.keyboardView}
+                    pointerEvents="box-none">
+                    <Animated.View
+                        style={[
+                            editStyles.sheet,
+                            { transform: [{ translateY: sheetTranslateY }] },
+                        ]}>
+                        <Pressable onPress={Keyboard.dismiss}>
+                            {/* Handle bar */}
+                            <View style={editStyles.handleBar} />
+
+                            <Text style={editStyles.title}>Chỉnh sửa ví</Text>
+
+                            {/* Name input */}
+                            <Text style={editStyles.label}>Tên ví</Text>
+                            <TextInput
+                                style={editStyles.input}
+                                value={name}
+                                onChangeText={setName}
+                                placeholder="Nhập tên ví"
+                                placeholderTextColor="rgba(255,255,255,0.3)"
+                                selectionColor="#a855f7"
+                            />
+
+                            {/* Balance input */}
+                            <Text style={editStyles.label}>Số dư hiện tại (₫)</Text>
+                            <TextInput
+                                style={editStyles.input}
+                                value={balanceStr}
+                                onChangeText={setBalanceStr}
+                                placeholder="0"
+                                placeholderTextColor="rgba(255,255,255,0.3)"
+                                keyboardType="numeric"
+                                selectionColor="#a855f7"
+                            />
+
+                            {/* Actions */}
+                            <View style={editStyles.actions}>
+                                <Pressable
+                                    onPress={handleSave}
+                                    style={editStyles.saveBtn}>
+                                    <Text style={editStyles.saveBtnText}>Lưu thay đổi</Text>
+                                </Pressable>
+                                <Pressable
+                                    onPress={handleClose}
+                                    style={editStyles.cancelBtn}>
+                                    <Text style={editStyles.cancelBtnText}>Hủy</Text>
+                                </Pressable>
+                            </View>
+                        </Pressable>
+                    </Animated.View>
+                </KeyboardAvoidingView>
+            </View>
+        </Modal>
+    );
+};
+
+// ─── Popup Menu ───────────────────────────────────────────────────────────────
+
+interface PopupMenuProps {
+    visible: boolean;
+    onClose: () => void;
+    onEdit: () => void;
+    onDelete: () => void;
+    anchorY: number;
+    anchorX: number;
+}
+
+const PopupMenu: React.FC<PopupMenuProps> = ({
+    visible,
+    onClose,
+    onEdit,
+    onDelete,
+    anchorY,
+    anchorX,
+}) => {
+    const opacity = useRef(new Animated.Value(0)).current;
+    const scale = useRef(new Animated.Value(0.85)).current;
+    const [shouldRender, setShouldRender] = useState(false);
+
+    useEffect(() => {
+        if (visible) {
+            setShouldRender(true);
+            opacity.setValue(0);
+            scale.setValue(0.85);
+            Animated.parallel([
+                Animated.timing(opacity, {
+                    toValue: 1,
+                    duration: 150,
+                    useNativeDriver: true,
+                }),
+                Animated.spring(scale, {
+                    toValue: 1,
+                    friction: 8,
+                    useNativeDriver: true,
+                }),
+            ]).start();
+        } else if (shouldRender) {
+            // Animate close
+            Animated.parallel([
+                Animated.timing(opacity, {
+                    toValue: 0,
+                    duration: 120,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(scale, {
+                    toValue: 0.85,
+                    duration: 120,
+                    useNativeDriver: true,
+                }),
+            ]).start(() => setShouldRender(false));
+        }
+    }, [visible, opacity, scale, shouldRender]);
+
+    if (!shouldRender) { return null; }
+
+    return (
+        <Pressable style={menuStyles.backdrop} onPress={onClose}>
+            <Animated.View
+                style={[
+                    menuStyles.container,
+                    {
+                        top: anchorY + 8,
+                        right: anchorX,
+                        opacity,
+                        transform: [{ scale }],
+                    },
+                ]}>
+                {/* Edit */}
+                <Pressable
+                    style={menuStyles.item}
+                    onPress={() => {
+                        onClose();
+                        setTimeout(onEdit, 150);
+                    }}>
+                    <Pencil size={18} color="#FFFFFF" strokeWidth={1.5} />
+                    <Text style={menuStyles.itemText}>Chỉnh sửa</Text>
+                </Pressable>
+
+                <View style={menuStyles.divider} />
+
+                {/* Delete */}
+                <Pressable
+                    style={menuStyles.item}
+                    onPress={() => {
+                        onClose();
+                        setTimeout(onDelete, 150);
+                    }}>
+                    <Trash2 size={18} color="#f87171" strokeWidth={1.5} />
+                    <Text style={[menuStyles.itemText, { color: '#f87171' }]}>
+                        Xóa ví
+                    </Text>
+                </Pressable>
+            </Animated.View>
+        </Pressable>
+    );
+};
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -106,6 +382,8 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
         addTransaction,
         editTransaction,
         removeTransaction,
+        editWalletDirect,
+        removeWallet,
     } = useStore();
 
     // ─── State ──────────────────────────────────────────────────────────────
@@ -113,6 +391,14 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
     const [filterIndex, setFilterIndex] = useState(0);
     const [modalVisible, setModalVisible] = useState(false);
     const [editingTx, setEditingTx] = useState<Transaction | null>(null);
+
+    // Menu & Edit & Delete state
+    const [menuVisible, setMenuVisible] = useState(false);
+    const [menuAnchorY, setMenuAnchorY] = useState(0);
+    const [menuAnchorX, setMenuAnchorX] = useState(16);
+    const [editWalletVisible, setEditWalletVisible] = useState(false);
+    const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+    const menuBtnRef = useRef<View>(null);
 
     // ─── Load wallet + transactions khi mount ────────────────────────────────
 
@@ -130,7 +416,7 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filterIndex, walletId]);
 
-    // ─── Handlers ───────────────────────────────────────────────────────────
+    // ─── Handlers: Transactions ─────────────────────────────────────────────
 
     const handleOpenCreate = useCallback(() => {
         setEditingTx(null);
@@ -165,6 +451,41 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
         }
     }, [editingTx, walletId, removeTransaction]);
 
+    // ─── Handlers: Wallet Menu ──────────────────────────────────────────────
+
+    const handleOpenMenu = useCallback(() => {
+        if (menuBtnRef.current) {
+            menuBtnRef.current.measureInWindow((_x, y, _width, height) => {
+                setMenuAnchorY(y + height);
+                setMenuAnchorX(16);
+                setMenuVisible(true);
+            });
+        } else {
+            setMenuVisible(true);
+        }
+    }, []);
+
+    const handleEditWallet = useCallback(() => {
+        setEditWalletVisible(true);
+    }, []);
+
+    const handleDeleteWallet = useCallback(() => {
+        setDeleteDialogVisible(true);
+    }, []);
+
+    const handleConfirmDelete = useCallback(() => {
+        setDeleteDialogVisible(false);
+        removeWallet(walletId);
+        onGoBack();
+    }, [walletId, removeWallet, onGoBack]);
+
+    const handleSaveWallet = useCallback(
+        (name: string, currentBalance: number) => {
+            editWalletDirect(walletId, name, currentBalance, currentWallet?.icon);
+        },
+        [walletId, editWalletDirect, currentWallet],
+    );
+
     // ─── Balance diff ───────────────────────────────────────────────────────
 
     const wallet = currentWallet;
@@ -186,13 +507,11 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
     const ListHeader = useCallback(
         () => (
             <View>
-                {/* Wallet Summary Card */}
                 <GlassCard
                     style={styles.summaryCard}
                     backgroundOpacity={0.15}
                     borderOpacity={0.2}
                     borderRadius={24}>
-                    {/* Cover / Accent line */}
                     <View style={styles.accentLine} />
 
                     <Text style={styles.walletName}>
@@ -225,7 +544,6 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
                     </View>
                 </GlassCard>
 
-                {/* Filter */}
                 <View style={styles.filterWrapper}>
                     <SegmentedControl
                         segments={FILTER_SEGMENTS}
@@ -234,7 +552,6 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
                     />
                 </View>
 
-                {/* Section title */}
                 <Text style={styles.sectionTitle}>
                     Giao dịch ({transactions.length})
                 </Text>
@@ -246,7 +563,7 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
     const ListEmpty = useCallback(
         () => (
             <View style={styles.emptyContainer}>
-                <Text style={styles.emptyEmoji}>📋</Text>
+                <ClipboardList size={64} color="rgba(255,255,255,0.2)" strokeWidth={1} style={{ marginBottom: 16 }} />
                 <Text style={styles.emptyText}>Chưa có giao dịch</Text>
                 <Text style={styles.emptySubtext}>
                     Nhấn nút + để tạo giao dịch đầu tiên
@@ -261,9 +578,28 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
             {/* Top Bar */}
             <View style={styles.topBar}>
                 <Pressable onPress={onGoBack} style={styles.backBtn}>
-                    <Text style={styles.backText}>← Quay lại</Text>
+                    <ChevronLeft size={24} color="#FFFFFF" />
                 </Pressable>
+
+                <View style={{ flex: 1 }} />
+
+                {/* 3-dot menu button */}
+                <View ref={menuBtnRef} collapsable={false}>
+                    <Pressable onPress={handleOpenMenu} style={styles.menuBtn}>
+                        <MoreVertical size={22} color="#FFFFFF" strokeWidth={1.5} />
+                    </Pressable>
+                </View>
             </View>
+
+            {/* Popup Menu (with open + close animation) */}
+            <PopupMenu
+                visible={menuVisible}
+                onClose={() => setMenuVisible(false)}
+                onEdit={handleEditWallet}
+                onDelete={handleDeleteWallet}
+                anchorY={menuAnchorY}
+                anchorX={menuAnchorX}
+            />
 
             {/* Transaction List */}
             <FlatList
@@ -276,8 +612,8 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
                 showsVerticalScrollIndicator={false}
             />
 
-            {/* FAB */}
-            <LiquidFAB onPress={handleOpenCreate} />
+            {/* FAB — same position as HomeScreen (bottom: 140 for tab bar clearance) */}
+            <LiquidFAB onPress={handleOpenCreate} style={{ bottom: 140 }} />
 
             {/* Transaction Modal */}
             <TransactionModal
@@ -294,6 +630,27 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
                         }
                         : null
                 }
+            />
+
+            {/* Edit Wallet Modal */}
+            <EditWalletModal
+                visible={editWalletVisible}
+                onClose={() => setEditWalletVisible(false)}
+                onSave={handleSaveWallet}
+                walletName={wallet?.name || ''}
+                walletBalance={wallet?.current_balance || 0}
+            />
+
+            {/* Custom Delete Confirm Dialog */}
+            <ConfirmDialog
+                visible={deleteDialogVisible}
+                title="Xóa ví"
+                message={`Bạn có chắc muốn xóa ví "${wallet?.name || ''}"?\nToàn bộ giao dịch sẽ bị xóa vĩnh viễn.`}
+                cancelText="Hủy"
+                confirmText="Xóa"
+                confirmColor="#ef4444"
+                onCancel={() => setDeleteDialogVisible(false)}
+                onConfirm={handleConfirmDelete}
             />
         </View>
     );
@@ -312,15 +669,14 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
     },
     backBtn: {
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        borderRadius: 12,
-        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+        padding: 8,
+        borderRadius: 20,
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
     },
-    backText: {
-        color: 'rgba(255, 255, 255, 0.8)',
-        fontSize: 15,
-        fontWeight: '600',
+    menuBtn: {
+        padding: 8,
+        borderRadius: 20,
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
     },
     listContent: {
         paddingHorizontal: 16,
@@ -411,9 +767,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         marginRight: 12,
     },
-    txEmoji: {
-        fontSize: 20,
-    },
     txInfo: {
         flex: 1,
         marginRight: 8,
@@ -439,10 +792,6 @@ const styles = StyleSheet.create({
         paddingTop: 48,
         paddingBottom: 48,
     },
-    emptyEmoji: {
-        fontSize: 56,
-        marginBottom: 12,
-    },
     emptyText: {
         fontSize: 18,
         fontWeight: '700',
@@ -453,9 +802,132 @@ const styles = StyleSheet.create({
         color: 'rgba(255, 255, 255, 0.35)',
         marginTop: 6,
     },
+});
 
-    // ── FAB ──
-    fab: {
+// ─── Popup Menu Styles ────────────────────────────────────────────────────────
+
+const menuStyles = StyleSheet.create({
+    backdrop: {
+        ...StyleSheet.absoluteFillObject,
+        zIndex: 100,
+    },
+    container: {
+        position: 'absolute',
+        minWidth: 180,
+        backgroundColor: 'rgba(30, 30, 30, 0.95)',
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.12)',
+        paddingVertical: 6,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.4,
+        shadowRadius: 16,
+        elevation: 12,
+        zIndex: 101,
+    },
+    item: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        gap: 12,
+    },
+    itemText: {
+        fontSize: 16,
+        fontWeight: '500',
+        color: '#FFFFFF',
+    },
+    divider: {
+        height: 1,
+        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+        marginHorizontal: 12,
+    },
+});
+
+// ─── Edit Wallet Modal Styles ─────────────────────────────────────────────────
+
+const editStyles = StyleSheet.create({
+    root: {
+        flex: 1,
+    },
+    overlay: {
+        backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    },
+    keyboardView: {
+        flex: 1,
+        justifyContent: 'flex-end',
+    },
+    sheet: {
+        backgroundColor: 'rgba(28, 28, 30, 0.98)',
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.08)',
+        borderBottomWidth: 0,
+        paddingHorizontal: 24,
+        paddingBottom: 40,
+    },
+    handleBar: {
+        width: 40,
+        height: 4,
+        borderRadius: 2,
+        backgroundColor: 'rgba(255, 255, 255, 0.15)',
+        alignSelf: 'center',
+        marginTop: 12,
+        marginBottom: 20,
+    },
+    title: {
+        fontSize: 22,
+        fontWeight: '700',
+        color: '#FFFFFF',
+        marginBottom: 24,
+    },
+    label: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: 'rgba(255, 255, 255, 0.5)',
+        marginBottom: 8,
+    },
+    input: {
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.08)',
+        padding: 16,
+        fontSize: 17,
+        color: '#FFFFFF',
+        marginBottom: 20,
+    },
+    actions: {
+        gap: 12,
+        marginTop: 8,
+    },
+    saveBtn: {
+        paddingVertical: 16,
+        borderRadius: 14,
+        backgroundColor: 'rgba(168, 85, 247, 0.35)',
+        borderWidth: 1,
+        borderColor: 'rgba(168, 85, 247, 0.5)',
+        alignItems: 'center',
+    },
+    saveBtnText: {
+        color: '#FFFFFF',
+        fontSize: 16,
+        fontWeight: '700',
+    },
+    cancelBtn: {
+        paddingVertical: 16,
+        borderRadius: 14,
+        backgroundColor: 'rgba(255, 255, 255, 0.04)',
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.08)',
+        alignItems: 'center',
+    },
+    cancelBtnText: {
+        color: 'rgba(255, 255, 255, 0.6)',
+        fontSize: 16,
+        fontWeight: '500',
     },
 });
 

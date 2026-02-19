@@ -18,6 +18,7 @@ import {
     getWalletById,
     createWallet as dbCreateWallet,
     updateWallet as dbUpdateWallet,
+    updateWalletDirect as dbUpdateWalletDirect,
     deleteWallet as dbDeleteWallet,
     getTransactionsByWallet,
     createTransaction as dbCreateTransaction,
@@ -55,6 +56,7 @@ interface StoreActions {
         name: string,
         initialBalance: number,
         imageUri?: string | null,
+        icon?: string | null,
     ) => void;
 
     /** Cập nhật ví */
@@ -63,6 +65,15 @@ interface StoreActions {
         name: string,
         initialBalance: number,
         imageUri?: string | null,
+        icon?: string | null,
+    ) => void;
+
+    /** Cập nhật tên + số dư hiện tại + icon trực tiếp */
+    editWalletDirect: (
+        id: string,
+        name: string,
+        currentBalance: number,
+        icon?: string | null,
     ) => void;
 
     /** Xóa ví */
@@ -150,7 +161,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
     }, []);
 
     const addWallet = useCallback(
-        (name: string, initialBalance: number, imageUri?: string | null) => {
+        (name: string, initialBalance: number, imageUri?: string | null, icon?: string | null) => {
             if (!isDatabaseAvailable()) {
                 Alert.alert(
                     'Database chưa sẵn sàng',
@@ -159,7 +170,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
                 return;
             }
             try {
-                dbCreateWallet(name, initialBalance, imageUri);
+                dbCreateWallet(name, initialBalance, imageUri, icon);
                 refreshWallets();
             } catch (err) {
                 console.error('[Store] addWallet error:', err);
@@ -174,13 +185,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
             name: string,
             initialBalance: number,
             imageUri?: string | null,
+            icon?: string | null,
         ) => {
             if (!isDatabaseAvailable()) {
                 Alert.alert('Database chưa sẵn sàng', 'Cần rebuild native app.');
                 return;
             }
             try {
-                dbUpdateWallet(id, name, initialBalance, imageUri);
+                dbUpdateWallet(id, name, initialBalance, imageUri, icon);
                 refreshWallets();
                 if (currentWallet?.id === id) {
                     const updated = getWalletById(id);
@@ -188,6 +200,26 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
                 }
             } catch (err) {
                 console.error('[Store] editWallet error:', err);
+            }
+        },
+        [refreshWallets, currentWallet],
+    );
+
+    const editWalletDirect = useCallback(
+        (id: string, name: string, currentBalance: number, icon?: string | null) => {
+            if (!isDatabaseAvailable()) {
+                Alert.alert('Database chưa sẵn sàng', 'Cần rebuild native app.');
+                return;
+            }
+            try {
+                dbUpdateWalletDirect(id, name, currentBalance, icon);
+                refreshWallets();
+                if (currentWallet?.id === id) {
+                    const updated = getWalletById(id);
+                    setCurrentWallet(updated);
+                }
+            } catch (err) {
+                console.error('[Store] editWalletDirect error:', err);
             }
         },
         [refreshWallets, currentWallet],
@@ -323,6 +355,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
             refreshWallets,
             addWallet,
             editWallet,
+            editWalletDirect,
             removeWallet,
             selectWallet,
             refreshTransactions,
@@ -339,6 +372,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
             refreshWallets,
             addWallet,
             editWallet,
+            editWalletDirect,
             removeWallet,
             selectWallet,
             refreshTransactions,

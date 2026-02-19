@@ -21,6 +21,14 @@ import type {
     OverallStat,
     Transaction,
 } from '../database/queries';
+import {
+    ArrowDownLeft,
+    ArrowUpRight,
+    TrendingUp,
+    Clock,
+    ClipboardList,
+    AlertTriangle,
+} from 'lucide-react-native';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -82,7 +90,7 @@ const StatsScreen: React.FC = () => {
 
             return (
                 <View style={styles.txRow}>
-                    <Text style={styles.txEmoji}>{isIn ? '💰' : '💸'}</Text>
+                    <View style={styles.txEmoji}>{isIn ? <ArrowDownLeft size={18} color="#4ade80" strokeWidth={2} /> : <ArrowUpRight size={18} color="#f87171" strokeWidth={2} />}</View>
                     <View style={styles.txInfo}>
                         <Text style={styles.txReason} numberOfLines={1}>
                             {item.reason || (isIn ? 'Thu nhập' : 'Chi tiêu')}
@@ -118,9 +126,12 @@ const StatsScreen: React.FC = () => {
                     borderOpacity={0.15}
                     borderRadius={20}>
                     <View style={styles.chartInner}>
-                        <Text style={styles.chartTitle}>
-                            📈 Thu/Chi 6 tháng
-                        </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                            <TrendingUp size={18} color="#22d3ee" strokeWidth={2} />
+                            <Text style={styles.chartTitle}>
+                                Thu/Chi 6 tháng
+                            </Text>
+                        </View>
                         {monthlyStats.length > 0 ? (
                             <BarChart data={monthlyStats} />
                         ) : (
@@ -132,9 +143,12 @@ const StatsScreen: React.FC = () => {
                 </GlassCard>
 
                 {/* Recent transactions header */}
-                <Text style={styles.sectionTitle}>
-                    🕐 Giao dịch gần đây
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                    <Clock size={18} color="rgba(255,255,255,0.5)" strokeWidth={2} />
+                    <Text style={styles.sectionTitle}>
+                        Giao dịch gần đây
+                    </Text>
+                </View>
             </View>
         ),
         [overallStats, monthlyStats],
@@ -143,7 +157,7 @@ const StatsScreen: React.FC = () => {
     const ListEmpty = useCallback(
         () => (
             <View style={styles.emptyContainer}>
-                <Text style={styles.emptyEmoji}>📋</Text>
+                <ClipboardList size={48} color="rgba(255,255,255,0.2)" strokeWidth={1} />
                 <Text style={styles.emptyText}>Chưa có giao dịch nào</Text>
                 <Text style={styles.emptySubtext}>
                     Tạo giao dịch trong mục Ví tiền để xem thống kê
@@ -163,7 +177,7 @@ const StatsScreen: React.FC = () => {
                     { paddingTop: insets.top + 16 },
                     styles.centerContent,
                 ]}>
-                <Text style={styles.emptyEmoji}>⚠️</Text>
+                <AlertTriangle size={48} color="rgba(255,255,255,0.2)" strokeWidth={1} />
                 <Text style={styles.emptyText}>Database chưa sẵn sàng</Text>
             </View>
         );
@@ -242,8 +256,11 @@ const styles = StyleSheet.create({
         borderBottomColor: 'rgba(255, 255, 255, 0.04)',
     },
     txEmoji: {
-        fontSize: 18,
+        width: 28,
+        height: 28,
         marginRight: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     txInfo: {
         flex: 1,

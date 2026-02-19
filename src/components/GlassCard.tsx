@@ -4,14 +4,14 @@
  */
 
 import React from 'react';
-import { StyleSheet, View, type ViewStyle } from 'react-native';
+import { StyleSheet, View, type ViewStyle, type StyleProp } from 'react-native';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface GlassCardProps {
     children: React.ReactNode;
     /** Style bổ sung / ghi đè */
-    style?: ViewStyle;
+    style?: StyleProp<ViewStyle>;
     /** Độ mờ nền (0-1). Mặc định 0.08 */
     backgroundOpacity?: number;
     /** Độ sáng viền (0-1). Mặc định 0.18 */

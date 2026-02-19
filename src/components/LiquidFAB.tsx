@@ -1,23 +1,57 @@
 /**
- * LiquidFAB.tsx — Floating Action Button phong cách Liquid Glass
- * Tròn, mờ, viền phát sáng nhẹ, giống VisionOS
+ * LiquidFAB.tsx — Floating Action Button (FAB)
+ * Redesigned: multi-layer glow, animated pulse, premium glass look
  */
 
 import React, { useEffect, useRef } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+    Animated,
+    Pressable,
+    StyleSheet,
+    View,
+    type ViewStyle,
+} from 'react-native';
+import { Plus } from 'lucide-react-native';
+
+// ─── Props ────────────────────────────────────────────────────────────────────
 
 interface LiquidFABProps {
     onPress: () => void;
-    icon?: string; // Emoji hoặc ký tự
+    style?: ViewStyle;
 }
 
-const LiquidFAB: React.FC<LiquidFABProps> = ({ onPress, icon = '＋' }) => {
+// ─── Component ────────────────────────────────────────────────────────────────
+
+const LiquidFAB: React.FC<LiquidFABProps> = ({ onPress, style }) => {
     const scale = useRef(new Animated.Value(1)).current;
+    const pulseAnim = useRef(new Animated.Value(1)).current;
+
+    // Subtle breathing pulse animation
+    useEffect(() => {
+        const pulse = Animated.loop(
+            Animated.sequence([
+                Animated.timing(pulseAnim, {
+                    toValue: 1.15,
+                    duration: 2000,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(pulseAnim, {
+                    toValue: 1,
+                    duration: 2000,
+                    useNativeDriver: true,
+                }),
+            ]),
+        );
+        pulse.start();
+        return () => pulse.stop();
+    }, [pulseAnim]);
 
     const handlePressIn = () => {
         Animated.spring(scale, {
-            toValue: 0.9,
+            toValue: 0.88,
             useNativeDriver: true,
+            friction: 5,
+            tension: 200,
         }).start();
     };
 
@@ -25,67 +59,124 @@ const LiquidFAB: React.FC<LiquidFABProps> = ({ onPress, icon = '＋' }) => {
         Animated.spring(scale, {
             toValue: 1,
             useNativeDriver: true,
+            friction: 4,
+            tension: 150,
         }).start();
     };
 
     return (
-        <Animated.View style={[styles.wrapper, { transform: [{ scale }] }]}>
-            <Pressable
-                onPress={onPress}
-                onPressIn={handlePressIn}
-                onPressOut={handlePressOut}
-                style={({ pressed }) => [
-                    styles.container,
-                    pressed && styles.pressed,
-                ]}>
-                {/* Glow layer */}
-                <View style={styles.glow} />
+        <View style={[styles.wrapper, style]}>
+            {/* Outer glow ring — breathing animation */}
+            <Animated.View
+                style={[
+                    styles.outerGlow,
+                    { transform: [{ scale: pulseAnim }] },
+                ]}
+            />
 
-                {/* Inner content */}
-                <Text style={styles.icon}>{icon}</Text>
-            </Pressable>
-        </Animated.View>
+            {/* Middle glow layer */}
+            <View style={styles.middleGlow} />
+
+            {/* Main button */}
+            <Animated.View style={[styles.buttonWrapper, { transform: [{ scale }] }]}>
+                <Pressable
+                    onPress={onPress}
+                    onPressIn={handlePressIn}
+                    onPressOut={handlePressOut}
+                    style={({ pressed }) => [
+                        styles.container,
+                        pressed && styles.pressed,
+                    ]}>
+                    {/* Inner gradient layers */}
+                    <View style={styles.innerGradient1} />
+                    <View style={styles.innerGradient2} />
+
+                    {/* Glass highlight — top edge */}
+                    <View style={styles.glassHighlight} />
+
+                    {/* Icon */}
+                    <Plus size={28} color="#FFFFFF" strokeWidth={2.5} />
+                </Pressable>
+            </Animated.View>
+        </View>
     );
 };
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
+const FAB_SIZE = 60;
+const OUTER_SIZE = FAB_SIZE + 20;
 
 const styles = StyleSheet.create({
     wrapper: {
         position: 'absolute',
         bottom: 24,
         right: 20,
-        zIndex: 999,
-        // Shadow (Glow effect)
-        shadowColor: '#a855f7',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.6,
-        shadowRadius: 16,
-        elevation: 8,
-    },
-    container: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        // Glass effect
-        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-        borderColor: 'rgba(255, 255, 255, 0.3)',
-        borderWidth: 1.5,
+        width: OUTER_SIZE,
+        height: OUTER_SIZE,
         alignItems: 'center',
         justifyContent: 'center',
+        zIndex: 999,
+    },
+    outerGlow: {
+        position: 'absolute',
+        width: OUTER_SIZE,
+        height: OUTER_SIZE,
+        borderRadius: OUTER_SIZE / 2,
+        backgroundColor: 'rgba(34, 211, 238, 0.08)',
+    },
+    middleGlow: {
+        position: 'absolute',
+        width: FAB_SIZE + 10,
+        height: FAB_SIZE + 10,
+        borderRadius: (FAB_SIZE + 10) / 2,
+        backgroundColor: 'rgba(34, 211, 238, 0.12)',
+    },
+    buttonWrapper: {
+        width: FAB_SIZE,
+        height: FAB_SIZE,
+    },
+    container: {
+        width: FAB_SIZE,
+        height: FAB_SIZE,
+        borderRadius: FAB_SIZE / 2,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(34, 211, 238, 0.25)',
+        borderWidth: 1.5,
+        borderColor: 'rgba(34, 211, 238, 0.45)',
         overflow: 'hidden',
+
+        // Shadow
+        shadowColor: '#22d3ee',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.4,
+        shadowRadius: 16,
+        elevation: 12,
     },
     pressed: {
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        backgroundColor: 'rgba(34, 211, 238, 0.35)',
     },
-    glow: {
+    innerGradient1: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(168, 85, 247, 0.1)', // Tím nhẹ
-        borderRadius: 32,
+        borderRadius: FAB_SIZE / 2,
+        backgroundColor: 'rgba(34, 211, 238, 0.15)',
+        top: -FAB_SIZE * 0.3,
+        height: FAB_SIZE * 0.6,
     },
-    icon: {
-        fontSize: 32,
-        color: '#FFFFFF',
-        fontWeight: '300',
-        lineHeight: 36, // Center vertically tweaks
+    innerGradient2: {
+        ...StyleSheet.absoluteFillObject,
+        borderRadius: FAB_SIZE / 2,
+        backgroundColor: 'rgba(6, 182, 212, 0.1)',
+    },
+    glassHighlight: {
+        position: 'absolute',
+        top: 2,
+        left: FAB_SIZE * 0.15,
+        right: FAB_SIZE * 0.15,
+        height: FAB_SIZE * 0.25,
+        borderRadius: FAB_SIZE * 0.2,
+        backgroundColor: 'rgba(255, 255, 255, 0.12)',
     },
 });
 

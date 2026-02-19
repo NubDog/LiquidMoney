@@ -1,60 +1,47 @@
 /**
  * WalletModal.tsx — Modal tạo / sửa ví
- * Dùng RN core Modal, safe-require cho image picker
+ * Dùng RN core Modal, animated overlay (fade), Icon Picker Grid
+ * Thay thế image picker bằng icon picker cho giao diện thống nhất
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     Alert,
-    Image,
+    Animated,
     Keyboard,
     KeyboardAvoidingView,
     Modal,
-    NativeModules,
     Platform,
     Pressable,
     ScrollView,
     StyleSheet,
     Text,
     TextInput,
-    TouchableWithoutFeedback,
     View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Sparkles, Pencil, X, Check } from 'lucide-react-native';
 import GlassCard from './GlassCard';
-import GlassButton from './GlassButton';
+import { WALLET_ICONS, DEFAULT_WALLET_ICON } from '../constants/walletIcons';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface WalletModalProps {
-    /** Hiện/ẩn modal */
     visible: boolean;
-    /** Callback đóng modal */
     onClose: () => void;
-    /** Callback khi lưu */
     onSave: (
         name: string,
         initialBalance: number,
         imageUri?: string | null,
+        icon?: string | null,
     ) => void;
-    /** Callback khi xóa (chỉ edit mode) */
     onDelete?: () => void;
-    /** Dữ liệu ví để sửa (nếu edit mode) */
     editData?: {
         name: string;
         initialBalance: number;
         imageUri: string | null;
+        icon: string | null;
     } | null;
-}
-
-// ─── Kiểm tra Image Picker ───────────────────────────────────────────────────
-
-function isImagePickerAvailable(): boolean {
-    // react-native-image-picker đăng ký native module "ImagePickerManager"
-    return (
-        NativeModules.ImagePickerManager != null ||
-        NativeModules.RNImagePicker != null
-    );
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -63,68 +50,70 @@ const WalletModal: React.FC<WalletModalProps> = ({
     visible,
     onClose,
     onSave,
-    onDelete,
     editData,
 }) => {
     const insets = useSafeAreaInsets();
     const isEdit = editData != null;
 
-    // ─── Form State ─────────────────────────────────────────────────────────────
+    // ─── Animation ──────────────────────────────────────────────────────────
+    const overlayOpacity = useRef(new Animated.Value(0)).current;
+    const sheetTranslateY = useRef(new Animated.Value(600)).current;
+
+    useEffect(() => {
+        if (visible) {
+            overlayOpacity.setValue(0);
+            sheetTranslateY.setValue(600);
+            Animated.parallel([
+                Animated.timing(overlayOpacity, {
+                    toValue: 1,
+                    duration: 300,
+                    useNativeDriver: true,
+                }),
+                Animated.spring(sheetTranslateY, {
+                    toValue: 0,
+                    friction: 10,
+                    tension: 65,
+                    useNativeDriver: true,
+                }),
+            ]).start();
+        }
+    }, [visible, overlayOpacity, sheetTranslateY]);
+
+    const handleClose = useCallback(() => {
+        Animated.parallel([
+            Animated.timing(overlayOpacity, {
+                toValue: 0,
+                duration: 200,
+                useNativeDriver: true,
+            }),
+            Animated.timing(sheetTranslateY, {
+                toValue: 600,
+                duration: 250,
+                useNativeDriver: true,
+            }),
+        ]).start(() => onClose());
+    }, [overlayOpacity, sheetTranslateY, onClose]);
+
+    // ─── Form State ─────────────────────────────────────────────────────────
     const [name, setName] = useState('');
     const [balanceText, setBalanceText] = useState('');
-    const [imageUri, setImageUri] = useState<string | null>(null);
-    const [hasImagePicker] = useState(isImagePickerAvailable);
+    const [selectedIcon, setSelectedIcon] = useState(DEFAULT_WALLET_ICON);
 
-    // Reset form khi mở modal
     useEffect(() => {
         if (visible) {
             if (editData) {
                 setName(editData.name);
                 setBalanceText(editData.initialBalance.toString());
-                setImageUri(editData.imageUri);
+                setSelectedIcon(editData.icon || DEFAULT_WALLET_ICON);
             } else {
                 setName('');
                 setBalanceText('');
-                setImageUri(null);
+                setSelectedIcon(DEFAULT_WALLET_ICON);
             }
         }
     }, [visible, editData]);
 
-    // ─── Image Picker ───────────────────────────────────────────────────────────
-
-    const pickImage = useCallback(() => {
-        if (!hasImagePicker) {
-            Alert.alert(
-                'Không khả dụng',
-                'Cần rebuild app để dùng tính năng chọn ảnh.',
-            );
-            return;
-        }
-
-        try {
-            const { launchImageLibrary } = require('react-native-image-picker');
-            launchImageLibrary(
-                {
-                    mediaType: 'photo',
-                    quality: 0.8,
-                    maxWidth: 800,
-                    maxHeight: 800,
-                },
-                (response: any) => {
-                    if (response.didCancel || response.errorCode) {
-                        return;
-                    }
-                    if (response.assets && response.assets.length > 0) {
-                        setImageUri(response.assets[0].uri || null);
-                    }
-                },
-            );
-        } catch (err) {
-            console.warn('[WalletModal] Image picker lỗi:', err);
-        }
-    }, [hasImagePicker]);
-
-    // ─── Save ───────────────────────────────────────────────────────────────────
+    // ─── Save ───────────────────────────────────────────────────────────────
 
     const handleSave = useCallback(() => {
         const trimmedName = name.trim();
@@ -134,99 +123,114 @@ const WalletModal: React.FC<WalletModalProps> = ({
         }
 
         const balance = parseInt(balanceText.replace(/\D/g, ''), 10) || 0;
-        onSave(trimmedName, balance, imageUri);
-        onClose();
-    }, [name, balanceText, imageUri, onSave, onClose]);
+        onSave(trimmedName, balance, null, selectedIcon);
+        handleClose();
+    }, [name, balanceText, selectedIcon, onSave, handleClose]);
 
-    // ─── Delete ─────────────────────────────────────────────────────────────────
-
-    const handleDelete = useCallback(() => {
-        Alert.alert('Xóa ví', `Bạn có chắc muốn xóa ví "${name}"?`, [
-            { text: 'Hủy', style: 'cancel' },
-            {
-                text: 'Xóa',
-                style: 'destructive',
-                onPress: () => {
-                    onDelete?.();
-                    onClose();
-                },
-            },
-        ]);
-    }, [name, onDelete, onClose]);
-
-    // ─── Format balance input ──────────────────────────────────────────────────
+    // ─── Format balance input ──────────────────────────────────────────────
 
     const handleBalanceChange = useCallback((text: string) => {
-        // Chỉ giữ số
         const numbersOnly = text.replace(/\D/g, '');
         setBalanceText(numbersOnly);
     }, []);
 
-    // Format hiển thị số dư
     const displayBalance = balanceText
         ? parseInt(balanceText, 10)
             .toString()
             .replace(/\B(?=(\d{3})+(?!\d))/g, '.')
         : '';
 
-    // ─── Render ─────────────────────────────────────────────────────────────────
+    // ─── Render ─────────────────────────────────────────────────────────────
 
     return (
         <Modal
             visible={visible}
-            animationType="slide"
+            animationType="none"
             transparent
             statusBarTranslucent
-            onRequestClose={onClose}>
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <View style={styles.overlay}>
-                    <KeyboardAvoidingView
-                        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                        style={styles.keyboardView}>
-                        <View
-                            style={[
-                                styles.modalContainer,
-                                { paddingBottom: insets.bottom + 16 },
-                            ]}>
+            onRequestClose={handleClose}>
+            <View style={styles.root}>
+                {/* Animated overlay — fade in/out */}
+                <Animated.View
+                    style={[
+                        StyleSheet.absoluteFill,
+                        styles.overlay,
+                        { opacity: overlayOpacity },
+                    ]}
+                />
+                <Pressable
+                    style={StyleSheet.absoluteFill}
+                    onPress={() => {
+                        Keyboard.dismiss();
+                        handleClose();
+                    }}
+                />
+
+                {/* Sheet — slides up */}
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    style={styles.keyboardView}
+                    pointerEvents="box-none">
+                    <Animated.View
+                        style={[
+                            styles.modalContainer,
+                            { paddingBottom: insets.bottom + 16 },
+                            { transform: [{ translateY: sheetTranslateY }] },
+                        ]}>
+                        <Pressable onPress={Keyboard.dismiss}>
                             <GlassCard
                                 style={styles.modalCard}
                                 backgroundOpacity={0.95}
-                                borderOpacity={0.25}
+                                borderOpacity={0.2}
                                 borderRadius={28}>
                                 <ScrollView
                                     showsVerticalScrollIndicator={false}
                                     keyboardShouldPersistTaps="handled">
                                     {/* Header */}
                                     <View style={styles.header}>
-                                        <Text style={styles.headerTitle}>
-                                            {isEdit ? '✏️ Sửa ví' : '✨ Tạo ví mới'}
-                                        </Text>
-                                        <Pressable onPress={onClose} style={styles.closeBtn}>
-                                            <Text style={styles.closeBtnText}>✕</Text>
+                                        <View style={styles.headerLeft}>
+                                            {isEdit ? (
+                                                <Pencil size={20} color="#22d3ee" strokeWidth={2} />
+                                            ) : (
+                                                <Sparkles size={20} color="#22d3ee" strokeWidth={2} />
+                                            )}
+                                            <Text style={styles.headerTitle}>
+                                                {isEdit ? 'Sửa ví' : 'Tạo ví mới'}
+                                            </Text>
+                                        </View>
+                                        <Pressable onPress={handleClose} style={styles.closeBtn}>
+                                            <X size={18} color="rgba(255,255,255,0.5)" strokeWidth={2} />
                                         </Pressable>
                                     </View>
 
-                                    {/* Ảnh bìa */}
-                                    <Pressable
-                                        onPress={pickImage}
-                                        style={styles.imagePickerArea}>
-                                        {imageUri ? (
-                                            <Image
-                                                source={{ uri: imageUri }}
-                                                style={styles.previewImage}
-                                                resizeMode="cover"
-                                            />
-                                        ) : (
-                                            <View style={styles.imagePlaceholder}>
-                                                <Text style={styles.imagePlaceholderEmoji}>🖼️</Text>
-                                                <Text style={styles.imagePlaceholderText}>
-                                                    {hasImagePicker
-                                                        ? 'Nhấn để chọn ảnh bìa'
-                                                        : 'Chọn ảnh (cần rebuild app)'}
-                                                </Text>
-                                            </View>
-                                        )}
-                                    </Pressable>
+                                    {/* ── Icon Picker ──────────────────────────── */}
+                                    <Text style={styles.label}>Chọn biểu tượng</Text>
+                                    <View style={styles.iconGrid}>
+                                        {WALLET_ICONS.map(item => {
+                                            const isSelected = selectedIcon === item.key;
+                                            const IconComp = item.icon;
+                                            return (
+                                                <Pressable
+                                                    key={item.key}
+                                                    style={[
+                                                        styles.iconCell,
+                                                        isSelected && styles.iconCellSelected,
+                                                    ]}
+                                                    onPress={() => setSelectedIcon(item.key)}>
+                                                    <IconComp
+                                                        size={26}
+                                                        color={isSelected ? '#22d3ee' : 'rgba(255,255,255,0.5)'}
+                                                        strokeWidth={isSelected ? 2 : 1.5}
+                                                    />
+                                                    {isSelected && (
+                                                        <View style={styles.iconCheck}>
+                                                            <Check size={10} color="#000" strokeWidth={3} />
+                                                        </View>
+                                                    )}
+                                                </Pressable>
+                                            );
+                                        })}
+                                    </View>
 
                                     {/* Input tên ví */}
                                     <Text style={styles.label}>Tên ví</Text>
@@ -238,6 +242,7 @@ const WalletModal: React.FC<WalletModalProps> = ({
                                         onChangeText={setName}
                                         maxLength={50}
                                         returnKeyType="next"
+                                        selectionColor="#22d3ee"
                                     />
 
                                     {/* Input số dư ban đầu */}
@@ -250,31 +255,31 @@ const WalletModal: React.FC<WalletModalProps> = ({
                                         onChangeText={handleBalanceChange}
                                         keyboardType="numeric"
                                         returnKeyType="done"
+                                        selectionColor="#22d3ee"
                                     />
 
                                     {/* Nút hành động */}
                                     <View style={styles.actions}>
-                                        <GlassButton
-                                            title={isEdit ? 'Cập nhật' : 'Tạo ví'}
+                                        <Pressable
                                             onPress={handleSave}
-                                            style={styles.saveBtn}
-                                        />
+                                            style={styles.saveBtn}>
+                                            <Text style={styles.saveBtnText}>
+                                                {isEdit ? 'Cập nhật' : 'Tạo ví'}
+                                            </Text>
+                                        </Pressable>
 
-                                        {isEdit && onDelete && (
-                                            <GlassButton
-                                                title="Xóa ví"
-                                                onPress={handleDelete}
-                                                variant="outline"
-                                                style={styles.deleteBtn}
-                                            />
-                                        )}
+                                        <Pressable
+                                            onPress={handleClose}
+                                            style={styles.cancelBtn}>
+                                            <Text style={styles.cancelBtnText}>Hủy</Text>
+                                        </Pressable>
                                     </View>
                                 </ScrollView>
                             </GlassCard>
-                        </View>
-                    </KeyboardAvoidingView>
-                </View>
-            </TouchableWithoutFeedback>
+                        </Pressable>
+                    </Animated.View>
+                </KeyboardAvoidingView>
+            </View>
         </Modal>
     );
 };
@@ -282,10 +287,11 @@ const WalletModal: React.FC<WalletModalProps> = ({
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-    overlay: {
+    root: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.6)',
-        justifyContent: 'flex-end',
+    },
+    overlay: {
+        backgroundColor: 'rgba(0, 0, 0, 0.55)',
     },
     keyboardView: {
         flex: 1,
@@ -295,8 +301,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
     },
     modalCard: {
-        backgroundColor: 'rgba(15, 5, 35, 0.95)',
-        maxHeight: '85%',
+        backgroundColor: 'rgba(18, 18, 22, 0.97)',
     },
     header: {
         flexDirection: 'row',
@@ -304,6 +309,11 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         padding: 20,
         paddingBottom: 8,
+    },
+    headerLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
     },
     headerTitle: {
         fontSize: 22,
@@ -315,57 +325,59 @@ const styles = StyleSheet.create({
         width: 36,
         height: 36,
         borderRadius: 18,
-        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        backgroundColor: 'rgba(255, 255, 255, 0.08)',
         alignItems: 'center',
         justifyContent: 'center',
     },
-    closeBtnText: {
-        color: 'rgba(255, 255, 255, 0.6)',
-        fontSize: 16,
-        fontWeight: '600',
+
+    // ── Icon Picker ──
+    iconGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        paddingHorizontal: 16,
+        gap: 8,
     },
-    imagePickerArea: {
-        marginHorizontal: 20,
-        marginTop: 12,
-        height: 140,
-        borderRadius: 16,
-        overflow: 'hidden',
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.12)',
-        borderStyle: 'dashed',
-    },
-    previewImage: {
-        width: '100%',
-        height: '100%',
-    },
-    imagePlaceholder: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
+    iconCell: {
+        width: 52,
+        height: 52,
+        borderRadius: 14,
         backgroundColor: 'rgba(255, 255, 255, 0.04)',
+        borderWidth: 1.5,
+        borderColor: 'rgba(255, 255, 255, 0.06)',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
-    imagePlaceholderEmoji: {
-        fontSize: 32,
-        marginBottom: 8,
+    iconCellSelected: {
+        backgroundColor: 'rgba(34, 211, 238, 0.12)',
+        borderColor: 'rgba(34, 211, 238, 0.5)',
     },
-    imagePlaceholderText: {
-        fontSize: 13,
-        color: 'rgba(255, 255, 255, 0.35)',
+    iconCheck: {
+        position: 'absolute',
+        top: -4,
+        right: -4,
+        width: 18,
+        height: 18,
+        borderRadius: 9,
+        backgroundColor: '#22d3ee',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
+
+    // ── Form ──
     label: {
         fontSize: 14,
         fontWeight: '600',
-        color: 'rgba(255, 255, 255, 0.6)',
+        color: 'rgba(255, 255, 255, 0.5)',
         marginHorizontal: 20,
         marginTop: 20,
-        marginBottom: 8,
+        marginBottom: 10,
     },
     input: {
         marginHorizontal: 20,
-        backgroundColor: 'rgba(255, 255, 255, 0.06)',
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
         borderRadius: 14,
         borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderColor: 'rgba(255, 255, 255, 0.08)',
         paddingHorizontal: 16,
         paddingVertical: 14,
         fontSize: 16,
@@ -377,11 +389,30 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     saveBtn: {
-        backgroundColor: 'rgba(74, 0, 224, 0.5)',
-        borderColor: 'rgba(123, 47, 255, 0.6)',
+        paddingVertical: 16,
+        borderRadius: 14,
+        backgroundColor: 'rgba(34, 211, 238, 0.2)',
+        borderWidth: 1,
+        borderColor: 'rgba(34, 211, 238, 0.4)',
+        alignItems: 'center',
     },
-    deleteBtn: {
-        borderColor: 'rgba(248, 113, 113, 0.4)',
+    saveBtnText: {
+        color: '#FFFFFF',
+        fontSize: 16,
+        fontWeight: '700',
+    },
+    cancelBtn: {
+        paddingVertical: 16,
+        borderRadius: 14,
+        backgroundColor: 'rgba(255, 255, 255, 0.04)',
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.08)',
+        alignItems: 'center',
+    },
+    cancelBtnText: {
+        color: 'rgba(255, 255, 255, 0.6)',
+        fontSize: 16,
+        fontWeight: '500',
     },
 });
 

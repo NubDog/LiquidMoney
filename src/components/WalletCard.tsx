@@ -1,6 +1,7 @@
 /**
  * WalletCard.tsx — Card hiển thị thông tin ví
  * Glassmorphism style, press animation (RN Animated)
+ * Hiển thị icon lucide từ DB thay vì emoji
  */
 
 import React, { useRef } from 'react';
@@ -13,6 +14,7 @@ import {
     View,
 } from 'react-native';
 import GlassCard from './GlassCard';
+import { getWalletIcon } from '../constants/walletIcons';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -25,6 +27,8 @@ interface WalletCardProps {
     initialBalance: number;
     /** URI ảnh bìa ví (nếu có) */
     imageUri?: string | null;
+    /** Icon key (lucide icon name) */
+    icon?: string | null;
     /** Ngày tạo (ISO string) */
     createdAt: string;
     /** Callback khi nhấn vào card */
@@ -64,6 +68,7 @@ const WalletCard: React.FC<WalletCardProps> = ({
     currentBalance,
     initialBalance,
     imageUri,
+    icon,
     createdAt,
     onPress,
     onLongPress,
@@ -93,6 +98,9 @@ const WalletCard: React.FC<WalletCardProps> = ({
     const diffColor = diff >= 0 ? '#4ADE80' : '#F87171'; // xanh lá / đỏ
     const diffSign = diff >= 0 ? '+' : '';
 
+    // Lấy icon component từ key
+    const IconComp = getWalletIcon(icon);
+
     return (
         <Animated.View style={{ transform: [{ scale }] }}>
             <Pressable
@@ -119,9 +127,15 @@ const WalletCard: React.FC<WalletCardProps> = ({
 
                     {/* Nội dung */}
                     <View style={styles.content}>
-                        {/* Row trên: Tên ví + Emoji */}
+                        {/* Row trên: Icon + Tên ví */}
                         <View style={styles.headerRow}>
-                            <Text style={styles.walletEmoji}>💳</Text>
+                            <View style={styles.iconContainer}>
+                                <IconComp
+                                    size={22}
+                                    color="#22d3ee"
+                                    strokeWidth={1.8}
+                                />
+                            </View>
                             <View style={styles.headerText}>
                                 <Text style={styles.walletName} numberOfLines={1}>
                                     {name}
@@ -173,8 +187,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 16,
     },
-    walletEmoji: {
-        fontSize: 28,
+    iconContainer: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        backgroundColor: 'rgba(34, 211, 238, 0.1)',
+        borderWidth: 1,
+        borderColor: 'rgba(34, 211, 238, 0.2)',
+        alignItems: 'center',
+        justifyContent: 'center',
         marginRight: 12,
     },
     headerText: {

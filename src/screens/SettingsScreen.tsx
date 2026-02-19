@@ -14,6 +14,16 @@ import {
     View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+    ChartPie,
+    Database,
+    HardDrive,
+    Info,
+    Upload,
+    Download,
+    CheckCircle2,
+    XCircle,
+} from 'lucide-react-native';
 import GlassCard from '../components/GlassCard';
 import GlassButton from '../components/GlassButton';
 import { useStore } from '../store/useStore';
@@ -128,7 +138,10 @@ const SettingsScreen: React.FC = () => {
                 borderOpacity={0.18}
                 borderRadius={20}>
                 <View style={styles.cardInner}>
-                    <Text style={styles.cardTitle}>📊 Tổng quan</Text>
+                    <View style={styles.cardHeader}>
+                        <ChartPie size={20} color="#C084FC" strokeWidth={2} />
+                        <Text style={styles.cardTitle}>Tổng quan</Text>
+                    </View>
 
                     <View style={styles.infoRow}>
                         <Text style={styles.infoLabel}>Số ví</Text>
@@ -151,36 +164,38 @@ const SettingsScreen: React.FC = () => {
 
                     <View style={styles.infoRow}>
                         <Text style={styles.infoLabel}>Database</Text>
-                        <Text
-                            style={[
-                                styles.infoValue,
-                                {
-                                    color: dbAvailable
-                                        ? '#4ade80'
-                                        : '#f87171',
-                                },
-                            ]}>
-                            {dbAvailable ? '✅ Hoạt động' : '❌ Chưa sẵn sàng'}
-                        </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                            {dbAvailable ? (
+                                <>
+                                    <CheckCircle2 size={16} color="#4ade80" />
+                                    <Text style={{ color: '#4ade80', fontWeight: '600' }}>Hoạt động</Text>
+                                </>
+                            ) : (
+                                <>
+                                    <XCircle size={16} color="#f87171" />
+                                    <Text style={{ color: '#f87171', fontWeight: '600' }}>Chưa sẵn sàng</Text>
+                                </>
+                            )}
+                        </View>
                     </View>
 
                     <View style={styles.divider} />
 
                     <View style={styles.infoRow}>
                         <Text style={styles.infoLabel}>Backup</Text>
-                        <Text
-                            style={[
-                                styles.infoValue,
-                                {
-                                    color: backupAvailable
-                                        ? '#4ade80'
-                                        : '#f87171',
-                                },
-                            ]}>
-                            {backupAvailable
-                                ? '✅ Sẵn sàng'
-                                : '❌ Cần rebuild'}
-                        </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                            {backupAvailable ? (
+                                <>
+                                    <CheckCircle2 size={16} color="#4ade80" />
+                                    <Text style={{ color: '#4ade80', fontWeight: '600' }}>Sẵn sàng</Text>
+                                </>
+                            ) : (
+                                <>
+                                    <XCircle size={16} color="#f87171" />
+                                    <Text style={{ color: '#f87171', fontWeight: '600' }}>Cần rebuild</Text>
+                                </>
+                            )}
+                        </View>
                     </View>
                 </View>
             </GlassCard>
@@ -192,25 +207,35 @@ const SettingsScreen: React.FC = () => {
                 borderOpacity={0.18}
                 borderRadius={20}>
                 <View style={styles.cardInner}>
-                    <Text style={styles.cardTitle}>💾 Sao lưu & Phục hồi</Text>
+                    <View style={styles.cardHeader}>
+                        <HardDrive size={20} color="#C084FC" strokeWidth={2} />
+                        <Text style={styles.cardTitle}>Sao lưu & Phục hồi</Text>
+                    </View>
                     <Text style={styles.cardDesc}>
                         Xuất toàn bộ ví + giao dịch ra file JSON. Nhập lại khi
                         cần.
                     </Text>
 
+                    {/* Button Group (Closing cardInner from line 209) */}
                     <View style={styles.buttonGroup}>
                         <GlassButton
-                            title={exporting ? 'Đang xuất...' : '📤 Xuất dữ liệu'}
                             onPress={handleExport}
-                            disabled={exporting || !dbAvailable}
-                        />
+                            disabled={exporting || !dbAvailable}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                <Upload size={18} color="#FFF" />
+                                <Text style={styles.btnText}>{exporting ? 'Đang xuất...' : 'Xuất dữ liệu'}</Text>
+                            </View>
+                        </GlassButton>
 
                         <GlassButton
-                            title={importing ? 'Đang nhập...' : '📥 Nhập dữ liệu'}
                             onPress={handleImport}
                             variant="outline"
-                            disabled={importing || !dbAvailable}
-                        />
+                            disabled={importing || !dbAvailable}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                <Download size={18} color="#FFF" />
+                                <Text style={styles.btnText}>{importing ? 'Đang nhập...' : 'Nhập dữ liệu'}</Text>
+                            </View>
+                        </GlassButton>
                     </View>
                 </View>
             </GlassCard>
@@ -222,7 +247,10 @@ const SettingsScreen: React.FC = () => {
                 borderOpacity={0.12}
                 borderRadius={20}>
                 <View style={styles.cardInner}>
-                    <Text style={styles.cardTitle}>ℹ️ Về ứng dụng</Text>
+                    <View style={styles.cardHeader}>
+                        <Info size={20} color="#C084FC" strokeWidth={2} />
+                        <Text style={styles.cardTitle}>Về ứng dụng</Text>
+                    </View>
 
                     <View style={styles.infoRow}>
                         <Text style={styles.infoLabel}>Phiên bản</Text>
@@ -273,6 +301,11 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '700',
         color: '#FFFFFF',
+    },
+    cardHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
         marginBottom: 12,
     },
     cardDesc: {
@@ -312,6 +345,11 @@ const styles = StyleSheet.create({
     // ── Buttons ──
     buttonGroup: {
         gap: 12,
+    },
+    btnText: {
+        color: '#FFF',
+        fontSize: 16,
+        fontWeight: '600',
     },
 });
 

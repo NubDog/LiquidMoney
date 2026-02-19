@@ -63,9 +63,17 @@ export function initDatabase(): boolean {
       initial_balance INTEGER NOT NULL DEFAULT 0,
       current_balance INTEGER NOT NULL DEFAULT 0,
       image_uri TEXT,
+      icon TEXT DEFAULT 'Wallet',
       created_at TEXT NOT NULL
     );
   `);
+
+    // Migration: thêm cột icon cho DB cũ (idempotent)
+    try {
+        db.execute("ALTER TABLE wallets ADD COLUMN icon TEXT DEFAULT 'Wallet';");
+    } catch (_e) {
+        // Cột đã tồn tại — bỏ qua
+    }
 
     // Tạo bảng transactions với FK cascade delete
     db.execute(`

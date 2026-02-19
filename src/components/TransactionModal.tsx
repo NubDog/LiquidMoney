@@ -1,11 +1,13 @@
 /**
  * TransactionModal.tsx — Modal tạo / sửa giao dịch
  * Dùng RN core Modal + SegmentedControl cho toggle IN/OUT
+ * Animated overlay (fade in/out) + sheet (slide up/down)
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     Alert,
+    Animated,
     Keyboard,
     KeyboardAvoidingView,
     Modal,
@@ -15,13 +17,13 @@ import {
     StyleSheet,
     Text,
     TextInput,
-    TouchableWithoutFeedback,
     View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GlassCard from './GlassCard';
 import GlassButton from './GlassButton';
 import SegmentedControl from './SegmentedControl';
+import { Pencil, FilePlus2, X } from 'lucide-react-native';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -43,7 +45,7 @@ interface TransactionModalProps {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const SEGMENTS = ['💰 Thu', '💸 Chi'];
+const SEGMENTS = ['Thu', 'Chi'];
 
 function typeToIndex(type: 'IN' | 'OUT'): number {
     return type === 'IN' ? 0 : 1;
@@ -65,12 +67,50 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
     const insets = useSafeAreaInsets();
     const isEdit = editData != null;
 
+    // ─── Animation ──────────────────────────────────────────────────────────
+    const overlayOpacity = useRef(new Animated.Value(0)).current;
+    const sheetTranslateY = useRef(new Animated.Value(400)).current;
+
+    useEffect(() => {
+        if (visible) {
+            overlayOpacity.setValue(0);
+            sheetTranslateY.setValue(400);
+            Animated.parallel([
+                Animated.timing(overlayOpacity, {
+                    toValue: 1,
+                    duration: 300,
+                    useNativeDriver: true,
+                }),
+                Animated.spring(sheetTranslateY, {
+                    toValue: 0,
+                    friction: 10,
+                    tension: 65,
+                    useNativeDriver: true,
+                }),
+            ]).start();
+        }
+    }, [visible, overlayOpacity, sheetTranslateY]);
+
+    const handleClose = useCallback(() => {
+        Animated.parallel([
+            Animated.timing(overlayOpacity, {
+                toValue: 0,
+                duration: 200,
+                useNativeDriver: true,
+            }),
+            Animated.timing(sheetTranslateY, {
+                toValue: 400,
+                duration: 250,
+                useNativeDriver: true,
+            }),
+        ]).start(() => onClose());
+    }, [overlayOpacity, sheetTranslateY, onClose]);
+
     // ─── Form State ─────────────────────────────────────────────────────────
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [amountText, setAmountText] = useState('');
     const [reason, setReason] = useState('');
 
-    // Reset form khi mở modal
     useEffect(() => {
         if (visible) {
             if (editData) {
@@ -107,8 +147,8 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
 
         const type = indexToType(selectedIndex);
         onSave(type, amount, reason.trim() || null);
-        onClose();
-    }, [amountText, selectedIndex, reason, onSave, onClose]);
+        handleClose();
+    }, [amountText, selectedIndex, reason, onSave, handleClose]);
 
     const handleDelete = useCallback(() => {
         Alert.alert('Xóa giao dịch', 'Bạn có chắc muốn xóa giao dịch này?', [
@@ -118,11 +158,11 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                 style: 'destructive',
                 onPress: () => {
                     onDelete?.();
-                    onClose();
+                    handleClose();
                 },
             },
         ]);
-    }, [onDelete, onClose]);
+    }, [onDelete, handleClose]);
 
     // ─── Render ─────────────────────────────────────────────────────────────
 
@@ -135,41 +175,65 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
     return (
         <Modal
             visible={visible}
-            animationType="slide"
+            animationType="none"
             transparent
             statusBarTranslucent
-            onRequestClose={onClose}>
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <View style={styles.overlay}>
-                    <KeyboardAvoidingView
-                        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                        style={styles.keyboardView}>
-                        <View
-                            style={[
-                                styles.modalContainer,
-                                { paddingBottom: insets.bottom + 16 },
-                            ]}>
+            onRequestClose={handleClose}>
+            <View style={styles.root}>
+                {/* Animated overlay */}
+                <Animated.View
+                    style={[
+                        StyleSheet.absoluteFill,
+                        styles.overlay,
+                        { opacity: overlayOpacity },
+                    ]}
+                />
+                <Pressable
+                    style={StyleSheet.absoluteFill}
+                    onPress={() => {
+                        Keyboard.dismiss();
+                        handleClose();
+                    }}
+                />
+
+                {/* Sheet */}
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    style={styles.keyboardView}
+                    pointerEvents="box-none">
+                    <Animated.View
+                        style={[
+                            styles.modalContainer,
+                            { paddingBottom: insets.bottom + 16 },
+                            { transform: [{ translateY: sheetTranslateY }] },
+                        ]}>
+                        <Pressable onPress={Keyboard.dismiss}>
                             <GlassCard
                                 style={styles.modalCard}
                                 backgroundOpacity={0.95}
-                                borderOpacity={0.25}
+                                borderOpacity={0.2}
                                 borderRadius={28}>
                                 <ScrollView
                                     showsVerticalScrollIndicator={false}
                                     keyboardShouldPersistTaps="handled">
                                     {/* Header */}
                                     <View style={styles.header}>
-                                        <Text style={styles.headerTitle}>
-                                            {isEdit
-                                                ? '✏️ Sửa giao dịch'
-                                                : '📝 Giao dịch mới'}
-                                        </Text>
-                                        <Pressable
-                                            onPress={onClose}
-                                            style={styles.closeBtn}>
-                                            <Text style={styles.closeBtnText}>
-                                                ✕
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                                            {isEdit ? (
+                                                <Pencil size={20} color="#22d3ee" strokeWidth={2} />
+                                            ) : (
+                                                <FilePlus2 size={20} color="#22d3ee" strokeWidth={2} />
+                                            )}
+                                            <Text style={styles.headerTitle}>
+                                                {isEdit
+                                                    ? 'Sửa giao dịch'
+                                                    : 'Giao dịch mới'}
                                             </Text>
+                                        </View>
+                                        <Pressable
+                                            onPress={handleClose}
+                                            style={styles.closeBtn}>
+                                            <X size={18} color="rgba(255,255,255,0.5)" strokeWidth={2} />
                                         </Pressable>
                                     </View>
 
@@ -240,10 +304,10 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                                     </View>
                                 </ScrollView>
                             </GlassCard>
-                        </View>
-                    </KeyboardAvoidingView>
-                </View>
-            </TouchableWithoutFeedback>
+                        </Pressable>
+                    </Animated.View>
+                </KeyboardAvoidingView>
+            </View>
         </Modal>
     );
 };
@@ -251,10 +315,11 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-    overlay: {
+    root: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.6)',
-        justifyContent: 'flex-end',
+    },
+    overlay: {
+        backgroundColor: 'rgba(0, 0, 0, 0.55)',
     },
     keyboardView: {
         flex: 1,
@@ -264,7 +329,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
     },
     modalCard: {
-        backgroundColor: 'rgba(15, 5, 35, 0.95)',
+        backgroundColor: 'rgba(18, 18, 22, 0.97)',
         maxHeight: '85%',
     },
     header: {
@@ -284,12 +349,12 @@ const styles = StyleSheet.create({
         width: 36,
         height: 36,
         borderRadius: 18,
-        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        backgroundColor: 'rgba(255, 255, 255, 0.08)',
         alignItems: 'center',
         justifyContent: 'center',
     },
     closeBtnText: {
-        color: 'rgba(255, 255, 255, 0.6)',
+        color: 'rgba(255, 255, 255, 0.5)',
         fontSize: 16,
         fontWeight: '600',
     },
@@ -300,17 +365,17 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 14,
         fontWeight: '600',
-        color: 'rgba(255, 255, 255, 0.6)',
+        color: 'rgba(255, 255, 255, 0.5)',
         marginHorizontal: 20,
         marginTop: 20,
         marginBottom: 8,
     },
     input: {
         marginHorizontal: 20,
-        backgroundColor: 'rgba(255, 255, 255, 0.06)',
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
         borderRadius: 14,
         borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderColor: 'rgba(255, 255, 255, 0.08)',
         paddingHorizontal: 16,
         paddingVertical: 14,
         fontSize: 16,
@@ -331,7 +396,7 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     deleteBtn: {
-        borderColor: 'rgba(248, 113, 113, 0.4)',
+        borderColor: 'rgba(248, 113, 113, 0.35)',
     },
 });
 

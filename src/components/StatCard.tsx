@@ -1,11 +1,13 @@
 /**
  * StatCard.tsx — Card thống kê tổng quan thu/chi
  * Glassmorphism style, hiển thị tổng thu, tổng chi, số giao dịch
+ * Dùng lucide-react-native thay vì emoji
  */
 
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import GlassCard from './GlassCard';
+import { ArrowDownLeft, ArrowUpRight } from 'lucide-react-native';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -38,7 +40,7 @@ const StatCard: React.FC<StatCardProps> = ({ totalIn, totalOut, txCount }) => {
                 <View style={styles.row}>
                     <View style={styles.statCol}>
                         <View style={styles.iconRow}>
-                            <Text style={styles.emoji}>💰</Text>
+                            <ArrowDownLeft size={16} color="#4ade80" strokeWidth={2} />
                             <Text style={styles.label}>Tổng thu</Text>
                         </View>
                         <Text style={[styles.value, { color: '#4ade80' }]}>
@@ -50,7 +52,7 @@ const StatCard: React.FC<StatCardProps> = ({ totalIn, totalOut, txCount }) => {
 
                     <View style={styles.statCol}>
                         <View style={styles.iconRow}>
-                            <Text style={styles.emoji}>💸</Text>
+                            <ArrowUpRight size={16} color="#f87171" strokeWidth={2} />
                             <Text style={styles.label}>Tổng chi</Text>
                         </View>
                         <Text style={[styles.value, { color: '#f87171' }]}>
@@ -106,9 +108,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         gap: 6,
         marginBottom: 6,
-    },
-    emoji: {
-        fontSize: 16,
     },
     label: {
         fontSize: 13,
