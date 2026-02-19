@@ -338,6 +338,133 @@ export function recalculateBalance(walletId: string): void {
     ]);
 }
 
+// ─── STATISTICS ───────────────────────────────────────────────────────────────
+
+export interface MonthlyStat {
+    /** Tháng dạng 'YYYY-MM' */
+    month: string;
+    /** Tổng thu trong tháng */
+    totalIn: number;
+    /** Tổng chi trong tháng */
+    totalOut: number;
+}
+
+export interface OverallStat {
+    totalIn: number;
+    totalOut: number;
+    txCount: number;
+}
+
+/**
+ * Lấy thống kê thu/chi theo tháng (6 tháng gần nhất)
+ * @param walletId - ID ví cụ thể, hoặc undefined = tất cả ví
+ */
+export function getMonthlyStats(walletId?: string): MonthlyStat[] {
+    const db = getDatabase();
+
+    // Tạo danh sách 6 tháng gần nhất
+    const months: string[] = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        months.push(`${d.getFullYear()}-${m}`);
+    }
+
+    const stats: MonthlyStat[] = months.map(month => {
+        const startDate = `${month}-01T00:00:00.000Z`;
+        // Tính ngày đầu tháng tiếp theo
+        const [y, m] = month.split('-').map(Number);
+        const nextMonth = new Date(y, m, 1);
+        const endDate = nextMonth.toISOString();
+
+        let query: string;
+        let params: any[];
+
+        if (walletId) {
+            query = `SELECT type, COALESCE(SUM(amount), 0) as total
+                     FROM transactions
+                     WHERE wallet_id = ? AND created_at >= ? AND created_at < ?
+                     GROUP BY type;`;
+            params = [walletId, startDate, endDate];
+        } else {
+            query = `SELECT type, COALESCE(SUM(amount), 0) as total
+                     FROM transactions
+                     WHERE created_at >= ? AND created_at < ?
+                     GROUP BY type;`;
+            params = [startDate, endDate];
+        }
+
+        const result = db.execute(query, params);
+        const rows = extractRows<{ type: 'IN' | 'OUT'; total: number }>(result);
+
+        let totalIn = 0;
+        let totalOut = 0;
+        for (const row of rows) {
+            if (row.type === 'IN') { totalIn = row.total; }
+            if (row.type === 'OUT') { totalOut = row.total; }
+        }
+
+        return { month, totalIn, totalOut };
+    });
+
+    return stats;
+}
+
+/**
+ * Lấy tổng quan thu/chi toàn bộ
+ * @param walletId - ID ví cụ thể, hoặc undefined = tất cả ví
+ */
+export function getOverallStats(walletId?: string): OverallStat {
+    const db = getDatabase();
+
+    let query: string;
+    let countQuery: string;
+    let params: any[] = [];
+
+    if (walletId) {
+        query = `SELECT type, COALESCE(SUM(amount), 0) as total
+                 FROM transactions
+                 WHERE wallet_id = ?
+                 GROUP BY type;`;
+        countQuery = `SELECT COUNT(*) as cnt FROM transactions WHERE wallet_id = ?;`;
+        params = [walletId];
+    } else {
+        query = `SELECT type, COALESCE(SUM(amount), 0) as total
+                 FROM transactions
+                 GROUP BY type;`;
+        countQuery = `SELECT COUNT(*) as cnt FROM transactions;`;
+    }
+
+    const result = db.execute(query, params);
+    const rows = extractRows<{ type: 'IN' | 'OUT'; total: number }>(result);
+
+    let totalIn = 0;
+    let totalOut = 0;
+    for (const row of rows) {
+        if (row.type === 'IN') { totalIn = row.total; }
+        if (row.type === 'OUT') { totalOut = row.total; }
+    }
+
+    const countResult = db.execute(countQuery, params);
+    const countRows = extractRows<{ cnt: number }>(countResult);
+    const txCount = countRows.length > 0 ? countRows[0].cnt : 0;
+
+    return { totalIn, totalOut, txCount };
+}
+
+/**
+ * Lấy N giao dịch gần nhất (tất cả ví)
+ */
+export function getRecentTransactions(limit: number = 10): Transaction[] {
+    const db = getDatabase();
+    const result = db.execute(
+        `SELECT * FROM transactions ORDER BY created_at DESC LIMIT ?;`,
+        [limit],
+    );
+    return extractRows<Transaction>(result);
+}
+
 // ─── EXPORT / IMPORT ──────────────────────────────────────────────────────────
 
 /**

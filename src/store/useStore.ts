@@ -11,7 +11,8 @@ import React, {
     useMemo,
     useState,
 } from 'react';
-import { initDatabase } from '../database/db';
+import { Alert } from 'react-native';
+import { initDatabase, isDatabaseAvailable } from '../database/db';
 import {
     getAllWallets,
     getWalletById,
@@ -134,6 +135,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
     // ─── Wallet Actions ───────────────────────────────────────────────────────
 
     const refreshWallets = useCallback(() => {
+        if (!isDatabaseAvailable()) {
+            return;
+        }
         try {
             setLoading(true);
             const allWallets = getAllWallets();
@@ -147,6 +151,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
 
     const addWallet = useCallback(
         (name: string, initialBalance: number, imageUri?: string | null) => {
+            if (!isDatabaseAvailable()) {
+                Alert.alert(
+                    'Database chưa sẵn sàng',
+                    'Cần rebuild native app để sử dụng tính năng này.\nnpx react-native run-android',
+                );
+                return;
+            }
             try {
                 dbCreateWallet(name, initialBalance, imageUri);
                 refreshWallets();
@@ -164,10 +175,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
             initialBalance: number,
             imageUri?: string | null,
         ) => {
+            if (!isDatabaseAvailable()) {
+                Alert.alert('Database chưa sẵn sàng', 'Cần rebuild native app.');
+                return;
+            }
             try {
                 dbUpdateWallet(id, name, initialBalance, imageUri);
                 refreshWallets();
-                // Cập nhật currentWallet nếu đang xem ví này
                 if (currentWallet?.id === id) {
                     const updated = getWalletById(id);
                     setCurrentWallet(updated);
@@ -181,6 +195,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
 
     const removeWallet = useCallback(
         (id: string) => {
+            if (!isDatabaseAvailable()) {
+                Alert.alert('Database chưa sẵn sàng', 'Cần rebuild native app.');
+                return;
+            }
             try {
                 dbDeleteWallet(id);
                 refreshWallets();
@@ -212,14 +230,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
 
     const refreshTransactions = useCallback(
         (walletId: string, filterType?: 'IN' | 'OUT') => {
+            if (!isDatabaseAvailable()) {
+                return;
+            }
             try {
                 setLoading(true);
                 const txns = getTransactionsByWallet(walletId, filterType);
                 setTransactions(txns);
-                // Cập nhật currentWallet (số dư có thể đã thay đổi)
                 const wallet = getWalletById(walletId);
                 setCurrentWallet(wallet);
-                // Cập nhật danh sách wallets (số dư hiển thị ở HomeScreen)
                 const allWallets = getAllWallets();
                 setWallets(allWallets);
             } catch (err) {
@@ -239,6 +258,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
             reason?: string | null,
             imageUri?: string | null,
         ) => {
+            if (!isDatabaseAvailable()) {
+                Alert.alert('Database chưa sẵn sàng', 'Cần rebuild native app.');
+                return;
+            }
             try {
                 dbCreateTransaction(walletId, type, amount, reason, imageUri);
                 refreshTransactions(walletId);
@@ -258,6 +281,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
             reason?: string | null,
             imageUri?: string | null,
         ) => {
+            if (!isDatabaseAvailable()) {
+                Alert.alert('Database chưa sẵn sàng', 'Cần rebuild native app.');
+                return;
+            }
             try {
                 dbUpdateTransaction(id, walletId, type, amount, reason, imageUri);
                 refreshTransactions(walletId);
@@ -270,6 +297,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
 
     const removeTransaction = useCallback(
         (id: string, walletId: string) => {
+            if (!isDatabaseAvailable()) {
+                Alert.alert('Database chưa sẵn sàng', 'Cần rebuild native app.');
+                return;
+            }
             try {
                 dbDeleteTransaction(id);
                 refreshTransactions(walletId);

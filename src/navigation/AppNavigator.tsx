@@ -19,11 +19,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MeshBackground from '../components/MeshBackground';
 import HomeScreen from '../screens/HomeScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+import StatsScreen from '../screens/StatsScreen';
 import WalletDetailScreen from '../screens/WalletDetailScreen';
 
 // ─── Tab Type ─────────────────────────────────────────────────────────────────
 
-type TabName = 'home' | 'settings';
+type TabName = 'home' | 'stats' | 'settings';
 
 interface TabConfig {
     key: TabName;
@@ -33,6 +34,7 @@ interface TabConfig {
 
 const TABS: TabConfig[] = [
     { key: 'home', label: 'Ví tiền', emoji: '🏠' },
+    { key: 'stats', label: 'Thống kê', emoji: '📊' },
     { key: 'settings', label: 'Cài đặt', emoji: '⚙️' },
 ];
 
@@ -79,6 +81,7 @@ const AppNavigator: React.FC = () => {
                         {activeTab === 'home' && (
                             <HomeScreen onNavigateToWallet={navigateToWallet} />
                         )}
+                        {activeTab === 'stats' && <StatsScreen />}
                         {activeTab === 'settings' && <SettingsScreen />}
                     </View>
 
