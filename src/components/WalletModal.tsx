@@ -168,8 +168,9 @@ const WalletModal: React.FC<WalletModalProps> = ({
 
                 {/* Sheet — slides up */}
                 <KeyboardAvoidingView
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                     style={styles.keyboardView}
+                    keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
                     pointerEvents="box-none">
                     <Animated.View
                         style={[
@@ -177,7 +178,7 @@ const WalletModal: React.FC<WalletModalProps> = ({
                             { paddingBottom: insets.bottom + 16 },
                             { transform: [{ translateY: sheetTranslateY }] },
                         ]}>
-                        <Pressable onPress={Keyboard.dismiss}>
+                        <View>
                             <GlassCard
                                 style={styles.modalCard}
                                 backgroundOpacity={0.95}
@@ -276,7 +277,7 @@ const WalletModal: React.FC<WalletModalProps> = ({
                                     </View>
                                 </ScrollView>
                             </GlassCard>
-                        </Pressable>
+                        </View>
                     </Animated.View>
                 </KeyboardAvoidingView>
             </View>

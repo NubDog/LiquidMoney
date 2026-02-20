@@ -4,7 +4,7 @@
  * Hỗ trợ: 3-dot menu (Sửa ví / Xóa ví) + animated popup + custom confirm
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Animated,
     Dimensions,
@@ -22,7 +22,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GlassCard from '../components/GlassCard';
 import GlassButton from '../components/GlassButton';
-import SegmentedControl from '../components/SegmentedControl';
+import TransactionFilterBar from '../components/TransactionFilterBar';
 import TransactionModal from '../components/TransactionModal';
 import TransactionDetailScreen from './TransactionDetailScreen';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -555,7 +555,7 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
         [handleViewTransaction],
     );
 
-    const ListHeader = useCallback(
+    const listHeader = useMemo(
         () => (
             <View>
                 <GlassCard
@@ -596,7 +596,7 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
                 </GlassCard>
 
                 <View style={styles.filterWrapper}>
-                    <SegmentedControl
+                    <TransactionFilterBar
                         segments={FILTER_SEGMENTS}
                         selectedIndex={filterIndex}
                         onChange={setFilterIndex}
@@ -662,7 +662,7 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
                 data={transactions}
                 keyExtractor={item => item.id}
                 renderItem={renderItem}
-                ListHeaderComponent={ListHeader}
+                ListHeaderComponent={listHeader}
                 ListEmptyComponent={ListEmpty}
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}

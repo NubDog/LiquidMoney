@@ -4,14 +4,15 @@
  */
 
 import React from 'react';
-import { StatusBar, View } from 'react-native';
+import { StatusBar } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StoreProvider } from './src/store/useStore';
 import AppNavigator from './src/navigation/AppNavigator';
 
 function App(): React.JSX.Element {
   return (
-    <View style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <StoreProvider>
           <StatusBar
@@ -22,7 +23,7 @@ function App(): React.JSX.Element {
           <AppNavigator />
         </StoreProvider>
       </SafeAreaProvider>
-    </View>
+    </GestureHandlerRootView>
   );
 }
 
