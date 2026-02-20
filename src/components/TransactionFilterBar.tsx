@@ -41,7 +41,7 @@ interface TransactionFilterBarProps {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const DEFAULT_SEGMENTS = ['Tất cả', 'Thu', 'Chi'];
-const CONTAINER_PADDING = 4;
+const CONTAINER_PADDING = 6;
 const INDICATOR_BORDER_RADIUS = 22;
 const CONTAINER_BORDER_RADIUS = 26;
 

@@ -40,16 +40,6 @@ const GlassCard: React.FC<GlassCardProps> = ({
                 },
                 style,
             ]}>
-            {/* Viền sáng phía trên — tạo chiều sâu kính */}
-            <View
-                style={[
-                    styles.topHighlight,
-                    {
-                        borderTopLeftRadius: borderRadius,
-                        borderTopRightRadius: borderRadius,
-                    },
-                ]}
-            />
             {children}
         </View>
     );
@@ -67,14 +57,6 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 16,
         elevation: 8,
-    },
-    topHighlight: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: 1,
-        backgroundColor: 'rgba(255, 255, 255, 0.25)',
     },
 });
 

@@ -776,6 +776,7 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#FFFFFF',
         marginHorizontal: 20,
+        marginTop: 16,
     },
     balanceLabel: {
         fontSize: 13,
