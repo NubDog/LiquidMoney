@@ -25,6 +25,7 @@ import Animated, {
     withSpring,
     Easing,
     withSequence,
+    SharedValue,
 } from 'react-native-reanimated';
 import { Plus } from 'lucide-react-native';
 
@@ -45,7 +46,7 @@ const LiquidFAB: React.FC<LiquidFABProps> = ({ onPress, style }) => {
 
     useEffect(() => {
         // Hàm tạo nhịp đập lấp lánh ngẫu nhiên
-        const twinkle = (sv: Animated.SharedValue<number>, duration: number) => {
+        const twinkle = (sv: SharedValue<number>, duration: number) => {
             sv.value = withRepeat(
                 withSequence(
                     withTiming(0.85, { duration, easing: Easing.inOut(Easing.ease) }),

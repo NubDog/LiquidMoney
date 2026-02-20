@@ -14,6 +14,7 @@ import {
     StyleSheet,
     View,
     type LayoutChangeEvent,
+    Pressable,
 } from 'react-native';
 import Animated, {
     interpolateColor,
@@ -96,16 +97,8 @@ const TabLabel: React.FC<TabLabelProps> = React.memo(
             return { transform: [{ scale }] };
         });
 
-        // Gesture.Tap — phản hồi tức thì, không delay
-        const tapGesture = Gesture.Tap()
-            .maxDuration(250)
-            .onEnd(() => {
-                'worklet';
-                runOnJS(onTap)(index);
-            });
-
         return (
-            <GestureDetector gesture={tapGesture}>
+            <Pressable onPress={() => onTap(index)}>
                 <Animated.View
                     style={[
                         localStyles.tabHitArea,
@@ -118,7 +111,7 @@ const TabLabel: React.FC<TabLabelProps> = React.memo(
                         {label}
                     </Animated.Text>
                 </Animated.View>
-            </GestureDetector>
+            </Pressable>
         );
     },
 );

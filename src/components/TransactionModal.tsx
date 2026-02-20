@@ -25,7 +25,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import GlassCard from './GlassCard';
 import GlassButton from './GlassButton';
-import SegmentedControl from './SegmentedControl';
+import TransactionFilterBar from './TransactionFilterBar';
+import { BlurView } from '@react-native-community/blur';
 import { Pencil, FilePlus2, X, Camera, ImagePlus, Trash2 } from 'lucide-react-native';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -277,7 +278,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
 
                                     {/* Toggle IN / OUT */}
                                     <View style={styles.segmentWrapper}>
-                                        <SegmentedControl
+                                        <TransactionFilterBar
                                             segments={SEGMENTS}
                                             selectedIndex={selectedIndex}
                                             onChange={setSelectedIndex}
@@ -352,16 +353,35 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
 
                                     {/* Nút hành động */}
                                     <View style={styles.actions}>
-                                        <GlassButton
-                                            title={
-                                                isEdit ? 'Cập nhật' : 'Thêm giao dịch'
-                                            }
+                                        <Pressable
                                             onPress={handleSave}
-                                            style={{
-                                                backgroundColor: accentColor,
-                                                borderColor: accentBorder,
-                                            }}
-                                        />
+                                            style={({ pressed }) => [
+                                                styles.liquidBtn,
+                                                { transform: [{ scale: pressed ? 0.95 : 1 }] },
+                                            ]}>
+                                            <View style={[StyleSheet.absoluteFill, styles.liquidBtnOverflow]}>
+                                                {Platform.OS === 'ios' ? (
+                                                    <BlurView
+                                                        style={StyleSheet.absoluteFill}
+                                                        blurType="dark"
+                                                        blurAmount={20}
+                                                        reducedTransparencyFallbackColor="#111"
+                                                    />
+                                                ) : null}
+                                                <View
+                                                    style={[
+                                                        StyleSheet.absoluteFill,
+                                                        { backgroundColor: accentColor },
+                                                    ]}
+                                                />
+                                                {/* Ánh sáng phản chiếu mặt trên (Glass shine) */}
+                                                <View style={styles.liquidBtnShine} />
+                                            </View>
+                                            <View style={[styles.liquidBtnBorder, { borderColor: accentBorder }]} />
+                                            <Text style={styles.liquidBtnText}>
+                                                {isEdit ? 'Cập nhật' : 'Thêm giao dịch'}
+                                            </Text>
+                                        </Pressable>
 
                                         {isEdit && onDelete && (
                                             <Pressable
@@ -511,6 +531,42 @@ const styles = StyleSheet.create({
     actions: {
         padding: 20,
         gap: 12,
+    },
+    liquidBtn: {
+        height: 54,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 18,
+        position: 'relative',
+    },
+    liquidBtnOverflow: {
+        borderRadius: 18,
+        overflow: 'hidden',
+    },
+    liquidBtnBorder: {
+        ...StyleSheet.absoluteFillObject,
+        borderRadius: 18,
+        borderWidth: 1.5,
+    },
+    liquidBtnShine: {
+        position: 'absolute',
+        top: 0,
+        left: '15%',
+        right: '15%',
+        height: '40%',
+        backgroundColor: 'rgba(255, 255, 255, 0.12)',
+        borderBottomLeftRadius: 100,
+        borderBottomRightRadius: 100,
+    },
+    liquidBtnText: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#FFFFFF',
+        letterSpacing: 0.5,
+        zIndex: 2,
+        textShadowColor: 'rgba(0,0,0,0.2)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
     },
     deleteBtn: {
         flexDirection: 'row',

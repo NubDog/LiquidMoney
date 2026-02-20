@@ -81,7 +81,7 @@ const AppNavigator: React.FC = () => {
     // Trigger slide animation when wallet is selected/deselected
     useEffect(() => {
         if (activeWalletId) {
-            setWalletDetailRendered(true);
+            // Animation values
             walletSlideAnim.setValue(0);
             Animated.spring(walletSlideAnim, {
                 toValue: 1,
@@ -105,6 +105,7 @@ const AppNavigator: React.FC = () => {
     const navigateToWallet = useCallback((walletId: string) => {
         setDisplayWalletId(walletId);
         setActiveWalletId(walletId);
+        setWalletDetailRendered(true);
     }, []);
 
     const goBackFromWallet = useCallback(() => {
@@ -250,11 +251,11 @@ const AppNavigator: React.FC = () => {
                         StyleSheet.absoluteFill,
                         {
                             transform: [{ translateX: walletTranslateX }],
-                            zIndex: 9999, // Ensure it covers the tab bar
-                            elevation: 9999,
+                            zIndex: 100, // Ensure it covers the tab bar
+                            elevation: 100,
+                            backgroundColor: '#000000', // Solid background instead of Mesh 
                         },
                     ]}>
-                    <MeshBackground />
                     <WalletDetailScreen
                         walletId={displayWalletId}
                         onGoBack={goBackFromWallet}
@@ -283,8 +284,8 @@ const styles = StyleSheet.create({
         right: 0,
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 100,
-        elevation: 100,
+        zIndex: 50,
+        elevation: 50,
     },
     floatingTabBar: {
         height: 72, // Taller for bigger focus
