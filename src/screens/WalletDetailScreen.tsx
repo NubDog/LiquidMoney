@@ -669,7 +669,7 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
             />
 
             {/* FAB */}
-            <LiquidFAB onPress={handleOpenCreate} style={{ bottom: 40 }} />
+            <LiquidFAB onPress={handleOpenCreate} style={{ bottom: 140 }} />
 
             {/* Transaction Modal (for creating new) */}
             <TransactionModal
