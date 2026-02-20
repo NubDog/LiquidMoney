@@ -143,7 +143,7 @@ const StatsScreen: React.FC = () => {
                 </GlassCard>
 
                 {/* Recent transactions header */}
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                     <Clock size={18} color="rgba(255,255,255,0.5)" strokeWidth={2} />
                     <Text style={styles.sectionTitle}>
                         Giao dịch gần đây
@@ -244,7 +244,6 @@ const styles = StyleSheet.create({
         fontSize: 17,
         fontWeight: '700',
         color: 'rgba(255, 255, 255, 0.7)',
-        marginBottom: 14,
     },
 
     // ── Transaction row ──

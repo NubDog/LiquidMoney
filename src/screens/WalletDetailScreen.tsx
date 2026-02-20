@@ -7,6 +7,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     Animated,
+    Dimensions,
     FlatList,
     Keyboard,
     KeyboardAvoidingView,
@@ -23,8 +24,10 @@ import GlassCard from '../components/GlassCard';
 import GlassButton from '../components/GlassButton';
 import SegmentedControl from '../components/SegmentedControl';
 import TransactionModal from '../components/TransactionModal';
+import TransactionDetailScreen from './TransactionDetailScreen';
 import ConfirmDialog from '../components/ConfirmDialog';
 import LiquidFAB from '../components/LiquidFAB';
+import MeshBackground from '../components/MeshBackground';
 import { useStore } from '../store/useStore';
 import type { Transaction } from '../database/queries';
 import {
@@ -36,6 +39,7 @@ import {
     Pencil,
     Trash2,
 } from 'lucide-react-native';
+import LottieView from 'lottie-react-native';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -348,7 +352,6 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
                     <Text style={menuStyles.itemText}>Chỉnh sửa</Text>
                 </Pressable>
 
-                <View style={menuStyles.divider} />
 
                 {/* Delete */}
                 <Pressable
@@ -391,6 +394,7 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
     const [filterIndex, setFilterIndex] = useState(0);
     const [modalVisible, setModalVisible] = useState(false);
     const [editingTx, setEditingTx] = useState<Transaction | null>(null);
+    const [viewingTx, setViewingTx] = useState<Transaction | null>(null);
 
     // Menu & Edit & Delete state
     const [menuVisible, setMenuVisible] = useState(false);
@@ -399,6 +403,35 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
     const [editWalletVisible, setEditWalletVisible] = useState(false);
     const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
     const menuBtnRef = useRef<View>(null);
+
+    // Transaction detail slide animation
+    const detailSlideAnim = useRef(new Animated.Value(0)).current;
+    const [detailRendered, setDetailRendered] = useState(false);
+    const screenWidth = Dimensions.get('window').width;
+
+    useEffect(() => {
+        if (viewingTx) {
+            setDetailRendered(true);
+            detailSlideAnim.setValue(0);
+            Animated.spring(detailSlideAnim, {
+                toValue: 1,
+                useNativeDriver: true,
+                friction: 12,
+                tension: 65,
+            }).start();
+        } else if (detailRendered) {
+            Animated.timing(detailSlideAnim, {
+                toValue: 0,
+                duration: 250,
+                useNativeDriver: true,
+            }).start(() => setDetailRendered(false));
+        }
+    }, [viewingTx, detailSlideAnim, detailRendered]);
+
+    const detailTranslateX = detailSlideAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [screenWidth, 0],
+    });
 
     // ─── Load wallet + transactions khi mount ────────────────────────────────
 
@@ -423,13 +456,16 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
         setModalVisible(true);
     }, []);
 
-    const handleOpenEdit = useCallback((tx: Transaction) => {
-        setEditingTx(tx);
-        setModalVisible(true);
+    const handleViewTransaction = useCallback((tx: Transaction) => {
+        setViewingTx(tx);
+    }, []);
+
+    const handleGoBackFromDetail = useCallback(() => {
+        setViewingTx(null);
     }, []);
 
     const handleSave = useCallback(
-        (type: 'IN' | 'OUT', amount: number, reason?: string | null) => {
+        (type: 'IN' | 'OUT', amount: number, reason?: string | null, imageUri?: string | null) => {
             if (editingTx) {
                 editTransaction(
                     editingTx.id,
@@ -437,12 +473,27 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
                     type,
                     amount,
                     reason,
+                    imageUri,
                 );
             } else {
-                addTransaction(walletId, type, amount, reason);
+                addTransaction(walletId, type, amount, reason, imageUri);
             }
         },
         [editingTx, walletId, addTransaction, editTransaction],
+    );
+
+    const handleEditFromDetail = useCallback(
+        (id: string, wId: string, type: 'IN' | 'OUT', amount: number, reason?: string | null, imageUri?: string | null) => {
+            editTransaction(id, wId, type, amount, reason, imageUri);
+        },
+        [editTransaction],
+    );
+
+    const handleDeleteFromDetail = useCallback(
+        (id: string, wId: string) => {
+            removeTransaction(id, wId);
+        },
+        [removeTransaction],
     );
 
     const handleDelete = useCallback(() => {
@@ -499,9 +550,9 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
 
     const renderItem = useCallback(
         ({ item }: { item: Transaction }) => (
-            <TransactionItem item={item} onPress={handleOpenEdit} />
+            <TransactionItem item={item} onPress={handleViewTransaction} />
         ),
-        [handleOpenEdit],
+        [handleViewTransaction],
     );
 
     const ListHeader = useCallback(
@@ -512,7 +563,7 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
                     backgroundOpacity={0.15}
                     borderOpacity={0.2}
                     borderRadius={24}>
-                    <View style={styles.accentLine} />
+
 
                     <Text style={styles.walletName}>
                         {wallet?.name || 'Ví'}
@@ -563,7 +614,12 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
     const ListEmpty = useCallback(
         () => (
             <View style={styles.emptyContainer}>
-                <ClipboardList size={64} color="rgba(255,255,255,0.2)" strokeWidth={1} style={{ marginBottom: 16 }} />
+                <LottieView
+                    source={require('../assets/Lottie Animation/No Result Green theme.json')}
+                    autoPlay
+                    loop
+                    style={{ width: 160, height: 160, marginBottom: 8 }}
+                />
                 <Text style={styles.emptyText}>Chưa có giao dịch</Text>
                 <Text style={styles.emptySubtext}>
                     Nhấn nút + để tạo giao dịch đầu tiên
@@ -612,10 +668,10 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
                 showsVerticalScrollIndicator={false}
             />
 
-            {/* FAB — same position as HomeScreen (bottom: 140 for tab bar clearance) */}
-            <LiquidFAB onPress={handleOpenCreate} style={{ bottom: 140 }} />
+            {/* FAB */}
+            <LiquidFAB onPress={handleOpenCreate} style={{ bottom: 40 }} />
 
-            {/* Transaction Modal */}
+            {/* Transaction Modal (for creating new) */}
             <TransactionModal
                 visible={modalVisible}
                 onClose={() => setModalVisible(false)}
@@ -627,10 +683,29 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
                             type: editingTx.type,
                             amount: editingTx.amount,
                             reason: editingTx.reason,
+                            image_uri: editingTx.image_uri,
                         }
                         : null
                 }
             />
+
+            {/* Transaction Detail Screen — slides in from right */}
+            {detailRendered && viewingTx && (
+                <Animated.View
+                    style={[
+                        StyleSheet.absoluteFill,
+                        { transform: [{ translateX: detailTranslateX }] },
+                    ]}>
+                    <MeshBackground />
+                    <TransactionDetailScreen
+                        transaction={viewingTx}
+                        walletName={wallet?.name || 'Ví'}
+                        onGoBack={handleGoBackFromDetail}
+                        onEdit={handleEditFromDetail}
+                        onDelete={handleDeleteFromDetail}
+                    />
+                </Animated.View>
+            )}
 
             {/* Edit Wallet Modal */}
             <EditWalletModal

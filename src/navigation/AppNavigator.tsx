@@ -59,10 +59,14 @@ const AppNavigator: React.FC = () => {
     const [activeTab, setActiveTab] = useState<TabName>('home');
     const [activeWalletId, setActiveWalletId] = useState<string | null>(null);
 
-    // Slide animation value (Screen Slide)
+    // Slide animation value (Tab Slide)
     const slideAnim = useRef(new Animated.Value(0)).current;
 
-    // Trigger slide animation when tab changes
+    // Wallet Detail slide animation
+    const walletSlideAnim = useRef(new Animated.Value(0)).current;
+    const [walletDetailRendered, setWalletDetailRendered] = useState(false);
+
+    // Trigger tab slide animation
     useEffect(() => {
         const targetIndex = TABS.findIndex(t => t.key === activeTab);
         Animated.spring(slideAnim, {
@@ -72,6 +76,28 @@ const AppNavigator: React.FC = () => {
             tension: 60,
         }).start();
     }, [activeTab, width, slideAnim]);
+
+    // Trigger slide animation when wallet is selected/deselected
+    useEffect(() => {
+        if (activeWalletId) {
+            setWalletDetailRendered(true);
+            walletSlideAnim.setValue(0);
+            Animated.spring(walletSlideAnim, {
+                toValue: 1,
+                useNativeDriver: true,
+                friction: 12,
+                tension: 65,
+            }).start();
+        } else if (walletDetailRendered) {
+            Animated.timing(walletSlideAnim, {
+                toValue: 0,
+                duration: 250,
+                useNativeDriver: true,
+            }).start(() => {
+                setWalletDetailRendered(false);
+            });
+        }
+    }, [activeWalletId, walletSlideAnim, walletDetailRendered]);
 
     // ─── Handlers ─────────────────────────────────────────────────────────────
 
@@ -93,12 +119,15 @@ const AppNavigator: React.FC = () => {
     const tabWidth = availableWidth / 3;
 
     // Active Pill Translation
-    // slideAnim: 0 -> -width -> -2width
-    // pillX: 0 -> tabWidth -> 2*tabWidth
-    // formula: pillX = slideAnim * (-tabWidth / width)
     const pillTranslateX = slideAnim.interpolate({
         inputRange: [-width * 2, 0],
         outputRange: [tabWidth * 2, 0],
+    });
+
+    // Wallet slide transforms
+    const walletTranslateX = walletSlideAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [width, 0],
     });
 
     // ─── Render ───────────────────────────────────────────────────────────────
@@ -107,123 +136,130 @@ const AppNavigator: React.FC = () => {
         <View style={styles.root}>
             <MeshBackground />
 
-            {/* Wallet Detail Modal/Screen (Overlay) */}
-            {activeWalletId ? (
-                <View style={StyleSheet.absoluteFill}>
+            {/* Sliding Container — always rendered */}
+            <Animated.View
+                style={[
+                    styles.screensContainer,
+                    {
+                        width: width * 3,
+                        transform: [{ translateX: slideAnim }],
+                    },
+                ]}>
+                <View style={{ width, height: '100%' }}>
+                    <HomeScreen onNavigateToWallet={navigateToWallet} />
+                </View>
+                <View style={{ width, height: '100%' }}>
+                    <StatsScreen />
+                </View>
+                <View style={{ width, height: '100%' }}>
+                    <SettingsScreen />
+                </View>
+            </Animated.View>
+
+            {/* Wallet Detail — slides in from right */}
+            {walletDetailRendered && activeWalletId && (
+                <Animated.View
+                    style={[
+                        StyleSheet.absoluteFill,
+                        {
+                            transform: [{ translateX: walletTranslateX }],
+                        },
+                    ]}>
+                    <MeshBackground />
                     <WalletDetailScreen
                         walletId={activeWalletId}
                         onGoBack={goBackFromWallet}
                     />
+                </Animated.View>
+            )}
+
+            {/* Floating Glass Tab Bar — hidden when viewing wallet detail */}
+            {!activeWalletId && (
+                <View
+                    pointerEvents="box-none"
+                    style={[
+                        styles.tabBarContainer,
+                        { paddingBottom: insets.bottom + 20 },
+                    ]}>
+                    <GlassCard
+                        style={[
+                            styles.floatingTabBar,
+                            { width: navbarWidth },
+                        ]}
+                        borderRadius={40}
+                        backgroundOpacity={0.15}
+                        borderOpacity={0.2}>
+
+                        <View style={styles.tabBarContent}>
+                            {/* Animated Active Pill Background */}
+                            <Animated.View
+                                style={[
+                                    styles.activePill,
+                                    {
+                                        width: tabWidth,
+                                        transform: [
+                                            { translateX: pillTranslateX },
+                                        ],
+                                    },
+                                ]}
+                            />
+
+                            {TABS.map((tab, index) => {
+                                const isActive = activeTab === tab.key;
+
+                                // Interpolate Scale for Icon
+                                const centerValue = index * -width;
+                                const scale = slideAnim.interpolate({
+                                    inputRange: [
+                                        centerValue - width,
+                                        centerValue,
+                                        centerValue + width,
+                                    ],
+                                    outputRange: [1, 1.4, 1], // Bigger scale (1.4) since no label
+                                    extrapolate: 'clamp',
+                                });
+
+                                // Brightness/Opacity?
+                                // We can animate opacity of inactive icons too?
+                                const opacity = slideAnim.interpolate({
+                                    inputRange: [
+                                        centerValue - width,
+                                        centerValue,
+                                        centerValue + width,
+                                    ],
+                                    outputRange: [0.5, 1, 0.5],
+                                    extrapolate: 'clamp',
+                                });
+
+                                const IconComponent = tab.icon;
+
+                                return (
+                                    <Pressable
+                                        key={tab.key}
+                                        onPress={() => setActiveTab(tab.key)}
+                                        style={[
+                                            styles.tabItem,
+                                            { width: tabWidth },
+                                        ]}>
+                                        <Animated.View
+                                            style={{
+                                                transform: [{ scale }],
+                                                opacity,
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                            }}>
+                                            <IconComponent
+                                                size={28}
+                                                color="#FFFFFF"
+                                                strokeWidth={2} // Bold stroke for standard
+                                            />
+                                        </Animated.View>
+                                    </Pressable>
+                                );
+                            })}
+                        </View>
+                    </GlassCard>
                 </View>
-            ) : (
-                <>
-                    {/* Sliding Container */}
-                    <Animated.View
-                        style={[
-                            styles.screensContainer,
-                            {
-                                width: width * 3,
-                                transform: [{ translateX: slideAnim }],
-                            },
-                        ]}>
-                        <View style={{ width, height: '100%' }}>
-                            <HomeScreen onNavigateToWallet={navigateToWallet} />
-                        </View>
-                        <View style={{ width, height: '100%' }}>
-                            <StatsScreen />
-                        </View>
-                        <View style={{ width, height: '100%' }}>
-                            <SettingsScreen />
-                        </View>
-                    </Animated.View>
-
-                    {/* Floating Glass Tab Bar */}
-                    <View
-                        pointerEvents="box-none"
-                        style={[
-                            styles.tabBarContainer,
-                            { paddingBottom: insets.bottom + 20 },
-                        ]}>
-                        <GlassCard
-                            style={[
-                                styles.floatingTabBar,
-                                { width: navbarWidth },
-                            ]}
-                            borderRadius={40}
-                            backgroundOpacity={0.15}
-                            borderOpacity={0.2}>
-
-                            <View style={styles.tabBarContent}>
-                                {/* Animated Active Pill Background */}
-                                <Animated.View
-                                    style={[
-                                        styles.activePill,
-                                        {
-                                            width: tabWidth,
-                                            transform: [
-                                                { translateX: pillTranslateX },
-                                            ],
-                                        },
-                                    ]}
-                                />
-
-                                {TABS.map((tab, index) => {
-                                    const isActive = activeTab === tab.key;
-
-                                    // Interpolate Scale for Icon
-                                    const centerValue = index * -width;
-                                    const scale = slideAnim.interpolate({
-                                        inputRange: [
-                                            centerValue - width,
-                                            centerValue,
-                                            centerValue + width,
-                                        ],
-                                        outputRange: [1, 1.4, 1], // Bigger scale (1.4) since no label
-                                        extrapolate: 'clamp',
-                                    });
-
-                                    // Brightness/Opacity?
-                                    // We can animate opacity of inactive icons too?
-                                    const opacity = slideAnim.interpolate({
-                                        inputRange: [
-                                            centerValue - width,
-                                            centerValue,
-                                            centerValue + width,
-                                        ],
-                                        outputRange: [0.5, 1, 0.5],
-                                        extrapolate: 'clamp',
-                                    });
-
-                                    const IconComponent = tab.icon;
-
-                                    return (
-                                        <Pressable
-                                            key={tab.key}
-                                            onPress={() => setActiveTab(tab.key)}
-                                            style={[
-                                                styles.tabItem,
-                                                { width: tabWidth },
-                                            ]}>
-                                            <Animated.View
-                                                style={{
-                                                    transform: [{ scale }],
-                                                    opacity,
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                }}>
-                                                <IconComponent
-                                                    size={28}
-                                                    color="#FFFFFF"
-                                                    strokeWidth={2} // Bold stroke for standard
-                                                />
-                                            </Animated.View>
-                                        </Pressable>
-                                    );
-                                })}
-                            </View>
-                        </GlassCard>
-                    </View>
-                </>
             )}
         </View>
     );

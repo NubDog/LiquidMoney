@@ -1,6 +1,7 @@
 /**
  * TransactionModal.tsx — Modal tạo / sửa giao dịch
  * Dùng RN core Modal + SegmentedControl cho toggle IN/OUT
+ * Hỗ trợ gắn ảnh (camera / thư viện)
  * Animated overlay (fade in/out) + sheet (slide up/down)
  */
 
@@ -8,6 +9,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     Alert,
     Animated,
+    Image,
     Keyboard,
     KeyboardAvoidingView,
     Modal,
@@ -20,10 +22,11 @@ import {
     View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import GlassCard from './GlassCard';
 import GlassButton from './GlassButton';
 import SegmentedControl from './SegmentedControl';
-import { Pencil, FilePlus2, X } from 'lucide-react-native';
+import { Pencil, FilePlus2, X, Camera, ImagePlus, Trash2 } from 'lucide-react-native';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -34,12 +37,14 @@ interface TransactionModalProps {
         type: 'IN' | 'OUT',
         amount: number,
         reason?: string | null,
+        imageUri?: string | null,
     ) => void;
     onDelete?: () => void;
     editData?: {
         type: 'IN' | 'OUT';
         amount: number;
         reason: string | null;
+        image_uri: string | null;
     } | null;
 }
 
@@ -110,6 +115,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [amountText, setAmountText] = useState('');
     const [reason, setReason] = useState('');
+    const [imageUri, setImageUri] = useState<string | null>(null);
 
     useEffect(() => {
         if (visible) {
@@ -117,10 +123,12 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                 setSelectedIndex(typeToIndex(editData.type));
                 setAmountText(editData.amount.toString());
                 setReason(editData.reason || '');
+                setImageUri(editData.image_uri || null);
             } else {
                 setSelectedIndex(0);
                 setAmountText('');
                 setReason('');
+                setImageUri(null);
             }
         }
     }, [visible, editData]);
@@ -146,23 +154,53 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
         }
 
         const type = indexToType(selectedIndex);
-        onSave(type, amount, reason.trim() || null);
+        onSave(type, amount, reason.trim() || null, imageUri);
         handleClose();
-    }, [amountText, selectedIndex, reason, onSave, handleClose]);
+    }, [amountText, selectedIndex, reason, imageUri, onSave, handleClose]);
 
     const handleDelete = useCallback(() => {
-        Alert.alert('Xóa giao dịch', 'Bạn có chắc muốn xóa giao dịch này?', [
-            { text: 'Hủy', style: 'cancel' },
-            {
-                text: 'Xóa',
-                style: 'destructive',
-                onPress: () => {
-                    onDelete?.();
-                    handleClose();
-                },
-            },
-        ]);
+        onDelete?.();
+        handleClose();
     }, [onDelete, handleClose]);
+
+    // ─── Image Picker ───────────────────────────────────────────────────────
+
+    const handlePickFromGallery = useCallback(() => {
+        launchImageLibrary(
+            {
+                mediaType: 'photo',
+                quality: 0.8,
+                maxWidth: 1200,
+                maxHeight: 1200,
+            },
+            response => {
+                if (!response.didCancel && response.assets?.[0]?.uri) {
+                    setImageUri(response.assets[0].uri);
+                }
+            },
+        );
+    }, []);
+
+    const handlePickFromCamera = useCallback(() => {
+        launchCamera(
+            {
+                mediaType: 'photo',
+                quality: 0.8,
+                maxWidth: 1200,
+                maxHeight: 1200,
+                cameraType: 'back',
+            },
+            response => {
+                if (!response.didCancel && response.assets?.[0]?.uri) {
+                    setImageUri(response.assets[0].uri);
+                }
+            },
+        );
+    }, []);
+
+    const handleRemoveImage = useCallback(() => {
+        setImageUri(null);
+    }, []);
 
     // ─── Render ─────────────────────────────────────────────────────────────
 
@@ -280,6 +318,38 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                                         returnKeyType="done"
                                     />
 
+                                    {/* Hình ảnh */}
+                                    <Text style={styles.label}>Hình ảnh</Text>
+                                    {imageUri ? (
+                                        <View style={styles.imagePreviewContainer}>
+                                            <Image
+                                                source={{ uri: imageUri }}
+                                                style={styles.imagePreview}
+                                                resizeMode="cover"
+                                            />
+                                            <Pressable
+                                                onPress={handleRemoveImage}
+                                                style={styles.removeImageBtn}>
+                                                <X size={14} color="#fff" strokeWidth={2.5} />
+                                            </Pressable>
+                                        </View>
+                                    ) : (
+                                        <View style={styles.imagePickerRow}>
+                                            <Pressable
+                                                onPress={handlePickFromCamera}
+                                                style={styles.imagePickerBtn}>
+                                                <Camera size={20} color="#22d3ee" strokeWidth={2} />
+                                                <Text style={styles.imagePickerText}>Chụp ảnh</Text>
+                                            </Pressable>
+                                            <Pressable
+                                                onPress={handlePickFromGallery}
+                                                style={styles.imagePickerBtn}>
+                                                <ImagePlus size={20} color="#c084fc" strokeWidth={2} />
+                                                <Text style={styles.imagePickerText}>Thư viện</Text>
+                                            </Pressable>
+                                        </View>
+                                    )}
+
                                     {/* Nút hành động */}
                                     <View style={styles.actions}>
                                         <GlassButton
@@ -294,12 +364,17 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                                         />
 
                                         {isEdit && onDelete && (
-                                            <GlassButton
-                                                title="Xóa giao dịch"
+                                            <Pressable
                                                 onPress={handleDelete}
-                                                variant="outline"
-                                                style={styles.deleteBtn}
-                                            />
+                                                style={({ pressed }) => [
+                                                    styles.deleteBtn,
+                                                    pressed && { opacity: 0.7 },
+                                                ]}>
+                                                <Trash2 size={16} color="#f87171" strokeWidth={2} />
+                                                <Text style={styles.deleteBtnText}>
+                                                    Xóa giao dịch
+                                                </Text>
+                                            </Pressable>
                                         )}
                                     </View>
                                 </ScrollView>
@@ -330,7 +405,6 @@ const styles = StyleSheet.create({
     },
     modalCard: {
         backgroundColor: 'rgba(18, 18, 22, 0.97)',
-        maxHeight: '85%',
     },
     header: {
         flexDirection: 'row',
@@ -352,11 +426,6 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255, 255, 255, 0.08)',
         alignItems: 'center',
         justifyContent: 'center',
-    },
-    closeBtnText: {
-        color: 'rgba(255, 255, 255, 0.5)',
-        fontSize: 16,
-        fontWeight: '600',
     },
     segmentWrapper: {
         paddingHorizontal: 20,
@@ -391,12 +460,73 @@ const styles = StyleSheet.create({
         minHeight: 80,
         textAlignVertical: 'top',
     },
+
+    // ── Image Picker ──
+    imagePickerRow: {
+        flexDirection: 'row',
+        gap: 12,
+        marginHorizontal: 20,
+    },
+    imagePickerBtn: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        paddingVertical: 14,
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+    },
+    imagePickerText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: 'rgba(255, 255, 255, 0.7)',
+    },
+    imagePreviewContainer: {
+        marginHorizontal: 20,
+        borderRadius: 14,
+        overflow: 'hidden',
+        position: 'relative',
+    },
+    imagePreview: {
+        width: '100%',
+        height: 180,
+        borderRadius: 14,
+    },
+    removeImageBtn: {
+        position: 'absolute',
+        top: 8,
+        right: 8,
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        backgroundColor: 'rgba(239, 68, 68, 0.85)',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
+    // ── Actions ──
     actions: {
         padding: 20,
         gap: 12,
     },
     deleteBtn: {
-        borderColor: 'rgba(248, 113, 113, 0.35)',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        paddingVertical: 14,
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: 'rgba(239, 68, 68, 0.3)',
+    },
+    deleteBtnText: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: '#f87171',
     },
 });
 

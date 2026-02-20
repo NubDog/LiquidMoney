@@ -1,12 +1,12 @@
 /**
- * SegmentedControl.tsx — Tab Switcher với chỉ báo trượt animated
- * Sử dụng React Native Animated API cho hiệu ứng trượt mượt
+ * SegmentedControl.tsx — Tab Switcher với hiệu ứng Liquid Glass
+ * Spring animation cho indicator trượt mượt kiểu Apple
+ * Scale "bong bóng" khi di chuyển + glow effect
  */
 
 import React, { useCallback, useRef, useState } from 'react';
 import {
     Animated,
-    Easing,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -34,6 +34,10 @@ const SegmentedControl: React.FC<SegmentedControlProps> = ({
 }) => {
     const [containerWidth, setContainerWidth] = useState(0);
     const translateX = useRef(new Animated.Value(0)).current;
+    const scaleX = useRef(new Animated.Value(1)).current;
+    const scaleY = useRef(new Animated.Value(1)).current;
+    const glowOpacity = useRef(new Animated.Value(0)).current;
+    const prevIndexRef = useRef(selectedIndex);
 
     const segmentWidth = containerWidth / segments.length;
 
@@ -42,31 +46,106 @@ const SegmentedControl: React.FC<SegmentedControlProps> = ({
         (e: LayoutChangeEvent) => {
             const width = e.nativeEvent.layout.width;
             setContainerWidth(width);
-            // Set vị trí ban đầu (không animate)
             translateX.setValue(selectedIndex * (width / segments.length));
         },
         [selectedIndex, segments.length, translateX],
     );
 
-    // Cập nhật indicator khi selectedIndex thay đổi
+    // Liquid Glass animation khi đổi tab
     React.useEffect(() => {
         if (containerWidth > 0) {
-            Animated.timing(translateX, {
-                toValue: selectedIndex * segmentWidth,
-                duration: 280,
-                easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-                useNativeDriver: true,
-            }).start();
+            const prevIndex = prevIndexRef.current;
+            const distance = Math.abs(selectedIndex - prevIndex);
+            prevIndexRef.current = selectedIndex;
+
+            if (distance === 0) {
+                // Lần đầu mount hoặc cùng tab — không cần animation fancy
+                Animated.spring(translateX, {
+                    toValue: selectedIndex * segmentWidth,
+                    useNativeDriver: true,
+                    friction: 12,
+                    tension: 80,
+                }).start();
+                return;
+            }
+
+            // Liquid Glass: bubble stretch → slide → settle
+            const stretchAmount = 1 + distance * 0.06; // Stretch nhiều hơn khi xa
+            const squishAmount = 1 - distance * 0.04;
+
+            Animated.sequence([
+                // Phase 1: Stretch ra (bong bóng mở rộng)
+                Animated.parallel([
+                    Animated.spring(scaleX, {
+                        toValue: stretchAmount,
+                        useNativeDriver: true,
+                        friction: 8,
+                        tension: 200,
+                    }),
+                    Animated.spring(scaleY, {
+                        toValue: squishAmount,
+                        useNativeDriver: true,
+                        friction: 8,
+                        tension: 200,
+                    }),
+                    Animated.timing(glowOpacity, {
+                        toValue: 1,
+                        duration: 100,
+                        useNativeDriver: true,
+                    }),
+                ]),
+                // Phase 2: Slide + settle
+                Animated.parallel([
+                    Animated.spring(translateX, {
+                        toValue: selectedIndex * segmentWidth,
+                        useNativeDriver: true,
+                        friction: 10,
+                        tension: 60,
+                    }),
+                    Animated.spring(scaleX, {
+                        toValue: 1,
+                        useNativeDriver: true,
+                        friction: 6,
+                        tension: 100,
+                    }),
+                    Animated.spring(scaleY, {
+                        toValue: 1,
+                        useNativeDriver: true,
+                        friction: 6,
+                        tension: 100,
+                    }),
+                    Animated.timing(glowOpacity, {
+                        toValue: 0,
+                        duration: 400,
+                        useNativeDriver: true,
+                    }),
+                ]),
+            ]).start();
         }
-    }, [selectedIndex, segmentWidth, containerWidth, translateX]);
+    }, [selectedIndex, segmentWidth, containerWidth, translateX, scaleX, scaleY, glowOpacity]);
 
     return (
         <View style={styles.container} onLayout={onLayout}>
-            {/* Indicator trượt */}
+            {/* Indicator trượt — Liquid Glass */}
             <Animated.View
                 style={[
                     styles.indicator,
                     {
+                        transform: [
+                            { translateX },
+                            { scaleX },
+                            { scaleY },
+                        ],
+                        width: segmentWidth > 0 ? segmentWidth - 4 : 0,
+                    },
+                ]}
+            />
+            {/* Glow effect khi trượt */}
+            <Animated.View
+                style={[
+                    styles.glow,
+                    {
+                        opacity: glowOpacity,
                         transform: [{ translateX }],
                         width: segmentWidth > 0 ? segmentWidth - 4 : 0,
                     },
@@ -117,7 +196,21 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255, 255, 255, 0.15)',
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.2)',
+        borderColor: 'rgba(255, 255, 255, 0.25)',
+        // Glass shadow effect
+        shadowColor: 'rgba(255, 255, 255, 0.3)',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 4,
+    },
+    glow: {
+        position: 'absolute',
+        top: 0,
+        left: 2,
+        bottom: 0,
+        backgroundColor: 'rgba(192, 132, 252, 0.08)',
+        borderRadius: 12,
     },
     segment: {
         flex: 1,

@@ -16,7 +16,7 @@ import WalletCard from '../components/WalletCard';
 import WalletModal from '../components/WalletModal';
 import LiquidFAB from '../components/LiquidFAB';
 import type { Wallet } from '../database/queries';
-import { Wallet as WalletIcon } from 'lucide-react-native';
+import LottieView from 'lottie-react-native';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -105,7 +105,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
     const EmptyState = useMemo(
         () => (
             <View style={styles.emptyContainer}>
-                <WalletIcon size={64} color="rgba(255,255,255,0.2)" strokeWidth={1} style={{ marginBottom: 16 }} />
+                <LottieView
+                    source={require('../assets/Lottie Animation/nodata.json')}
+                    autoPlay
+                    loop
+                    style={{ width: 150, height: 150, marginBottom: 8 }}
+                />
                 <Text style={styles.emptyTitle}>Chưa có ví nào</Text>
                 <Text style={styles.emptySubtitle}>
                     Nhấn nút + bên dưới để tạo ví đầu tiên

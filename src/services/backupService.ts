@@ -177,7 +177,7 @@ export async function exportBackup(): Promise<string> {
         .replace(/[:.]/g, '-')
         .slice(0, 19);
     const fileName = `liquidmoney_backup_${timestamp}.json`;
-    const filePath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
+    const filePath = `${RNFS.DownloadDirectoryPath}/${fileName}`;
 
     const json = JSON.stringify(backup, null, 2);
     await RNFS.writeFile(filePath, json, 'utf8');
