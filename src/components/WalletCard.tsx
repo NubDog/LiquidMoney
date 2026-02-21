@@ -13,6 +13,7 @@ import {
     Text,
     View,
 } from 'react-native';
+import LottieView from 'lottie-react-native';
 import GlassCard from './GlassCard';
 import { getWalletIcon } from '../constants/walletIcons';
 
@@ -113,6 +114,20 @@ const WalletCard: React.FC<WalletCardProps> = ({
                     backgroundOpacity={0.1}
                     borderOpacity={0.2}
                     borderRadius={22}>
+                    {/* Lottie Background */}
+                    <View style={styles.coverImage}>
+                        <LottieView
+                            source={require('../assets/Lottie Animation/LikeTikFormularWebsite.json')}
+                            autoPlay
+                            loop
+                            style={{
+                                width: '100%',
+                                height: '100%',
+                            }}
+                            resizeMode="cover"
+                        />
+                    </View>
+
                     {/* Ảnh bìa nếu có */}
                     {imageUri && (
                         <Image
@@ -122,8 +137,8 @@ const WalletCard: React.FC<WalletCardProps> = ({
                         />
                     )}
 
-                    {/* Gradient overlay khi có ảnh */}
-                    {imageUri && <View style={styles.imageOverlay} />}
+                    {/* Gradient overlay để đảm bảo chữ dễ đọc */}
+                    <View style={[styles.imageOverlay, { backgroundColor: 'rgba(0, 0, 0, 0.1)' }]} />
 
                     {/* Nội dung */}
                     <View style={styles.content}>

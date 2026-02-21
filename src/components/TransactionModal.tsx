@@ -344,10 +344,12 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
     if (!shouldRender) { return null; }
 
     const currentType = indexToType(selectedIndex);
+    // Apple Liquid Glass Button colors
     const accentColor =
-        currentType === 'IN' ? 'rgba(74, 222, 128, 0.5)' : 'rgba(248, 113, 113, 0.5)';
+        currentType === 'IN' ? '#34C759' : '#FF3B30'; // Solid Apple Green / Red
     const accentBorder =
-        currentType === 'IN' ? 'rgba(74, 222, 128, 0.6)' : 'rgba(248, 113, 113, 0.6)';
+        currentType === 'IN' ? '#2eb350' : '#e6352b';
+    const textColor = '#FFFFFF';
 
     return (
         <View style={styles.root} pointerEvents="box-none">
@@ -497,14 +499,6 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                                                 { transform: [{ scale: pressed ? 0.95 : 1 }] },
                                             ]}>
                                             <View style={[StyleSheet.absoluteFill, styles.liquidBtnOverflow]}>
-                                                {Platform.OS === 'ios' ? (
-                                                    <BlurView
-                                                        style={StyleSheet.absoluteFill}
-                                                        blurType="dark"
-                                                        blurAmount={20}
-                                                        reducedTransparencyFallbackColor="#111"
-                                                    />
-                                                ) : null}
                                                 <View
                                                     style={[
                                                         StyleSheet.absoluteFill,
@@ -515,7 +509,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                                                 <View style={styles.liquidBtnShine} />
                                             </View>
                                             <View style={[styles.liquidBtnBorder, { borderColor: accentBorder }]} />
-                                            <Text style={styles.liquidBtnText}>
+                                            <Text style={[styles.liquidBtnText, { color: textColor }]}>
                                                 {isEdit ? 'Cập nhật' : 'Thêm giao dịch'}
                                             </Text>
                                         </Pressable>
@@ -539,8 +533,8 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                         </Pressable>
                     </Animated.View>
                 </GestureDetector>
-            </KeyboardAvoidingView>
-        </View>
+            </KeyboardAvoidingView >
+        </View >
     );
 };
 
@@ -699,21 +693,22 @@ const styles = StyleSheet.create({
     },
     liquidBtnShine: {
         position: 'absolute',
-        top: 0,
-        left: '15%',
-        right: '15%',
-        height: '40%',
-        backgroundColor: 'rgba(255, 255, 255, 0.12)',
+        top: 2,
+        left: 2,
+        right: 2,
+        height: '45%',
+        backgroundColor: 'rgba(255, 255, 255, 0.22)',
+        borderTopLeftRadius: 16,
+        borderTopRightRadius: 16,
         borderBottomLeftRadius: 100,
         borderBottomRightRadius: 100,
     },
     liquidBtnText: {
         fontSize: 16,
         fontWeight: '700',
-        color: '#FFFFFF',
         letterSpacing: 0.5,
         zIndex: 2,
-        textShadowColor: 'rgba(0,0,0,0.2)',
+        textShadowColor: 'rgba(0,0,0,0.15)',
         textShadowOffset: { width: 0, height: 1 },
         textShadowRadius: 2,
     },

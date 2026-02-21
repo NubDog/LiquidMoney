@@ -1,7 +1,13 @@
 /**
  * WalletDetailScreen.tsx — Màn hình chi tiết ví + danh sách giao dịch
- * Dùng RN core FlatList, SegmentedControl, TransactionModal
- * Hỗ trợ: 3-dot menu (Sửa ví / Xóa ví) + animated popup + custom confirm
+ *
+ * Architecture: Shell & Skeleton → Deferred Payload
+ *  Layer 1 (Frame 1): Lightweight shell — root View, SafeArea, Header
+ *  Layer 2 (During transition): Animated skeleton loader
+ *  Layer 3 (After transition): Heavy payload — Zustand, FlatList, Modals
+ *
+ * This guarantees 60fps on React Navigation's slide-in transition
+ * by deferring ALL data work until InteractionManager fires.
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -9,6 +15,7 @@ import {
     Animated,
     Dimensions,
     FlatList,
+    InteractionManager,
     Keyboard,
     KeyboardAvoidingView,
     Modal,
@@ -20,21 +27,23 @@ import {
     View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ReAnimated, {
+    FadeIn,
+} from 'react-native-reanimated';
 import GlassCard from '../components/GlassCard';
-import GlassButton from '../components/GlassButton';
 import TransactionFilterBar from '../components/TransactionFilterBar';
 import TransactionModal from '../components/TransactionModal';
 import TransactionDetailScreen from './TransactionDetailScreen';
 import ConfirmDialog from '../components/ConfirmDialog';
 import LiquidFAB from '../components/LiquidFAB';
 import MeshBackground from '../components/MeshBackground';
+import WalletDetailSkeleton from '../components/WalletDetailSkeleton';
 import { useStore } from '../store/useStore';
 import type { Transaction } from '../database/queries';
 import {
     ArrowDownLeft,
     ArrowUpRight,
     ChevronLeft,
-    ClipboardList,
     MoreVertical,
     Pencil,
     Trash2,
@@ -370,13 +379,25 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
     );
 };
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// LAYER 3: HEAVY PAYLOAD
+// Only mounted AFTER the navigation transition completes.
+// Contains all Zustand hooks, FlatList, modals, and data processing.
+// ═══════════════════════════════════════════════════════════════════════════════
 
-const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
+interface WalletPayloadProps {
+    walletId: string;
+    onGoBack: () => void;
+    menuBtnRef: React.RefObject<View | null>;
+    onMenuPressRef: React.MutableRefObject<(() => void) | null>;
+}
+
+const WalletPayload: React.FC<WalletPayloadProps> = ({
     walletId,
     onGoBack,
+    menuBtnRef,
+    onMenuPressRef,
 }) => {
-    const insets = useSafeAreaInsets();
     const {
         currentWallet,
         transactions,
@@ -402,7 +423,6 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
     const [menuAnchorX, setMenuAnchorX] = useState(16);
     const [editWalletVisible, setEditWalletVisible] = useState(false);
     const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
-    const menuBtnRef = useRef<View>(null);
 
     // Transaction detail slide animation
     const detailSlideAnim = useRef(new Animated.Value(0)).current;
@@ -506,7 +526,7 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
 
     const handleOpenMenu = useCallback(() => {
         if (menuBtnRef.current) {
-            menuBtnRef.current.measureInWindow((_x, y, _width, height) => {
+            (menuBtnRef.current as any).measureInWindow((_x: number, y: number, _width: number, height: number) => {
                 setMenuAnchorY(y + height);
                 setMenuAnchorX(16);
                 setMenuVisible(true);
@@ -514,7 +534,13 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
         } else {
             setMenuVisible(true);
         }
-    }, []);
+    }, [menuBtnRef]);
+
+    // Register handleOpenMenu so the shell header can call it
+    useEffect(() => {
+        onMenuPressRef.current = handleOpenMenu;
+        return () => { onMenuPressRef.current = null; };
+    }, [handleOpenMenu, onMenuPressRef]);
 
     const handleEditWallet = useCallback(() => {
         setEditWalletVisible(true);
@@ -630,23 +656,7 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
     );
 
     return (
-        <View style={[styles.container, { paddingTop: insets.top }]}>
-            {/* Top Bar */}
-            <View style={styles.topBar}>
-                <Pressable onPress={onGoBack} style={styles.backBtn}>
-                    <ChevronLeft size={24} color="#FFFFFF" />
-                </Pressable>
-
-                <View style={{ flex: 1 }} />
-
-                {/* 3-dot menu button */}
-                <View ref={menuBtnRef} collapsable={false}>
-                    <Pressable onPress={handleOpenMenu} style={styles.menuBtn}>
-                        <MoreVertical size={22} color="#FFFFFF" strokeWidth={1.5} />
-                    </Pressable>
-                </View>
-            </View>
-
+        <>
             {/* Popup Menu (with open + close animation) */}
             <PopupMenu
                 visible={menuVisible}
@@ -727,6 +737,81 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
                 onCancel={() => setDeleteDialogVisible(false)}
                 onConfirm={handleConfirmDelete}
             />
+        </>
+    );
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ROOT COMPONENT: SHELL
+// This is the entry point React Navigation sees. It renders:
+//  1. Immediate shell (header) — always, from Frame 1
+//  2. Skeleton or Payload — based on transition state
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
+    walletId,
+    onGoBack,
+}) => {
+    const insets = useSafeAreaInsets();
+
+    // ─── Navigation transition observer ─────────────────────────────────────
+    const [isReady, setIsReady] = useState(false);
+
+    useEffect(() => {
+        const handle = InteractionManager.runAfterInteractions(() => {
+            setIsReady(true);
+        });
+        return () => handle.cancel();
+    }, []);
+
+    // ─── Refs for bridging shell ↔ payload ─────────────────────────────────
+    const menuBtnRef = useRef<View>(null);
+    const menuPressRef = useRef<(() => void) | null>(null);
+
+    const handleMenuPress = useCallback(() => {
+        menuPressRef.current?.();
+    }, []);
+
+    // ─── Render ─────────────────────────────────────────────────────────────
+
+    return (
+        <View style={[styles.container, { paddingTop: insets.top }]}>
+            {/* ═══ LAYER 1: IMMEDIATE SHELL — renders on Frame 1 ═══ */}
+            <View style={styles.topBar}>
+                <Pressable onPress={onGoBack} style={styles.backBtn}>
+                    <ChevronLeft size={24} color="#FFFFFF" />
+                </Pressable>
+
+                <View style={{ flex: 1 }} />
+
+                {/* 3-dot menu button — renders in shell but only functional when payload is ready */}
+                <View ref={menuBtnRef} collapsable={false}>
+                    <Pressable
+                        onPress={handleMenuPress}
+                        style={[styles.menuBtn, !isReady && { opacity: 0.3 }]}
+                        disabled={!isReady}>
+                        <MoreVertical size={22} color="#FFFFFF" strokeWidth={1.5} />
+                    </Pressable>
+                </View>
+            </View>
+
+            {/* ═══ LAYER 2 or 3: SKELETON → PAYLOAD ═══ */}
+            {!isReady ? (
+                // LAYER 2: Skeleton loader — lightweight, animated placeholders
+                <WalletDetailSkeleton />
+            ) : (
+                // LAYER 3: Heavy payload — Zustand, FlatList, everything
+                <ReAnimated.View
+                    style={styles.payloadContainer}
+                    entering={FadeIn.duration(400)}>
+                    <WalletPayload
+                        walletId={walletId}
+                        onGoBack={onGoBack}
+                        menuBtnRef={menuBtnRef}
+                        onMenuPressRef={menuPressRef}
+                    />
+                </ReAnimated.View>
+            )}
         </View>
     );
 };
@@ -752,6 +837,9 @@ const styles = StyleSheet.create({
         padding: 8,
         borderRadius: 20,
         backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    },
+    payloadContainer: {
+        flex: 1,
     },
     listContent: {
         paddingHorizontal: 16,
