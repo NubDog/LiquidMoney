@@ -12,8 +12,6 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-    Animated,
-    Dimensions,
     FlatList,
     InteractionManager,
     Keyboard,
@@ -25,11 +23,11 @@ import {
     Text,
     TextInput,
     View,
+    Animated,
+    LayoutAnimation,
+    useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import ReAnimated, {
-    FadeIn,
-} from 'react-native-reanimated';
 import GlassCard from '../components/GlassCard';
 import TransactionFilterBar from '../components/TransactionFilterBar';
 import TransactionModal from '../components/TransactionModal';
@@ -141,7 +139,7 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
     const [name, setName] = useState(walletName);
     const [balanceStr, setBalanceStr] = useState(walletBalance.toString());
 
-    // Animation
+    // React Native Animated values
     const overlayOpacity = useRef(new Animated.Value(0)).current;
     const sheetTranslateY = useRef(new Animated.Value(400)).current;
 
@@ -149,8 +147,6 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
         if (visible) {
             setName(walletName);
             setBalanceStr(walletBalance.toString());
-            overlayOpacity.setValue(0);
-            sheetTranslateY.setValue(400);
             Animated.parallel([
                 Animated.timing(overlayOpacity, {
                     toValue: 1,
@@ -159,8 +155,8 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
                 }),
                 Animated.spring(sheetTranslateY, {
                     toValue: 0,
-                    friction: 10,
-                    tension: 65,
+                    damping: 15,
+                    stiffness: 90,
                     useNativeDriver: true,
                 }),
             ]).start();
@@ -179,7 +175,11 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
                 duration: 250,
                 useNativeDriver: true,
             }),
-        ]).start(() => onClose());
+        ]).start(({ finished }) => {
+            if (finished) {
+                onClose();
+            }
+        });
     }, [overlayOpacity, sheetTranslateY, onClose]);
 
     const handleSave = useCallback(() => {
@@ -305,8 +305,6 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
     useEffect(() => {
         if (visible) {
             setShouldRender(true);
-            opacity.setValue(0);
-            scale.setValue(0.85);
             Animated.parallel([
                 Animated.timing(opacity, {
                     toValue: 1,
@@ -315,12 +313,12 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
                 }),
                 Animated.spring(scale, {
                     toValue: 1,
-                    friction: 8,
+                    damping: 12,
+                    stiffness: 120,
                     useNativeDriver: true,
                 }),
             ]).start();
         } else if (shouldRender) {
-            // Animate close
             Animated.parallel([
                 Animated.timing(opacity, {
                     toValue: 0,
@@ -332,7 +330,11 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
                     duration: 120,
                     useNativeDriver: true,
                 }),
-            ]).start(() => setShouldRender(false));
+            ]).start(({ finished }) => {
+                if (finished) {
+                    setShouldRender(false);
+                }
+            });
         }
     }, [visible, opacity, scale, shouldRender]);
 
@@ -385,6 +387,70 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
 // Contains all Zustand hooks, FlatList, modals, and data processing.
 // ═══════════════════════════════════════════════════════════════════════════════
 
+// ─── Transaction Detail Overlay (Animated) ────────────────────────────────────
+
+interface TransactionDetailOverlayProps {
+    transaction: Transaction;
+    walletName: string;
+    onGoBack: () => void;
+    onEdit: (id: string, wId: string, type: 'IN' | 'OUT', amount: number, reason?: string | null, imageUri?: string | null) => void;
+    onDelete: (id: string, wId: string) => void;
+}
+
+const TransactionDetailOverlay: React.FC<TransactionDetailOverlayProps> = ({
+    transaction,
+    walletName,
+    onGoBack,
+    onEdit,
+    onDelete,
+}) => {
+    const { width } = useWindowDimensions();
+    const translateX = useRef(new Animated.Value(width)).current;
+    const [shouldRender, setShouldRender] = useState(true);
+
+    useEffect(() => {
+        // Slide in
+        Animated.spring(translateX, {
+            toValue: 0,
+            damping: 18,
+            stiffness: 100,
+            useNativeDriver: true,
+        }).start();
+    }, [translateX]);
+
+    const handleClose = useCallback(() => {
+        Animated.timing(translateX, {
+            toValue: width,
+            duration: 250,
+            useNativeDriver: true,
+        }).start(({ finished }) => {
+            if (finished) {
+                setShouldRender(false);
+                onGoBack();
+            }
+        });
+    }, [translateX, width, onGoBack]);
+
+    if (!shouldRender) return null;
+
+    return (
+        <Animated.View
+            style={[
+                StyleSheet.absoluteFill,
+                { transform: [{ translateX }], zIndex: 100, elevation: 100 },
+            ]}>
+            <MeshBackground />
+            <TransactionDetailScreen
+                transaction={transaction}
+                walletName={walletName}
+                onGoBack={handleClose}
+                onEdit={onEdit}
+                onDelete={onDelete}
+            />
+        </Animated.View>
+    );
+};
+
 interface WalletPayloadProps {
     walletId: string;
     onGoBack: () => void;
@@ -424,45 +490,20 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
     const [editWalletVisible, setEditWalletVisible] = useState(false);
     const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
 
-    // Transaction detail slide animation
-    const detailSlideAnim = useRef(new Animated.Value(0)).current;
-    const [detailRendered, setDetailRendered] = useState(false);
-    const screenWidth = Dimensions.get('window').width;
-
-    useEffect(() => {
-        if (viewingTx) {
-            setDetailRendered(true);
-            detailSlideAnim.setValue(0);
-            Animated.spring(detailSlideAnim, {
-                toValue: 1,
-                useNativeDriver: true,
-                friction: 12,
-                tension: 65,
-            }).start();
-        } else if (detailRendered) {
-            Animated.timing(detailSlideAnim, {
-                toValue: 0,
-                duration: 250,
-                useNativeDriver: true,
-            }).start(() => setDetailRendered(false));
-        }
-    }, [viewingTx, detailSlideAnim, detailRendered]);
-
-    const detailTranslateX = detailSlideAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: [screenWidth, 0],
-    });
-
-    // ─── Load wallet + transactions khi mount ────────────────────────────────
-
-    useEffect(() => {
-        selectWallet(walletId);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [walletId]);
+    // Transaction detail slide animation — pure Reanimated layout animations
+    // No manual Animated.Value needed; SlideInRight/SlideOutRight handles everything
 
     // ─── Filter thay đổi → refresh ─────────────────────────────────────────
 
+    // Initial fetch đã được thực hiện ở WalletDetailScreen (theo Minimum Loading Time pattern)
+    // Dùng useRef để bỏ qua lần đầu tiên
+    const isFirstRender = useRef(true);
+
     useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
         const filterType: 'IN' | 'OUT' | undefined =
             filterIndex === 1 ? 'IN' : filterIndex === 2 ? 'OUT' : undefined;
         refreshTransactions(walletId, filterType);
@@ -486,6 +527,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
 
     const handleSave = useCallback(
         (type: 'IN' | 'OUT', amount: number, reason?: string | null, imageUri?: string | null) => {
+            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
             if (editingTx) {
                 editTransaction(
                     editingTx.id,
@@ -504,6 +546,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
 
     const handleEditFromDetail = useCallback(
         (id: string, wId: string, type: 'IN' | 'OUT', amount: number, reason?: string | null, imageUri?: string | null) => {
+            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
             editTransaction(id, wId, type, amount, reason, imageUri);
         },
         [editTransaction],
@@ -511,6 +554,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
 
     const handleDeleteFromDetail = useCallback(
         (id: string, wId: string) => {
+            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
             removeTransaction(id, wId);
         },
         [removeTransaction],
@@ -518,6 +562,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
 
     const handleDelete = useCallback(() => {
         if (editingTx) {
+            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
             removeTransaction(editingTx.id, walletId);
         }
     }, [editingTx, walletId, removeTransaction]);
@@ -700,21 +745,15 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
             />
 
             {/* Transaction Detail Screen — slides in from right */}
-            {detailRendered && viewingTx && (
-                <Animated.View
-                    style={[
-                        StyleSheet.absoluteFill,
-                        { transform: [{ translateX: detailTranslateX }] },
-                    ]}>
-                    <MeshBackground />
-                    <TransactionDetailScreen
-                        transaction={viewingTx}
-                        walletName={wallet?.name || 'Ví'}
-                        onGoBack={handleGoBackFromDetail}
-                        onEdit={handleEditFromDetail}
-                        onDelete={handleDeleteFromDetail}
-                    />
-                </Animated.View>
+            {/* Transaction Detail Screen — manual slide animation since Reanimated is removed */}
+            {viewingTx && (
+                <TransactionDetailOverlay
+                    transaction={viewingTx}
+                    walletName={wallet?.name || 'Ví'}
+                    onGoBack={handleGoBackFromDetail}
+                    onEdit={handleEditFromDetail}
+                    onDelete={handleDeleteFromDetail}
+                />
             )}
 
             {/* Edit Wallet Modal */}
@@ -748,21 +787,60 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
 //  2. Skeleton or Payload — based on transition state
 // ═══════════════════════════════════════════════════════════════════════════════
 
+const delay = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
+
 const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
     walletId,
     onGoBack,
 }) => {
     const insets = useSafeAreaInsets();
+    const { selectWallet, refreshTransactions } = useStore();
 
-    // ─── Navigation transition observer ─────────────────────────────────────
+    // ─── Simple state: skeleton → payload swap ──────────────────────────────
     const [isReady, setIsReady] = useState(false);
+    const [showContent, setShowContent] = useState(false);
 
     useEffect(() => {
-        const handle = InteractionManager.runAfterInteractions(() => {
-            setIsReady(true);
-        });
-        return () => handle.cancel();
-    }, []);
+        let mounted = true;
+
+        const load = async () => {
+            try {
+                // Đợi navigation slide-in transition hoàn tất
+                await new Promise<void>(resolve => {
+                    InteractionManager.runAfterInteractions(() => resolve());
+                });
+
+                // Fetch data
+                try {
+                    selectWallet(walletId);
+                    refreshTransactions(walletId);
+                } catch (err) {
+                    console.error('Error in fetchWalletData:', err);
+                }
+
+                // Minimum loading time
+                await delay(800);
+
+                if (mounted) {
+                    setIsReady(true);
+                    // Tiny delay để React mount payload trước khi hiển thị
+                    setTimeout(() => {
+                        if (mounted) setShowContent(true);
+                    }, 50);
+                }
+            } catch (error) {
+                console.error('[WalletDetailScreen] loadContent error:', error);
+                if (mounted) {
+                    setIsReady(true);
+                    setShowContent(true);
+                }
+            }
+        };
+
+        load();
+        return () => { mounted = false; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [walletId]);
 
     // ─── Refs for bridging shell ↔ payload ─────────────────────────────────
     const menuBtnRef = useRef<View>(null);
@@ -784,7 +862,7 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
 
                 <View style={{ flex: 1 }} />
 
-                {/* 3-dot menu button — renders in shell but only functional when payload is ready */}
+                {/* 3-dot menu button */}
                 <View ref={menuBtnRef} collapsable={false}>
                     <Pressable
                         onPress={handleMenuPress}
@@ -795,22 +873,20 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
                 </View>
             </View>
 
-            {/* ═══ LAYER 2 or 3: SKELETON → PAYLOAD ═══ */}
+            {/* ═══ CONTENT: Simple boolean swap — no animation library ═══ */}
             {!isReady ? (
-                // LAYER 2: Skeleton loader — lightweight, animated placeholders
-                <WalletDetailSkeleton />
+                <View style={{ flex: 1 }}>
+                    <WalletDetailSkeleton />
+                </View>
             ) : (
-                // LAYER 3: Heavy payload — Zustand, FlatList, everything
-                <ReAnimated.View
-                    style={styles.payloadContainer}
-                    entering={FadeIn.duration(400)}>
+                <View style={[styles.payloadContainer, { opacity: showContent ? 1 : 0 }]}>
                     <WalletPayload
                         walletId={walletId}
                         onGoBack={onGoBack}
                         menuBtnRef={menuBtnRef}
                         onMenuPressRef={menuPressRef}
                     />
-                </ReAnimated.View>
+                </View>
             )}
         </View>
     );
@@ -821,6 +897,7 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: '#000000',
     },
     topBar: {
         flexDirection: 'row',

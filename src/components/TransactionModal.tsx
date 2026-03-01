@@ -10,7 +10,7 @@
  * No longer uses RN <Modal> — renders as absolute overlay instead.
  */
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import {
     Alert,
     Dimensions,
@@ -24,18 +24,11 @@ import {
     Text,
     TextInput,
     View,
+    Animated,
+    PanResponder,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
-import Animated, {
-    Easing,
-    runOnJS,
-    useAnimatedStyle,
-    useSharedValue,
-    withSpring,
-    withTiming,
-} from 'react-native-reanimated';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import GlassCard from './GlassCard';
 import TransactionFilterBar from './TransactionFilterBar';
 import { BlurView } from '@react-native-community/blur';
@@ -112,56 +105,61 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
     // Controls actual mounting. We keep the component rendered during exit animation.
     const [shouldRender, setShouldRender] = useState(false);
 
-    // ─── Reanimated shared values ───────────────────────────────────────────
-    const overlayOpacity = useSharedValue(0);
-    const sheetTranslateY = useSharedValue(SCREEN_HEIGHT);
+    // ─── React Native Animated values ───────────────────────────────────────────
+    const overlayOpacity = useRef(new Animated.Value(0)).current;
+    const sheetTranslateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
     // Measured sheet height for accurate animation & swipe threshold
-    const sheetHeight = useSharedValue(0);
-    const hasMeasured = useSharedValue(false);
+    const sheetHeight = useRef(0);
+    const hasMeasured = useRef(false);
 
     // ─── Animate open ───────────────────────────────────────────────────────
     const animateOpen = useCallback(() => {
-        overlayOpacity.value = withTiming(1, {
-            duration: FADE_IN_DURATION,
-            easing: Easing.out(Easing.cubic),
-        });
-        sheetTranslateY.value = withSpring(0, SPRING_CONFIG);
+        Animated.parallel([
+            Animated.timing(overlayOpacity, {
+                toValue: 1,
+                duration: FADE_IN_DURATION,
+                useNativeDriver: true,
+            }),
+            Animated.spring(sheetTranslateY, {
+                toValue: 0,
+                damping: 22,
+                stiffness: 180,
+                mass: 0.8,
+                useNativeDriver: true,
+            })
+        ]).start();
     }, [overlayOpacity, sheetTranslateY]);
 
     // ─── Animate close ──────────────────────────────────────────────────────
-    const animateClose = useCallback(() => {
-        'worklet';
-        // Not a worklet itself, but the callbacks inside are driven by JS
-    }, []);
-
     const handleAnimateClose = useCallback(() => {
-        overlayOpacity.value = withTiming(0, {
-            duration: FADE_OUT_DURATION,
-            easing: Easing.in(Easing.cubic),
-        });
-        sheetTranslateY.value = withTiming(
-            sheetHeight.value > 0 ? sheetHeight.value + 50 : SCREEN_HEIGHT,
-            {
+        const toY = sheetHeight.current > 0 ? sheetHeight.current + 50 : SCREEN_HEIGHT;
+        Animated.parallel([
+            Animated.timing(overlayOpacity, {
+                toValue: 0,
+                duration: FADE_OUT_DURATION,
+                useNativeDriver: true,
+            }),
+            Animated.timing(sheetTranslateY, {
+                toValue: toY,
                 duration: SLIDE_OUT_DURATION,
-                easing: Easing.in(Easing.cubic),
-            },
-            (finished) => {
-                if (finished) {
-                    runOnJS(setShouldRender)(false);
-                    runOnJS(onClose)();
-                }
-            },
-        );
+                useNativeDriver: true,
+            })
+        ]).start(({ finished }) => {
+            if (finished) {
+                setShouldRender(false);
+                onClose();
+            }
+        });
     }, [overlayOpacity, sheetTranslateY, sheetHeight, onClose]);
 
     // ─── Lifecycle: visible prop controls mount/animation ────────────────────
     useEffect(() => {
         if (visible) {
             // Reset animation values BEFORE rendering to prevent flicker
-            overlayOpacity.value = 0;
-            sheetTranslateY.value = SCREEN_HEIGHT;
-            hasMeasured.value = false;
+            overlayOpacity.setValue(0);
+            sheetTranslateY.setValue(SCREEN_HEIGHT);
+            hasMeasured.current = false;
             setShouldRender(true);
         } else if (shouldRender) {
             // visible went false but we're still rendered → animate out
@@ -173,11 +171,11 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
     // ─── onLayout: measure actual sheet height, then animate in ─────────────
     const handleSheetLayout = useCallback((event: { nativeEvent: { layout: { height: number } } }) => {
         const measuredHeight = event.nativeEvent.layout.height;
-        if (measuredHeight > 0 && !hasMeasured.value) {
-            sheetHeight.value = measuredHeight;
-            hasMeasured.value = true;
+        if (measuredHeight > 0 && !hasMeasured.current) {
+            sheetHeight.current = measuredHeight;
+            hasMeasured.current = true;
             // Now that we know the height, ensure sheet starts from below and animate in
-            sheetTranslateY.value = measuredHeight + 50;
+            sheetTranslateY.setValue(measuredHeight + 50);
             // Small delay to ensure the layout is committed before animating
             requestAnimationFrame(() => {
                 animateOpen();
@@ -186,61 +184,49 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
     }, [sheetHeight, sheetTranslateY, hasMeasured, animateOpen]);
 
     // ─── Gesture: Swipe down to close ───────────────────────────────────────
-    const panGesture = useMemo(() =>
-        Gesture.Pan()
-            .onUpdate((event) => {
-                // Only allow dragging downward (positive translationY)
-                if (event.translationY > 0) {
-                    sheetTranslateY.value = event.translationY;
+    const panResponder = useRef(
+        PanResponder.create({
+            onMoveShouldSetPanResponder: (_, gestureState) => {
+                // Return true if user is swiping down with enough distance
+                return gestureState.dy > 10;
+            },
+            onPanResponderMove: (_, gestureState) => {
+                if (gestureState.dy > 0) {
+                    sheetTranslateY.setValue(gestureState.dy);
                     // Fade overlay as sheet is dragged down
-                    const progress = Math.min(event.translationY / (sheetHeight.value || SCREEN_HEIGHT), 1);
-                    overlayOpacity.value = 1 - progress;
+                    const progress = Math.min(gestureState.dy / (sheetHeight.current || SCREEN_HEIGHT), 1);
+                    overlayOpacity.setValue(1 - progress);
                 }
-            })
-            .onEnd((event) => {
-                const threshold = (sheetHeight.value || SCREEN_HEIGHT) * SWIPE_CLOSE_THRESHOLD_RATIO;
+            },
+            onPanResponderRelease: (_, gestureState) => {
+                const threshold = (sheetHeight.current || SCREEN_HEIGHT) * SWIPE_CLOSE_THRESHOLD_RATIO;
                 const shouldClose =
-                    event.translationY > threshold ||
-                    event.velocityY > SWIPE_VELOCITY_THRESHOLD;
+                    gestureState.dy > threshold ||
+                    gestureState.vy > SWIPE_VELOCITY_THRESHOLD / 1000; // vy is per ms
 
                 if (shouldClose) {
                     // Animate to fully closed
-                    overlayOpacity.value = withTiming(0, {
-                        duration: FADE_OUT_DURATION,
-                        easing: Easing.in(Easing.cubic),
-                    });
-                    sheetTranslateY.value = withTiming(
-                        sheetHeight.value > 0 ? sheetHeight.value + 50 : SCREEN_HEIGHT,
-                        {
-                            duration: SLIDE_OUT_DURATION,
-                            easing: Easing.in(Easing.cubic),
-                        },
-                        (finished) => {
-                            if (finished) {
-                                runOnJS(setShouldRender)(false);
-                                runOnJS(onClose)();
-                            }
-                        },
-                    );
+                    handleAnimateClose();
                 } else {
                     // Snap back to open position
-                    overlayOpacity.value = withTiming(1, { duration: 200 });
-                    sheetTranslateY.value = withSpring(0, SPRING_CONFIG);
+                    Animated.parallel([
+                        Animated.timing(overlayOpacity, {
+                            toValue: 1,
+                            duration: 200,
+                            useNativeDriver: true,
+                        }),
+                        Animated.spring(sheetTranslateY, {
+                            toValue: 0,
+                            damping: 22,
+                            stiffness: 180,
+                            mass: 0.8,
+                            useNativeDriver: true,
+                        })
+                    ]).start();
                 }
-            })
-            .activeOffsetY(10) // Require 10px vertical movement before activating
-            .failOffsetX([-20, 20]), // Fail if horizontal movement detected (allow scrolling)
-        [sheetTranslateY, overlayOpacity, sheetHeight, onClose],
-    );
-
-    // ─── Animated Styles ────────────────────────────────────────────────────
-    const overlayAnimatedStyle = useAnimatedStyle(() => ({
-        opacity: overlayOpacity.value,
-    }));
-
-    const sheetAnimatedStyle = useAnimatedStyle(() => ({
-        transform: [{ translateY: sheetTranslateY.value }],
-    }));
+            },
+        })
+    ).current;
 
     // ─── Form State ─────────────────────────────────────────────────────────
     const [selectedIndex, setSelectedIndex] = useState(0);
@@ -358,7 +344,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                 style={[
                     StyleSheet.absoluteFill,
                     styles.overlay,
-                    overlayAnimatedStyle,
+                    { opacity: overlayOpacity },
                 ]}
             >
                 <Pressable
@@ -372,169 +358,168 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={styles.keyboardView}
                 pointerEvents="box-none">
-                <GestureDetector gesture={panGesture}>
-                    <Animated.View
-                        onLayout={handleSheetLayout}
-                        style={[
-                            styles.modalContainer,
-                            { paddingBottom: insets.bottom + 16 },
-                            sheetAnimatedStyle,
-                        ]}>
-                        {/* Drag handle */}
-                        <View style={styles.dragHandleContainer}>
-                            <View style={styles.dragHandle} />
-                        </View>
+                <Animated.View
+                    {...panResponder.panHandlers}
+                    onLayout={handleSheetLayout}
+                    style={[
+                        styles.modalContainer,
+                        { paddingBottom: insets.bottom + 16 },
+                        { transform: [{ translateY: sheetTranslateY }] },
+                    ]}>
+                    {/* Drag handle */}
+                    <View style={styles.dragHandleContainer}>
+                        <View style={styles.dragHandle} />
+                    </View>
 
-                        <Pressable onPress={Keyboard.dismiss}>
-                            <GlassCard
-                                style={styles.modalCard}
-                                backgroundOpacity={0.95}
-                                borderOpacity={0.2}
-                                borderRadius={28}>
-                                <ScrollView
-                                    showsVerticalScrollIndicator={false}
-                                    keyboardShouldPersistTaps="handled">
-                                    {/* Header */}
-                                    <View style={styles.header}>
-                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                                            {isEdit ? (
-                                                <Pencil size={20} color="#22d3ee" strokeWidth={2} />
-                                            ) : (
-                                                <FilePlus2 size={20} color="#22d3ee" strokeWidth={2} />
-                                            )}
-                                            <Text style={styles.headerTitle}>
-                                                {isEdit
-                                                    ? 'Sửa giao dịch'
-                                                    : 'Giao dịch mới'}
-                                            </Text>
-                                        </View>
-                                        <Pressable
-                                            onPress={handleClose}
-                                            style={styles.closeBtn}>
-                                            <X size={18} color="rgba(255,255,255,0.5)" strokeWidth={2} />
-                                        </Pressable>
-                                    </View>
-
-                                    {/* Toggle IN / OUT */}
-                                    <View style={styles.segmentWrapper}>
-                                        <TransactionFilterBar
-                                            segments={SEGMENTS}
-                                            selectedIndex={selectedIndex}
-                                            onChange={setSelectedIndex}
-                                        />
-                                    </View>
-
-                                    {/* Số tiền */}
-                                    <Text style={styles.label}>
-                                        Số tiền (₫)
-                                    </Text>
-                                    <TextInput
-                                        style={[
-                                            styles.input,
-                                            styles.amountInput,
-                                        ]}
-                                        placeholder="0"
-                                        placeholderTextColor="rgba(255, 255, 255, 0.25)"
-                                        value={displayAmount}
-                                        onChangeText={handleAmountChange}
-                                        keyboardType="numeric"
-                                        returnKeyType="next"
-                                    />
-
-                                    {/* Lý do */}
-                                    <Text style={styles.label}>Lý do</Text>
-                                    <TextInput
-                                        style={[
-                                            styles.input,
-                                            styles.reasonInput,
-                                        ]}
-                                        placeholder="VD: Ăn trưa, Lương tháng..."
-                                        placeholderTextColor="rgba(255, 255, 255, 0.25)"
-                                        value={reason}
-                                        onChangeText={setReason}
-                                        maxLength={200}
-                                        multiline
-                                        numberOfLines={3}
-                                        returnKeyType="done"
-                                    />
-
-                                    {/* Hình ảnh */}
-                                    <Text style={styles.label}>Hình ảnh</Text>
-                                    {imageUri ? (
-                                        <View style={styles.imagePreviewContainer}>
-                                            <Image
-                                                source={{ uri: imageUri }}
-                                                style={styles.imagePreview}
-                                                resizeMode="cover"
-                                            />
-                                            <Pressable
-                                                onPress={handleRemoveImage}
-                                                style={styles.removeImageBtn}>
-                                                <X size={14} color="#fff" strokeWidth={2.5} />
-                                            </Pressable>
-                                        </View>
-                                    ) : (
-                                        <View style={styles.imagePickerRow}>
-                                            <Pressable
-                                                onPress={handlePickFromCamera}
-                                                style={styles.imagePickerBtn}>
-                                                <Camera size={20} color="#22d3ee" strokeWidth={2} />
-                                                <Text style={styles.imagePickerText}>Chụp ảnh</Text>
-                                            </Pressable>
-                                            <Pressable
-                                                onPress={handlePickFromGallery}
-                                                style={styles.imagePickerBtn}>
-                                                <ImagePlus size={20} color="#c084fc" strokeWidth={2} />
-                                                <Text style={styles.imagePickerText}>Thư viện</Text>
-                                            </Pressable>
-                                        </View>
-                                    )}
-
-                                    {/* Nút hành động */}
-                                    <View style={styles.actions}>
-                                        <Pressable
-                                            onPress={handleSave}
-                                            style={({ pressed }) => [
-                                                styles.liquidBtn,
-                                                { transform: [{ scale: pressed ? 0.95 : 1 }] },
-                                            ]}>
-                                            <View style={[StyleSheet.absoluteFill, styles.liquidBtnOverflow]}>
-                                                <View
-                                                    style={[
-                                                        StyleSheet.absoluteFill,
-                                                        { backgroundColor: accentColor },
-                                                    ]}
-                                                />
-                                                {/* Ánh sáng phản chiếu mặt trên (Glass shine) */}
-                                                <View style={styles.liquidBtnShine} />
-                                            </View>
-                                            <View style={[styles.liquidBtnBorder, { borderColor: accentBorder }]} />
-                                            <Text style={[styles.liquidBtnText, { color: textColor }]}>
-                                                {isEdit ? 'Cập nhật' : 'Thêm giao dịch'}
-                                            </Text>
-                                        </Pressable>
-
-                                        {isEdit && onDelete && (
-                                            <Pressable
-                                                onPress={handleDelete}
-                                                style={({ pressed }) => [
-                                                    styles.deleteBtn,
-                                                    pressed && { opacity: 0.7 },
-                                                ]}>
-                                                <Trash2 size={16} color="#f87171" strokeWidth={2} />
-                                                <Text style={styles.deleteBtnText}>
-                                                    Xóa giao dịch
-                                                </Text>
-                                            </Pressable>
+                    <Pressable onPress={Keyboard.dismiss}>
+                        <GlassCard
+                            style={styles.modalCard}
+                            backgroundOpacity={0.95}
+                            borderOpacity={0.2}
+                            borderRadius={28}>
+                            <ScrollView
+                                showsVerticalScrollIndicator={false}
+                                keyboardShouldPersistTaps="handled">
+                                {/* Header */}
+                                <View style={styles.header}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                                        {isEdit ? (
+                                            <Pencil size={20} color="#22d3ee" strokeWidth={2} />
+                                        ) : (
+                                            <FilePlus2 size={20} color="#22d3ee" strokeWidth={2} />
                                         )}
+                                        <Text style={styles.headerTitle}>
+                                            {isEdit
+                                                ? 'Sửa giao dịch'
+                                                : 'Giao dịch mới'}
+                                        </Text>
                                     </View>
-                                </ScrollView>
-                            </GlassCard>
-                        </Pressable>
-                    </Animated.View>
-                </GestureDetector>
-            </KeyboardAvoidingView >
-        </View >
+                                    <Pressable
+                                        onPress={handleClose}
+                                        style={styles.closeBtn}>
+                                        <X size={18} color="rgba(255,255,255,0.5)" strokeWidth={2} />
+                                    </Pressable>
+                                </View>
+
+                                {/* Toggle IN / OUT */}
+                                <View style={styles.segmentWrapper}>
+                                    <TransactionFilterBar
+                                        segments={SEGMENTS}
+                                        selectedIndex={selectedIndex}
+                                        onChange={setSelectedIndex}
+                                    />
+                                </View>
+
+                                {/* Số tiền */}
+                                <Text style={styles.label}>
+                                    Số tiền (₫)
+                                </Text>
+                                <TextInput
+                                    style={[
+                                        styles.input,
+                                        styles.amountInput,
+                                    ]}
+                                    placeholder="0"
+                                    placeholderTextColor="rgba(255, 255, 255, 0.25)"
+                                    value={displayAmount}
+                                    onChangeText={handleAmountChange}
+                                    keyboardType="numeric"
+                                    returnKeyType="next"
+                                />
+
+                                {/* Lý do */}
+                                <Text style={styles.label}>Lý do</Text>
+                                <TextInput
+                                    style={[
+                                        styles.input,
+                                        styles.reasonInput,
+                                    ]}
+                                    placeholder="VD: Ăn trưa, Lương tháng..."
+                                    placeholderTextColor="rgba(255, 255, 255, 0.25)"
+                                    value={reason}
+                                    onChangeText={setReason}
+                                    maxLength={200}
+                                    multiline
+                                    numberOfLines={3}
+                                    returnKeyType="done"
+                                />
+
+                                {/* Hình ảnh */}
+                                <Text style={styles.label}>Hình ảnh</Text>
+                                {imageUri ? (
+                                    <View style={styles.imagePreviewContainer}>
+                                        <Image
+                                            source={{ uri: imageUri }}
+                                            style={styles.imagePreview}
+                                            resizeMode="cover"
+                                        />
+                                        <Pressable
+                                            onPress={handleRemoveImage}
+                                            style={styles.removeImageBtn}>
+                                            <X size={14} color="#fff" strokeWidth={2.5} />
+                                        </Pressable>
+                                    </View>
+                                ) : (
+                                    <View style={styles.imagePickerRow}>
+                                        <Pressable
+                                            onPress={handlePickFromCamera}
+                                            style={styles.imagePickerBtn}>
+                                            <Camera size={20} color="#22d3ee" strokeWidth={2} />
+                                            <Text style={styles.imagePickerText}>Chụp ảnh</Text>
+                                        </Pressable>
+                                        <Pressable
+                                            onPress={handlePickFromGallery}
+                                            style={styles.imagePickerBtn}>
+                                            <ImagePlus size={20} color="#c084fc" strokeWidth={2} />
+                                            <Text style={styles.imagePickerText}>Thư viện</Text>
+                                        </Pressable>
+                                    </View>
+                                )}
+
+                                {/* Nút hành động */}
+                                <View style={styles.actions}>
+                                    <Pressable
+                                        onPress={handleSave}
+                                        style={({ pressed }) => [
+                                            styles.liquidBtn,
+                                            { transform: [{ scale: pressed ? 0.95 : 1 }] },
+                                        ]}>
+                                        <View style={[StyleSheet.absoluteFill, styles.liquidBtnOverflow]}>
+                                            <View
+                                                style={[
+                                                    StyleSheet.absoluteFill,
+                                                    { backgroundColor: accentColor },
+                                                ]}
+                                            />
+                                            {/* Ánh sáng phản chiếu mặt trên (Glass shine) */}
+                                            <View style={styles.liquidBtnShine} />
+                                        </View>
+                                        <View style={[styles.liquidBtnBorder, { borderColor: accentBorder }]} />
+                                        <Text style={[styles.liquidBtnText, { color: textColor }]}>
+                                            {isEdit ? 'Cập nhật' : 'Thêm giao dịch'}
+                                        </Text>
+                                    </Pressable>
+
+                                    {isEdit && onDelete && (
+                                        <Pressable
+                                            onPress={handleDelete}
+                                            style={({ pressed }) => [
+                                                styles.deleteBtn,
+                                                pressed && { opacity: 0.7 },
+                                            ]}>
+                                            <Trash2 size={16} color="#f87171" strokeWidth={2} />
+                                            <Text style={styles.deleteBtnText}>
+                                                Xóa giao dịch
+                                            </Text>
+                                        </Pressable>
+                                    )}
+                                </View>
+                            </ScrollView>
+                        </GlassCard>
+                    </Pressable>
+                </Animated.View>
+            </KeyboardAvoidingView>
+        </View>
     );
 };
 

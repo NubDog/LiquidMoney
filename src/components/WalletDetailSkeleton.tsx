@@ -4,15 +4,8 @@
  * Pure UI — zero data dependencies, zero Zustand, zero side effects
  */
 
-import React, { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
-import Animated, {
-    Easing,
-    useAnimatedStyle,
-    useSharedValue,
-    withRepeat,
-    withTiming,
-} from 'react-native-reanimated';
+import React, { useEffect, useRef } from 'react';
+import { StyleSheet, View, Animated, Easing } from 'react-native';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -22,6 +15,33 @@ const OPACITY_MAX = 0.7;
 
 const SKELETON_BASE_COLOR = 'rgba(255, 255, 255, 0.06)';
 const SKELETON_HIGHLIGHT_COLOR = 'rgba(255, 255, 255, 0.12)';
+
+// ─── Shared Pulse Hook ────────────────────────────────────────────────────────
+
+const usePulseAnimation = () => {
+    const pulseAnim = useRef(new Animated.Value(OPACITY_MIN)).current;
+
+    useEffect(() => {
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(pulseAnim, {
+                    toValue: OPACITY_MAX,
+                    duration: PULSE_DURATION,
+                    easing: Easing.inOut(Easing.ease),
+                    useNativeDriver: true,
+                }),
+                Animated.timing(pulseAnim, {
+                    toValue: OPACITY_MIN,
+                    duration: PULSE_DURATION,
+                    easing: Easing.inOut(Easing.ease),
+                    useNativeDriver: true,
+                }),
+            ]),
+        ).start();
+    }, [pulseAnim]);
+
+    return pulseAnim;
+};
 
 // ─── Skeleton Bar ─────────────────────────────────────────────────────────────
 
@@ -38,22 +58,7 @@ const SkeletonBar: React.FC<SkeletonBarProps> = React.memo(({
     borderRadius = 8,
     style,
 }) => {
-    const pulse = useSharedValue(OPACITY_MIN);
-
-    useEffect(() => {
-        pulse.value = withRepeat(
-            withTiming(OPACITY_MAX, {
-                duration: PULSE_DURATION,
-                easing: Easing.inOut(Easing.ease),
-            }),
-            -1,
-            true,
-        );
-    }, [pulse]);
-
-    const animatedStyle = useAnimatedStyle(() => ({
-        opacity: pulse.value,
-    }));
+    const pulseAnim = usePulseAnimation();
 
     return (
         <Animated.View
@@ -63,9 +68,9 @@ const SkeletonBar: React.FC<SkeletonBarProps> = React.memo(({
                     height,
                     borderRadius,
                     backgroundColor: SKELETON_HIGHLIGHT_COLOR,
+                    opacity: pulseAnim,
                 },
                 style,
-                animatedStyle,
             ]}
         />
     );
@@ -79,22 +84,7 @@ interface SkeletonCircleProps {
 }
 
 const SkeletonCircle: React.FC<SkeletonCircleProps> = React.memo(({ size, style }) => {
-    const pulse = useSharedValue(OPACITY_MIN);
-
-    useEffect(() => {
-        pulse.value = withRepeat(
-            withTiming(OPACITY_MAX, {
-                duration: PULSE_DURATION,
-                easing: Easing.inOut(Easing.ease),
-            }),
-            -1,
-            true,
-        );
-    }, [pulse]);
-
-    const animatedStyle = useAnimatedStyle(() => ({
-        opacity: pulse.value,
-    }));
+    const pulseAnim = usePulseAnimation();
 
     return (
         <Animated.View
@@ -104,9 +94,9 @@ const SkeletonCircle: React.FC<SkeletonCircleProps> = React.memo(({ size, style 
                     height: size,
                     borderRadius: size / 2,
                     backgroundColor: SKELETON_HIGHLIGHT_COLOR,
+                    opacity: pulseAnim,
                 },
                 style,
-                animatedStyle,
             ]}
         />
     );

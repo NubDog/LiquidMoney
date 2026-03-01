@@ -9,24 +9,16 @@
  * - Solid icy moonlight shadow/glow around the button
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
+    Animated,
+    Easing,
     Platform,
     Pressable,
     StyleSheet,
     View,
     type ViewStyle,
 } from 'react-native';
-import Animated, {
-    useAnimatedStyle,
-    useSharedValue,
-    withRepeat,
-    withTiming,
-    withSpring,
-    Easing,
-    withSequence,
-    SharedValue,
-} from 'react-native-reanimated';
 import { Plus } from 'lucide-react-native';
 
 interface LiquidFABProps {
@@ -37,24 +29,32 @@ interface LiquidFABProps {
 const FAB_SIZE = 56;
 
 const LiquidFAB: React.FC<LiquidFABProps> = ({ onPress, style }) => {
-    const isPressed = useSharedValue(0);
+    const isPressed = useRef(new Animated.Value(0)).current;
 
     // Ngôi sao lấp lánh (Twinkling stars opacity)
-    const starOpacity1 = useSharedValue(0.1);
-    const starOpacity2 = useSharedValue(0.3);
-    const starOpacity3 = useSharedValue(0.1);
+    const starOpacity1 = useRef(new Animated.Value(0.1)).current;
+    const starOpacity2 = useRef(new Animated.Value(0.3)).current;
+    const starOpacity3 = useRef(new Animated.Value(0.1)).current;
 
     useEffect(() => {
         // Hàm tạo nhịp đập lấp lánh ngẫu nhiên
-        const twinkle = (sv: SharedValue<number>, duration: number) => {
-            sv.value = withRepeat(
-                withSequence(
-                    withTiming(0.85, { duration, easing: Easing.inOut(Easing.ease) }),
-                    withTiming(0.1, { duration: duration * 1.5, easing: Easing.inOut(Easing.ease) })
-                ),
-                -1,
-                true
-            );
+        const twinkle = (animValue: Animated.Value, duration: number) => {
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(animValue, {
+                        toValue: 0.85,
+                        duration,
+                        easing: Easing.inOut(Easing.ease),
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(animValue, {
+                        toValue: 0.1,
+                        duration: duration * 1.5,
+                        easing: Easing.inOut(Easing.ease),
+                        useNativeDriver: true,
+                    }),
+                ])
+            ).start();
         };
 
         twinkle(starOpacity1, 1400);
@@ -63,22 +63,32 @@ const LiquidFAB: React.FC<LiquidFABProps> = ({ onPress, style }) => {
     }, [starOpacity1, starOpacity2, starOpacity3]);
 
     const handlePressIn = () => {
-        isPressed.value = withSpring(1, { damping: 14, stiffness: 300 });
+        Animated.spring(isPressed, {
+            toValue: 1,
+            damping: 14,
+            stiffness: 300,
+            useNativeDriver: true,
+        }).start();
     };
 
     const handlePressOut = () => {
-        isPressed.value = withSpring(0, { damping: 12, stiffness: 200 });
+        Animated.spring(isPressed, {
+            toValue: 0,
+            damping: 12,
+            stiffness: 200,
+            useNativeDriver: true,
+        }).start();
     };
 
     // ─── Animated Styles ───
-    const animatedContainerStyle = useAnimatedStyle(() => {
-        // Thu nhỏ nhẹ khi ấn
-        const scale = 1 - isPressed.value * 0.12;
-        return { transform: [{ scale }] };
+    // Thu nhỏ nhẹ khi ấn
+    const scale = isPressed.interpolate({
+        inputRange: [0, 1],
+        outputRange: [1, 0.88]
     });
 
     return (
-        <Animated.View style={[styles.wrapper, style, animatedContainerStyle]}>
+        <Animated.View style={[styles.wrapper, style, { transform: [{ scale }] }]}>
             <Pressable
                 onPress={onPress}
                 onPressIn={handlePressIn}

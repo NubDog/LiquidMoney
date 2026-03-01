@@ -1,0 +1,254 @@
+--------- beginning of main
+02-22 11:17:55.423  6279  6348 E horae   : 0: back:37039,back_1:37584,frame:36444,front:38889, 28 5, +(2397), 1 ,46014,40477,40547,42033,37100,45071,40731,40844,42267,37100,46450,40876,41208,42480,37000,47452,41286,41502,43008,37000, target_temp:38889, algo:0
+02-22 11:17:55.612  2438  2438 E perfetto: ng_service_impl.cc:3788 Unable to read ro.boot.hardware.revision
+02-22 11:17:55.612  2438  2438 E perfetto: ng_service_impl.cc:3795 Unable to read ro.boot.hardware.ufs
+02-22 11:17:55.612  2438  2438 E perfetto: ng_service_impl.cc:3802 Unable to read ro.boot.hardware.ddr
+02-22 11:17:55.698  6288 18088 E midasd  : getTotalFlipsFromSf mCurFrameCount: 4285650
+02-22 11:17:55.746  3394 29735 E OplusStorageUFSBandwidth: storage_io_metrics_path is /proc/oplus_storage/io_metrics/forever/
+02-22 11:17:55.748  3394 29735 E OplusStorageUFSBandwidth: Bandwidth - Read: 1,00 MB/s, Write: 0,00 MB/s
+02-22 11:17:55.748  3394 29735 E OplusStorageUFSBandwidth: Task time: 2ms
+02-22 11:17:55.750  3394 29735 E OplusStorageUFSBandwidth: Alarm set to trigger in 10 seconds
+02-22 11:17:56.649  1742  6686 E vendor.qti.bluetooth@1.1-wake_lock: Acquire write to wakelock file failed -1 - Operation not permitted
+02-22 11:17:56.840  1742  5855 E vendor.qti.bluetooth@1.1-wake_lock: Release wake lock not initialized/acquired
+02-22 11:17:57.526 11036 10343 E MIDASApplication: MIDASPullAtomManager: onPullAtom 150122
+02-22 11:17:57.570  3394  4559 E SettingsTelemetryUtils: PEAK_REFRESH_RATE value is null
+02-22 11:17:57.749  3394 29735 E OplusStorageUFSBandwidth: storage_io_metrics_path is /proc/oplus_storage/io_metrics/forever/
+02-22 11:17:57.751  3394 29735 E OplusStorageUFSBandwidth: Bandwidth - Read: 0,00 MB/s, Write: 1,00 MB/s
+02-22 11:17:57.751  3394 29735 E OplusStorageUFSBandwidth: Task time: 2ms
+02-22 11:17:57.759  3394 29735 E OplusStorageUFSBandwidth: Alarm set to trigger in 10 seconds
+02-22 11:17:59.753  3394 29735 E OplusStorageUFSBandwidth: storage_io_metrics_path is /proc/oplus_storage/io_metrics/forever/
+02-22 11:17:59.754  3394 29735 E OplusStorageUFSBandwidth: Bandwidth - Read: 0,50 MB/s, Write: 0,00 MB/s
+02-22 11:17:59.755  3394 29735 E OplusStorageUFSBandwidth: Task time: 2ms
+02-22 11:17:59.765  3394 29735 E OplusStorageUFSBandwidth: Alarm set to trigger in 10 seconds
+02-22 11:17:59.822  1935  5178 E PerformanceService: storage_feature: open /sys/devices/platform/soc/112b0000.ufshci//virtualtlcbuff fail
+02-22 11:18:00.035  1812  1896 E ANDR-PERF-RESOURCEQS: ANDR-PERF-RESOURCEQS: AddAndApply() 125: Resource with major=16, minor=0 not supported
+02-22 11:18:00.427  6279  6348 E horae   : 0: back:36862,back_1:37138,frame:37526,front:38318, 28 5, +(3125), 1 ,45071,40731,40844,42267,37100,46450,40876,41208,42480,37000,47452,41286,41502,43008,37000,45542,41443,41280,42804,37100, target_temp:38318, algo:0
+02-22 11:18:00.786  1812  1896 E ANDR-PERF-RESOURCEQS: ANDR-PERF-RESOURCEQS: AddAndApply() 125: Resource with major=16, minor=0 not supported
+02-22 11:18:00.832  3107  3107 E OplusTouchDaemon: [prevent][curved_large_handle_V2][3008]: id:0 pos:1 center_down:1 (11440 10781)(0 0 0 0) 
+02-22 11:18:00.832  3107  3107 E OplusTouchDaemon: [touchEvent][ts_report_touch_data][643]: first touch point id 0 [11440 10781    7    0    0    0    0]
+02-22 11:18:00.839  5177  5177 E IJankManager: slideSceneEnd unknown scene 1000 mScene:-1
+02-22 11:18:00.845  5177  5177 E [OPLUS_AFS_CONFIG]: Failed to open AFS config file: /proc/oplus_afs_config/afs_config
+02-22 11:18:00.845  5177  5177 E AFS_CONFIG: Failed to get scene config
+02-22 11:18:00.845  5177  5177 E OplusAfsManager: afsConfigSceneConfigGet sceneType is null
+02-22 11:18:00.860  1789  2117 E SDM     : DRMConnector::Perform: Connector 69: Setting Qsync min fps 12714112
+02-22 11:18:00.860  1789  2117 E SDM     : DRMConnector::Perform: Connector 69: Setting high_precision_fps 8880128
+02-22 11:18:00.893  3107  3107 E OplusTouchDaemon: [prevent][curved_large_handle_V2][3082]: up id(0) status: 1, 1, 1, 0.
+02-22 11:18:00.894  5177  5177 E [OPLUS_AFS_CONFIG]: Failed to open AFS config file: /proc/oplus_afs_config/afs_config
+02-22 11:18:00.894  5177  5177 E AFS_CONFIG: Failed to get scene config
+02-22 11:18:00.894  5177  5177 E OplusAfsManager: afsConfigSceneConfigGet sceneType is null
+02-22 11:18:00.894  5177  5177 E [OPLUS_AFS_CONFIG]: Failed to open AFS config file: /proc/oplus_afs_config/afs_config
+02-22 11:18:00.894  5177  5177 E AFS_CONFIG: Failed to get scene config
+02-22 11:18:00.894  5177  5177 E OplusAfsManager: afsConfigSceneConfigGet sceneType is null
+02-22 11:18:00.898  5177  5177 E OplusDisplayModeManager: has been initialized.
+02-22 11:18:00.898 27808 28980 E FileStrategy: java.io.IOException: Read-only file system
+02-22 11:18:00.901  5177  5177 E CustomRectFSpringAnim[u0]: Null break param
+--------- beginning of system
+02-22 11:18:00.903  3394  5700 E OplusAppQuickStart_AppQuickStartController: notifyStartActivity intent:Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10200000 xflg=0x4 cmp=com.liquidmoney/.MainActivity bnds=[633,546][921,862] (has extras) }
+02-22 11:18:00.903  3394  5490 E OplusInputManagerService_jni: updateInvalidRegion start!!!
+02-22 11:18:00.903  3394  5490 E InputDispatcherExtImpl: rectF left: 0.000000, top: 2703.000000, right: 1264.000000, bottom: 2780.000000 offset_left: 0.000000, offset_top: 0.000000, offset_right: 0.000000, offset_bottom: 0.000000, isClosedRegion:0
+02-22 11:18:00.903  3394  5700 E system_server: No package ID 7f found for resource ID 0x7f10000d.
+02-22 11:18:00.904  3394  5490 E OplusInputManagerService_jni: updateInvalidRegion start!!!
+02-22 11:18:00.904  3394  5490 E OplusInputManagerService_jni: updateInvalidRegion start!!!
+02-22 11:18:00.904  3394  3603 E QosSceneRecognizer[ActivityStartScene]: notifyActivityStart get launchedFromUid failed through AppManager! launchedFromPackage: com.android.launcher, pkg: com.liquidmoney
+02-22 11:18:00.905  5177  5177 E [OPLUS_AFS_CONFIG]: Failed to open AFS config file: /proc/oplus_afs_config/afs_config
+02-22 11:18:00.905  5177  5177 E AFS_CONFIG: Failed to get scene config
+02-22 11:18:00.905  5177  5177 E OplusAfsManager: afsConfigSceneConfigGet sceneType is null
+02-22 11:18:00.922  3394  5700 E FlexibleWindowManagerService: notifyTaskObserverToAttachController not need to notify!
+02-22 11:18:00.928  4880  4975 E OplusBracketLog: [OplusViewMirrorManager] updateHostViewRootIfNeeded, not support android.view.ViewRootImpl@2180fb2
+02-22 11:18:00.931  3394  3508 E FlexibleWindowManagerService: notifyTaskObserverToAttachController not need to notify!
+02-22 11:18:00.961  1863  1863 E qspmHal : setAppInfoH atPid = 4019, gpuFname:com.liquidmoney, gpuFver:11
+02-22 11:18:00.961  4019  4019 E com.liquidmoney: Unknown bits set in runtime_flags: 0x40000000
+02-22 11:18:00.964  4019  4019 E com.liquidmoney: Not starting debugger since process cannot load the jdwp agent.
+02-22 11:18:00.970  1812  9869 E ANDR-PERF-LM: MetaMeter: handleAsync() 166: AdaptLaunch Invalid Async
+02-22 11:18:00.977  3394  5490 E FlexibleWindowManagerService: notifyTaskObserverToAttachController not need to notify!
+02-22 11:18:00.987  3394  3625 E OplusThermalStats: Error getting package info: com.liquidmoney
+02-22 11:18:00.994 27742 27883 E metis_v2_JenaHandlerManager: local thread match [7f0000011771733824309474431689|p_31689_f4d5de@39|p_27742_c2072a7@987|com.oplus.metis]
+02-22 11:18:00.995 27742 27883 E metis_v2_JenaHandlerManager: local thread match [7f0000011771733824309474431689|p_31689_f4d5de@39|p_27742_c2072a7@987|com.oplus.metis]
+02-22 11:18:00.995 27742 27970 E FileStrategy: java.io.IOException: Read-only file system
+02-22 11:18:00.995  3394  6233 E KernelCpuUidFreqTimeReader: Negative delta from freq time for uid: 90000, delta: -98
+02-22 11:18:00.995  3394  6233 E KernelCpuUidFreqTimeReader: Negative delta from freq time for uid: 90001, delta: -1
+02-22 11:18:00.995  3394  6233 E KernelCpuUidFreqTimeReader: Negative delta from freq time for uid: 90100, delta: -4
+02-22 11:18:00.995  3394  6233 E KernelCpuUidFreqTimeReader: Negative delta from freq time for uid: 90101, delta: -2
+02-22 11:18:00.995  3394  6233 E KernelCpuUidFreqTimeReader: Negative delta from freq time for uid: 90102, delta: -147
+02-22 11:18:00.995  3394  6233 E KernelCpuUidFreqTimeReader: Negative delta from freq time for uid: 90103, delta: -62
+02-22 11:18:00.995  3394  6233 E KernelCpuUidFreqTimeReader: Negative delta from freq time for uid: 90108, delta: -352
+02-22 11:18:00.996 27742 27778 E metis_v2_FactManager: There is no subModel: com.oplus.linker
+02-22 11:18:01.000  1626  1653 E statsd  : Stats puller failed for tag: 150134 at 127570177621837
+02-22 11:18:01.012  1626  1653 E statsd  : Stats puller failed for tag: 150146 at 127570177621837
+02-22 11:18:01.015  1626  1653 E statsd  : Gauge Stats puller failed for tag: 150146 at 127570186179598
+02-22 11:18:01.017  4019  4019 E [UAH_CLIENT]: uahInit enter
+02-22 11:18:01.037  4019  4019 E SchedAssist: open sharedFd failed with error=Permission denied
+02-22 11:18:01.037  4019  4019 E SchedAssist: open sharedFd failed with error=Permission denied
+02-22 11:18:01.037  4019  4019 E SchedAssist: open sharedFd failed with error=Permission denied
+02-22 11:18:01.037  4019  4019 E SchedAssist: open sharedFd failed with error=Permission denied
+02-22 11:18:01.045  4019  4019 E ashmem  : Pinning is deprecated since Android Q. Please use trim or other methods.
+02-22 11:18:01.049  1863  1863 E qspmHal : GPU profile file NOT found !!
+02-22 11:18:01.050  4019  4019 E OplusPredictiveBackController:  NoSuchMethodException 
+02-22 11:18:01.078  3394  5490 E SchedAssist: ofbCfgFrameTask tid(4087) failed with error=Socket operation on non-socket
+02-22 11:18:01.083  3394  3508 E FlexibleWindowManagerService: notifyTaskObserverToAttachController not need to notify!
+02-22 11:18:01.083  3394  3508 E FlexibleWindowManagerService: notifyTaskObserverToAttachController not need to notify!
+02-22 11:18:01.083  4019  4019 E OplusBracketLog: [OplusViewMirrorManager] updateHostViewRootIfNeeded, not support android.view.ViewRootImpl@3297bc4
+02-22 11:18:01.091  3107  3234 E OplusTouchDaemon: syna_touch_node_handle:Id=0, nodeFlag=188, info=mod para_effect sensitive_level:16;mod para_effect set_package_type:0, wrFlag=0, cbsize=2048, readlen=2048
+02-22 11:18:01.091  3107  3234 E OplusTouchDaemon: [OplusTouchDaemon][algo_set_info][8744]: algo_set_info: set paramId 10, buf: , ret=0
+02-22 11:18:01.091  3107  3234 E OplusTouchDaemon: syna_touch_node_handle:TOUCH_SCENE_PARA_NODE set to mod para_effect sensitive_level:16, ret = 0
+02-22 11:18:01.100  4019  4094 E libc++abi: terminating due to uncaught exception of type facebook::jni::JniException: com.facebook.react.common.JavascriptException: [runtime not ready]: Error: Non-js exception: Compiling JS failed: Wrong bytecode version. Expected 98 but got 96, sourceURL: index.android.bundle, stack:
+02-22 11:18:01.100  4019  4094 E libc++abi: 
+02-22 11:18:01.100  4019  4094 E libc++abi: 	at com.facebook.react.modules.core.ExceptionsManagerModule.reportException(ExceptionsManagerModule.kt:52)
+02-22 11:18:01.100  4019  4094 E libc++abi: 	at com.facebook.react.runtime.ReactInstance$ReactJsExceptionHandlerImpl.reportJsException(ReactInstance.kt:291)
+02-22 11:18:01.100  4019  4094 E libc++abi: 	at com.facebook.jni.NativeRunnable.run(Native Method)
+02-22 11:18:01.100  4019  4094 E libc++abi: 	at android.os.Handler.handleCallback(Handler.java:1027)
+02-22 11:18:01.100  4019  4094 E libc++abi: 	at android.os.Handler.dispatchMessage(Handler.java:108)
+02-22 11:18:01.100  4019  4094 E libc++abi: 	at com.facebook.react.bridge.queue.MessageQueueThreadHandler.dispatchMessage(MessageQueueThreadHandler.kt:21)
+02-22 11:18:01.100  4019  4094 E libc++abi: 	at android.os.Looper.loopOnce(Looper.java:298)
+02-22 11:18:01.100  4019  4094 E libc++abi: 	at android.os.Looper.loop(Looper.java:408)
+02-22 11:18:01.100  4019  4094 E libc++abi: 	at com.facebook.react.bridge.queue.MessageQueueThreadImpl$Companion.startNewBackgroundThread$lambda$0(MessageQueueThreadImpl.kt:152)
+02-22 11:18:01.100  4019  4094 E libc++abi: 	at com.facebook.re
+--------- beginning of crash
+02-22 11:18:01.100  4019  4094 F libc    : Fatal signal 6 (SIGABRT), code -1 (SI_QUEUE) in tid 4094 (mqt_v_js), pid 4019 (com.liquidmoney)
+02-22 11:18:01.102  5177  5177 E [OPLUS_AFS_CONFIG]: Failed to open AFS config file: /proc/oplus_afs_config/afs_config
+02-22 11:18:01.102  5177  5177 E AFS_CONFIG: Failed to get scene config
+02-22 11:18:01.102  5177  5177 E OplusAfsManager: afsConfigSceneConfigGet sceneType is null
+02-22 11:18:01.112  1626  1653 E statsd  : Gauge Stats puller failed for tag: 150134 at 127570307602202
+02-22 11:18:01.366  4112  4112 F DEBUG   : Process name is com.liquidmoney, uid is 10502, not key_process
+02-22 11:18:01.366  4112  4112 F DEBUG   : keyProcess: 0
+02-22 11:18:01.366  4112  4112 F DEBUG   : *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+02-22 11:18:01.366  4112  4112 F DEBUG   : Build fingerprint: 'OnePlus/PKG110/OP5D2BL1:16/UKQ1.231108.001/V.1f672c7_296bea_2963ce:user/release-keys'
+02-22 11:18:01.366  4112  4112 F DEBUG   : Revision: '0'
+02-22 11:18:01.366  4112  4112 F DEBUG   : ABI: 'arm64'
+02-22 11:18:01.368  4112  4112 F DEBUG   : Timestamp: 2026-02-22 11:18:01.182463671+0700
+02-22 11:18:01.368  4112  4112 F DEBUG   : Process uptime: 1s
+02-22 11:18:01.368  4112  4112 F DEBUG   : Cmdline: com.liquidmoney
+02-22 11:18:01.369  4112  4112 F DEBUG   : pid: 4019, tid: 4094, name: mqt_v_js  >>> com.liquidmoney <<<
+02-22 11:18:01.369  4112  4112 F DEBUG   : uid: 10502
+02-22 11:18:01.369  4112  4112 F DEBUG   : tagged_addr_ctrl: 0000000000000001 (PR_TAGGED_ADDR_ENABLE)
+02-22 11:18:01.369  4112  4112 F DEBUG   : pac_enabled_keys: 000000000000000f (PR_PAC_APIAKEY, PR_PAC_APIBKEY, PR_PAC_APDAKEY, PR_PAC_APDBKEY)
+02-22 11:18:01.369  4112  4112 F DEBUG   : signal 6 (SIGABRT), code -1 (SI_QUEUE), fault addr --------
+02-22 11:18:01.369  4112  4112 F DEBUG   : Abort message: 'terminating due to uncaught exception of type facebook::jni::JniException: com.facebook.react.common.JavascriptException: [runtime not ready]: Error: Non-js exception: Compiling JS failed: Wrong bytecode version. Expected 98 but got 96, sourceURL: index.android.bundle, stack:
+02-22 11:18:01.369  4112  4112 F DEBUG   : 
+02-22 11:18:01.369  4112  4112 F DEBUG   : 	at com.facebook.react.modules.core.ExceptionsManagerModule.reportException(ExceptionsManagerModule.kt:52)
+02-22 11:18:01.369  4112  4112 F DEBUG   : 	at com.facebook.react.runtime.ReactInstance$ReactJsExceptionHandlerImpl.reportJsException(ReactInstance.kt:291)
+02-22 11:18:01.369  4112  4112 F DEBUG   : 	at com.facebook.jni.NativeRunnable.run(Native Method)
+02-22 11:18:01.369  4112  4112 F DEBUG   : 	at android.os.Handler.handleCallback(Handler.java:1027)
+02-22 11:18:01.369  4112  4112 F DEBUG   : 	at android.os.Handler.dispatchMessage(Handler.java:108)
+02-22 11:18:01.369  4112  4112 F DEBUG   : 	at com.facebook.react.bridge.queue.MessageQueueThreadHandler.dispatchMessage(MessageQueueThreadHandler.kt:21)
+02-22 11:18:01.369  4112  4112 F DEBUG   : 	at android.os.Looper.loopOnce(Looper.java:298)
+02-22 11:18:01.369  4112  4112 F DEBUG   : 	at android.os.Looper.loop(Looper.java:408)
+02-22 11:18:01.369  4112  4112 F DEBUG   : 	at com.facebook.react.bridge.queue.MessageQueueThreadImpl$Companion.startNewBackgroundThread$lambda$0(MessageQueueThreadImpl.kt:152)
+02-22 11:18:01.369  4112  4112 F DEBUG   : 	at com.facebook.react.bridge.queue.MessageQueueThreadImpl$Companion.$r8$lambda$YYXYCFexeoKtAeDpeNYkxZZlpbA(Unknown Source:0)
+02-22 11:18:01.369  4112  4112 F DEBUG   : 	at com.facebook.react.bridge.queue.MessageQueueThreadImpl$Companion$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+02-22 11:18:01.369  4112  4112 F DEBUG   : 	at java.lang.Thread.run(Thread.java:1119)'
+02-22 11:18:01.369  4112  4112 F DEBUG   :     x0  0000000000000000  x1  0000000000000ffe  x2  0000000000000006  x3  0000007c268aa250
+02-22 11:18:01.369  4112  4112 F DEBUG   :     x4  646277641f736766  x5  646277641f736766  x6  646277641f736766  x7  7f7f7f7f7f7f7f7f
+02-22 11:18:01.369  4112  4112 F DEBUG   :     x8  00000000000000f0  x9  24cd12059ff8d876  x10 000000ff00000020  x11 0000000000000000
+02-22 11:18:01.369  4112  4112 F DEBUG   :     x12 00000000699a8379  x13 000000007fffffff  x14 000000000362cef2  x15 0000023a4e9da5e8
+02-22 11:18:01.369  4112  4112 F DEBUG   :     x16 0000007e1ab37818  x17 0000007e1ab1ef40  x18 0000007c2637c000  x19 0000000000000fb3
+02-22 11:18:01.369  4112  4112 F DEBUG   :     x20 0000000000000ffe  x21 00000000ffffffff  x22 0000007c268aa380  x23 0000007c268aa3c0
+02-22 11:18:01.369  4112  4112 F DEBUG   :     x24 0000007c268aa470  x25 b400007d185c4ae0  x26 0000007c268aa650  x27 0000000000000000
+02-22 11:18:01.369  4112  4112 F DEBUG   :     x28 0000000000000000  x29 0000007c268aa2d0
+02-22 11:18:01.369  4112  4112 F DEBUG   :     lr  0000007e1aab98a8  sp  0000007c268aa250  pc  0000007e1aab98cc  pst 0000000000001000
+02-22 11:18:01.369  4112  4112 F DEBUG   : 35 total frames
+02-22 11:18:01.369  4112  4112 F DEBUG   : backtrace:
+02-22 11:18:01.369  4112  4112 F DEBUG   :       #00 pc 00000000000898cc  /apex/com.android.runtime/lib64/bionic/libc.so (abort+160) (BuildId: f0468d2d3a31c553a7103b6114f35dc6)
+02-22 11:18:01.369  4112  4112 F DEBUG   :       #01 pc 00000000000a0210  /data/app/~~azO2gbrVLddLqAlGhHML6A==/com.liquidmoney-3qYhzjuE7Pq8572d4gQ5wg==/base.apk!libc++_shared.so (offset 0x8a8000) (BuildId: 6783a7f3a0d9c67c55a74cadc441ed55aaa493da)
+02-22 11:18:01.369  4112  4112 F DEBUG   :       #02 pc 000000000009eeb0  /data/app/~~azO2gbrVLddLqAlGhHML6A==/com.liquidmoney-3qYhzjuE7Pq8572d4gQ5wg==/base.apk!libc++_shared.so (offset 0x8a8000) (BuildId: 6783a7f3a0d9c67c55a74cadc441ed55aaa493da)
+02-22 11:18:01.369  4112  4112 F DEBUG   :       #03 pc 000000000009f374  /data/app/~~azO2gbrVLddLqAlGhHML6A==/com.liquidmoney-3qYhzjuE7Pq8572d4gQ5wg==/base.apk!libc++_shared.so (offset 0x8a8000) (BuildId: 6783a7f3a0d9c67c55a74cadc441ed55aaa493da)
+02-22 11:18:01.369  4112  4112 F DEBUG   :       #04 pc 000000000009f314  /data/app/~~azO2gbrVLddLqAlGhHML6A==/com.liquidmoney-3qYhzjuE7Pq8572d4gQ5wg==/base.apk!libc++_shared.so (offset 0x8a8000) (std::terminate()+56) (BuildId: 6783a7f3a0d9c67c55a74cadc441ed55aaa493da)
+02-22 11:18:01.369  4112  4112 F DEBUG   :       #05 pc 0000000000280294  /data/app/~~azO2gbrVLddLqAlGhHML6A==/com.liquidmoney-3qYhzjuE7Pq8572d4gQ5wg==/base.apk!libreactnative.so (offset 0xf54000) (BuildId: 7e30e03647a3148904c2390445561c90f979a562)
+02-22 11:18:01.369  4112  4112 F DEBUG   :       #06 pc 00000000004cce98  /data/app/~~azO2gbrVLddLqAlGhHML6A==/com.liquidmoney-3qYhzjuE7Pq8572d4gQ5wg==/base.apk!libreactnative.so (offset 0xf54000) (BuildId: 7e30e03647a3148904c2390445561c90f979a562)
+02-22 11:18:01.369  4112  4112 F DEBUG   :       #07 pc 00000000002e2c3c  /data/app/~~azO2gbrVLddLqAlGhHML6A==/com.liquidmoney-3qYhzjuE7Pq8572d4gQ5wg==/base.apk!libreactnative.so (offset 0xf54000) (facebook::react::JsErrorHandler::handleErrorWithCppPipeline(facebook::jsi::Runtime&, facebook::jsi::JSError&, bool, bool)+7440) (BuildId: 7e30e03647a3148904c2390445561c90f979a562)
+02-22 11:18:01.369  4112  4112 F DEBUG   :       #08 pc 00000000002e0be0  /data/app/~~azO2gbrVLddLqAlGhHML6A==/com.liquidmoney-3qYhzjuE7Pq8572d4gQ5wg==/base.apk!libreactnative.so (offset 0xf54000) (facebook::react::JsErrorHandler::handleError(facebook::jsi::Runtime&, facebook::jsi::JSError&, bool, bool)+1684) (BuildId: 7e30e03647a3148904c2390445561c90f979a562)
+02-22 11:18:01.369  4112  4112 F DEBUG   :       #09 pc 00000000004666b4  /data/app/~~azO2gbrVLddLqAlGhHML6A==/com.liquidmoney-3qYhzjuE7Pq8572d4gQ5wg==/base.apk!libreactnative.so (offset 0xf54000) (facebook::react::RuntimeScheduler_Modern::executeTask(facebook::jsi::Runtime&, facebook::react::Task&, bool) const+588) (BuildId: 7e30e03647a3148904c2390445561c90f979a562)
+02-22 11:18:01.370  4112  4112 F DEBUG   :       #10 pc 0000000000466db4  /data/app/~~azO2gbrVLddLqAlGhHML6A==/com.liquidmoney-3qYhzjuE7Pq8572d4gQ5wg==/base.apk!libreactnative.so (offset 0xf54000) (facebook::react::RuntimeScheduler_Modern::runEventLoopTick(facebook::jsi::Runtime&, facebook::react::Task&)+124) (BuildId: 7e30e03647a3148904c2390445561c90f979a562)
+02-22 11:18:01.370  4112  4112 F DEBUG   :       #11 pc 0000000000466ac4  /data/app/~~azO2gbrVLddLqAlGhHML6A==/com.liquidmoney-3qYhzjuE7Pq8572d4gQ5wg==/base.apk!libreactnative.so (offset 0xf54000) (facebook::react::RuntimeScheduler_Modern::runEventLoop(facebook::jsi::Runtime&)+88) (BuildId: 7e30e03647a3148904c2390445561c90f979a562)
+02-22 11:18:01.370  4112  4112 F DEBUG   :       #12 pc 0000000000288a70  /data/app/~~azO2gbrVLddLqAlGhHML6A==/com.liquidmoney-3qYhzjuE7Pq8572d4gQ5wg==/base.apk!libreactnative.so (offset 0xf54000) (BuildId: 7e30e03647a3148904c2390445561c90f979a562)
+02-22 11:18:01.370  4112  4112 F DEBUG   :       #13 pc 00000000004a61b0  /data/app/~~azO2gbrVLddLqAlGhHML6A==/com.liquidmoney-3qYhzjuE7Pq8572d4gQ5wg==/base.apk!libreactnative.so (offset 0xf54000) (BuildId: 7e30e03647a3148904c2390445561c90f979a562)
+02-22 11:18:01.370  4112  4112 F DEBUG   :       #14 pc 0000000000017dd0  /data/app/~~azO2gbrVLddLqAlGhHML6A==/com.liquidmoney-3qYhzjuE7Pq8572d4gQ5wg==/base.apk!libfbjni.so (offset 0x9e4000) (facebook::jni::detail::MethodWrapper<void (facebook::jni::JNativeRunnable::*)(), &facebook::jni::JNativeRunnable::run(), facebook::jni::JNativeRunnable, void>::dispatch(facebook::jni::alias_ref<facebook::jni::detail::JTypeFor<facebook::jni::HybridClass<facebook::jni::JNativeRunnable, facebook::jni::JRunnable>::JavaPart, facebook::jni::JRunnable, void>::_javaobject*>)+72) (BuildId: e438f6554af1d86b210a05412e96c4251e570157)
+02-22 11:18:01.370  4112  4112 F DEBUG   :       #15 pc 0000000000017d10  /data/app/~~azO2gbrVLddLqAlGhHML6A==/com.liquidmoney-3qYhzjuE7Pq8572d4gQ5wg==/base.apk!libfbjni.so (offset 0x9e4000) (facebook::jni::detail::FunctionWrapper<void (*)(facebook::jni::alias_ref<facebook::jni::detail::JTypeFor<facebook::jni::HybridClass<facebook::jni::JNativeRunnable, facebook::jni::JRunnable>::JavaPart, facebook::jni::JRunnable, void>::_javaobject*>), facebook::jni::detail::JTypeFor<facebook::jni::HybridClass<facebook::jni::JNativeRunnable, facebook::jni::JRunnable>::JavaPart, facebook::jni::JRunnable, void>::_javaobject*, void>::call(_JNIEnv*, _jobject*, void (*)(facebook::jni::alias_ref<facebook::jni::detail::JTypeFor<facebook::jni::HybridClass<facebook::jni::JNativeRunnable, facebook::jni::JRunnable>::JavaPart, facebook::jni::JRunnable, void>::_javaobject*>))+60) (BuildId: e438f6554af1d86b210a05412e96c4251e570157)
+02-22 11:18:01.370  4112  4112 F DEBUG   :       #16 pc 00000000003ab9b0  /system/framework/arm64/boot.oat (art_jni_trampoline+112) (BuildId: f14d37fc9ffecf9cdc3d18f2cf009924926db80b)
+02-22 11:18:01.370  4112  4112 F DEBUG   :       #17 pc 00000000005f9ea4  /system/framework/arm64/boot-framework.oat (android.os.Handler.dispatchMessage+68) (BuildId: 6be900499411c1d0cfa5a8da8a1ef549c6cafc49)
+02-22 11:18:01.370  4112  4112 F DEBUG   :       #18 pc 0000000000858820  /apex/com.android.art/lib64/libart.so (nterp_helper+4016) (BuildId: 8f8428e9a6671bd94fb9b819505fa7cf)
+02-22 11:18:01.370  4112  4112 F DEBUG   :       #19 pc 000000000040a876  /data/app/~~azO2gbrVLddLqAlGhHML6A==/com.liquidmoney-3qYhzjuE7Pq8572d4gQ5wg==/oat/arm64/base.vdex (com.facebook.react.bridge.queue.MessageQueueThreadHandler.dispatchMessage+10)
+02-22 11:18:01.370  4112  4112 F DEBUG   :       #20 pc 000000000069b570  /system/framework/arm64/boot-framework.oat (android.os.Looper.loopOnce+1504) (BuildId: 6be900499411c1d0cfa5a8da8a1ef549c6cafc49)
+02-22 11:18:01.370  4112  4112 F DEBUG   :       #21 pc 000000000069af08  /system/framework/arm64/boot-framework.oat (android.os.Looper.loop+296) (BuildId: 6be900499411c1d0cfa5a8da8a1ef549c6cafc49)
+02-22 11:18:01.370  4112  4112 F DEBUG   :       #22 pc 0000000000857908  /apex/com.android.art/lib64/libart.so (nterp_helper+152) (BuildId: 8f8428e9a6671bd94fb9b819505fa7cf)
+02-22 11:18:01.370  4112  4112 F DEBUG   :       #23 pc 000000000040ab20  /data/app/~~azO2gbrVLddLqAlGhHML6A==/com.liquidmoney-3qYhzjuE7Pq8572d4gQ5wg==/oat/arm64/base.vdex (com.facebook.react.bridge.queue.MessageQueueThreadImpl$Companion.startNewBackgroundThread$lambda$0+28)
+02-22 11:18:01.370  4112  4112 F DEBUG   :       #24 pc 0000000000857908  /apex/com.android.art/lib64/libart.so (nterp_helper+152) (BuildId: 8f8428e9a6671bd94fb9b819505fa7cf)
+02-22 11:18:01.370  4112  4112 F DEBUG   :       #25 pc 000000000040aabc  /data/app/~~azO2gbrVLddLqAlGhHML6A==/com.liquidmoney-3qYhzjuE7Pq8572d4gQ5wg==/oat/arm64/base.vdex (com.facebook.react.bridge.queue.MessageQueueThreadImpl$Companion.$r8$lambda$YYXYCFexeoKtAeDpeNYkxZZlpbA+0)
+02-22 11:18:01.370  4112  4112 F DEBUG   :       #26 pc 0000000000857908  /apex/com.android.art/lib64/libart.so (nterp_helper+152) (BuildId: 8f8428e9a6671bd94fb9b819505fa7cf)
+02-22 11:18:01.370  4112  4112 F DEBUG   :       #27 pc 000000000040a90c  /data/app/~~azO2gbrVLddLqAlGhHML6A==/com.liquidmoney-3qYhzjuE7Pq8572d4gQ5wg==/oat/arm64/base.vdex (com.facebook.react.bridge.queue.MessageQueueThreadImpl$Companion$$ExternalSyntheticLambda0.run+4)
+02-22 11:18:01.370  4112  4112 F DEBUG   :       #28 pc 00000000000d6ff0  /system/framework/arm64/boot.oat (java.lang.Thread.run+128) (BuildId: f14d37fc9ffecf9cdc3d18f2cf009924926db80b)
+02-22 11:18:01.370  4112  4112 F DEBUG   :       #29 pc 00000000004bbb94  /apex/com.android.art/lib64/libart.so (art_quick_invoke_stub+612) (BuildId: 8f8428e9a6671bd94fb9b819505fa7cf)
+02-22 11:18:01.370  4112  4112 F DEBUG   :       #30 pc 0000000000659bf8  /apex/com.android.art/lib64/libart.so (art::ArtMethod::Invoke(art::Thread*, unsigned int*, unsigned int, art::JValue*, char const*)+140) (BuildId: 8f8428e9a6671bd94fb9b819505fa7cf)
+02-22 11:18:01.370  4112  4112 F DEBUG   :       #31 pc 00000000006e72e4  /apex/com.android.art/lib64/libart.so (art::Thread::CreateCallback(void*)+1052) (BuildId: 8f8428e9a6671bd94fb9b819505fa7cf)
+02-22 11:18:01.370  4112  4112 F DEBUG   :       #32 pc 00000000006e6eb4  /apex/com.android.art/lib64/libart.so (art::Thread::CreateCallbackWithUffdGc(void*)+12) (BuildId: 8f8428e9a6671bd94fb9b819505fa7cf)
+02-22 11:18:01.370  4112  4112 F DEBUG   :       #33 pc 000000000009a22c  /apex/com.android.runtime/lib64/bionic/libc.so (__pthread_start(void*)+184) (BuildId: f0468d2d3a31c553a7103b6114f35dc6)
+02-22 11:18:01.370  4112  4112 F DEBUG   :       #34 pc 000000000008ca48  /apex/com.android.runtime/lib64/bionic/libc.so (__start_thread+68) (BuildId: f0468d2d3a31c553a7103b6114f35dc6)
+02-22 11:18:01.402  3394  4117 E FlexibleWindowManagerService: notifyTaskObserverToAttachController not need to notify!
+02-22 11:18:01.404  3394  4117 E FlexibleWindowManagerService: notifyTaskObserverToAttachController not need to notify!
+02-22 11:18:01.405  3394  3508 E OplusAppQuickStart_AppQuickStartController: not start from launcher transition:2575
+02-22 11:18:01.407  3394  4200 E OsenseCommonUtils: write /dev/memcg/memory.force_shrink_file failed
+02-22 11:18:01.407  3394  4200 E OsenseCommonUtils: java.io.IOException: write failed: EBUSY (Device or resource busy)
+02-22 11:18:01.407  3394  4200 E OsenseCommonUtils: 	at libcore.io.IoBridge.write(IoBridge.java:651)
+02-22 11:18:01.407  3394  4200 E OsenseCommonUtils: 	at java.io.FileOutputStream.write(FileOutputStream.java:436)
+02-22 11:18:01.407  3394  4200 E OsenseCommonUtils: 	at sun.nio.cs.StreamEncoder.writeBytes(StreamEncoder.java:233)
+02-22 11:18:01.407  3394  4200 E OsenseCommonUtils: 	at sun.nio.cs.StreamEncoder.implFlushBuffer(StreamEncoder.java:309)
+02-22 11:18:01.407  3394  4200 E OsenseCommonUtils: 	at sun.nio.cs.StreamEncoder.implFlush(StreamEncoder.java:313)
+02-22 11:18:01.407  3394  4200 E OsenseCommonUtils: 	at sun.nio.cs.StreamEncoder.flush(StreamEncoder.java:153)
+02-22 11:18:01.407  3394  4200 E OsenseCommonUtils: 	at java.io.OutputStreamWriter.flush(OutputStreamWriter.java:248)
+02-22 11:18:01.407  3394  4200 E OsenseCommonUtils: 	at com.android.server.oplus.osense.utils.OsenseCommonUtils.writeFile(OsenseCommonUtils.java:154)
+02-22 11:18:01.407  3394  4200 E OsenseCommonUtils: 	at com.android.server.am.OplusOsenseCompressAction.doGlobalShrink(OplusOsenseCompressAction.java:1886)
+02-22 11:18:01.407  3394  4200 E OsenseCommonUtils: 	at com.android.server.am.OplusOsenseCompressAction.-$$Nest$mdoGlobalShrink(Unknown Source:0)
+02-22 11:18:01.407  3394  4200 E OsenseCommonUtils: 	at com.android.server.am.OplusOsenseCompressAction$CompressHandler.handleMessage(OplusOsenseCompressAction.java:1334)
+02-22 11:18:01.407  3394  4200 E OsenseCommonUtils: 	at android.os.Handler.dispatchMessage(Handler.java:115)
+02-22 11:18:01.407  3394  4200 E OsenseCommonUtils: 	at android.os.Looper.loopOnce(Looper.java:298)
+02-22 11:18:01.407  3394  4200 E OsenseCommonUtils: 	at android.os.Looper.loop(Looper.java:408)
+02-22 11:18:01.407  3394  4200 E OsenseCommonUtils: 	at android.os.HandlerThread.run(HandlerThread.java:85)
+02-22 11:18:01.407  3394  4200 E OsenseCommonUtils: Caused by: android.system.ErrnoException: write failed: EBUSY (Device or resource busy)
+02-22 11:18:01.407  3394  4200 E OsenseCommonUtils: 	at libcore.io.Linux.writeBytes(Native Method)
+02-22 11:18:01.407  3394  4200 E OsenseCommonUtils: 	at libcore.io.Linux.write(Linux.java:336)
+02-22 11:18:01.407  3394  4200 E OsenseCommonUtils: 	at libcore.io.ForwardingOs.write(ForwardingOs.java:948)
+02-22 11:18:01.407  3394  4200 E OsenseCommonUtils: 	at libcore.io.BlockGuardOs.write(BlockGuardOs.java:448)
+02-22 11:18:01.407  3394  4200 E OsenseCommonUtils: 	at libcore.io.IoBridge.write(IoBridge.java:646)
+02-22 11:18:01.407  3394  4200 E OsenseCommonUtils: 	... 14 more
+02-22 11:18:01.410  5177  2283 E RemoteAnimRunnerExt[u0]: match view fail, reason: postscriptViewId:-1 , prefaceViewId:158908180
+02-22 11:18:01.411  1458  1458 E tombstoned: Tombstone written to: tombstone_08
+02-22 11:18:01.424  5177  5177 E ScreenDecorationsUtils: getWindowCornerRadius NumberFormatException
+02-22 11:18:01.425  5177  5177 E [OPLUS_AFS_CONFIG]: Failed to open AFS config file: /proc/oplus_afs_config/afs_config
+02-22 11:18:01.425  5177  5177 E AFS_CONFIG: Failed to get scene config
+02-22 11:18:01.425  5177  5177 E OplusAfsManager: afsConfigSceneConfigGet sceneType is null
+02-22 11:18:01.425  5177  5177 E OplusDisplayModeManager: has been initialized.
+02-22 11:18:01.430  3394  3625 E OplusThermalStats: Error getting package info: com.android.launcher
+02-22 11:18:01.433  5177  5177 E [OPLUS_AFS_CONFIG]: Failed to open AFS config file: /proc/oplus_afs_config/afs_config
+02-22 11:18:01.433  5177  5177 E AFS_CONFIG: Failed to get scene config
+02-22 11:18:01.433  5177  5177 E OplusAfsManager: afsConfigSceneConfigGet sceneType is null
+02-22 11:18:01.445  1626  1653 E statsd  : Stats puller failed for tag: 150134 at 127570641052618
+02-22 11:18:01.445  1626  1653 E statsd  : Stats puller failed for tag: 150146 at 127570641052618
+02-22 11:18:01.466  1863  1863 E qspmHal : setAppInfoH atPid = 4019, gpuFname:com.liquidmoney, gpuFver:10
+02-22 11:18:01.470  1626  1653 E statsd  : Stats puller failed for tag: 150134 at 127570665681264
+02-22 11:18:01.474  1626  1653 E statsd  : Stats puller failed for tag: 150146 at 127570665681264
+02-22 11:18:01.740  2518  2637 E QmiVsClient: sendAsyncRequest QMI_VS_GET_ALL_CELLULAR_CELL_INFO_REQ_MSG_V01 ret 0
+02-22 11:18:01.757  3394 29735 E OplusStorageUFSBandwidth: storage_io_metrics_path is /proc/oplus_storage/io_metrics/forever/
+02-22 11:18:01.758  3394 29735 E OplusStorageUFSBandwidth: Bandwidth - Read: 0,00 MB/s, Write: 0,00 MB/s
+02-22 11:18:01.758  3394 29735 E OplusStorageUFSBandwidth: Task time: 1ms
+02-22 11:18:01.788  3394 29735 E OplusStorageUFSBandwidth: Alarm set to trigger in 10 seconds
+02-22 11:18:01.897  1626  1653 E statsd  : Gauge Stats puller failed for tag: 150146 at 127571093971628
+02-22 11:18:01.904 27742 27883 E metis_v2_JenaHandlerManager: local thread match [7f0000011771733824309474431689|p_31689_f4d5de@39|p_27742_c2072a7@987|com.oplus.metis]
+02-22 11:18:01.904 27742 27883 E metis_v2_JenaHandlerManager: local thread match [7f0000011771733824309474431689|p_31689_f4d5de@39|p_27742_c2072a7@987|com.oplus.metis]
+02-22 11:18:01.906 27742 27771 E metis_v2_FactManager: There is no subModel: com.oplus.linker
+02-22 11:18:01.956  1812  9773 E ANDR-PERF-LM: VmRssMeter:: start() 359: Could not find pid, can not collect vmrss data
+02-22 11:18:01.956  1812  9774 E ANDR-PERF-LM: VmRssMeter:: start() 359: Could not find pid, can not collect vmrss data
+02-22 11:18:01.956  1812  9774 E ANDR-PERF-LM: AdaptiveLaunch: writeToDataBase() 64: Meter aborted or could not get meter data for this run
+02-22 11:18:02.003  3107  3234 E OplusTouchDaemon: syna_touch_node_handle:Id=0, nodeFlag=188, info=mod para_effect set_package_type:6, wrFlag=0, cbsize=2048, readlen=2048
+02-22 11:18:02.003  3107  3234 E OplusTouchDaemon: [OplusTouchDaemon][algo_set_info][8744]: algo_set_info: set paramId 10, buf: , ret=0
+02-22 11:18:02.003  3107  3234 E OplusTouchDaemon: syna_touch_node_handle:TOUCH_SCENE_PARA_NODE set to mod para_effect set_package_type:6, ret = 0
+02-22 11:18:02.107  5177  5177 E [OPLUS_AFS_CONFIG]: Failed to open AFS config file: /proc/oplus_afs_config/afs_config
+02-22 11:18:02.107  5177  5177 E AFS_CONFIG: Failed to get scene config
+02-22 11:18:02.107  5177  5177 E OplusAfsManager: afsConfigSceneConfigGet sceneType is null
+02-22 11:18:02.107  5177  5177 E IJankManager: latencySceneEnd unknown scene 2 mScene:-1
+02-22 11:18:02.110  3394  5700 E IPCThreadState: Binder transaction failure. id: 76709493, BR_*: 29189, error: -22 (Invalid argument)
+02-22 11:18:02.111  3394  5700 E FlexibleWindowManagerService: notifyTaskObserverToAttachController not need to notify!
+02-22 11:18:02.116  5177  5570 E EmbeddedWindowTaskOrganizer: onTaskVanished: get unknown taskId=34984
+02-22 11:18:02.116  5177  5570 E EmbeddedWindowTaskOrganizer: onTaskVanished: get unknown taskId=34984
+02-22 11:18:02.131  2080  2080 E BpTransactionCompletedListener: Failed to transact (-32)
+02-22 11:18:02.155  5177 10364 E FileStrategy: java.io.IOException: Read-only file system
+02-22 11:18:02.400  5177  5177 E OplusDisplayModeManager: has been initialized.

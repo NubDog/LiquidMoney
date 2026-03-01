@@ -405,24 +405,24 @@ export interface OverallStat {
 }
 
 /**
- * Lấy thống kê thu/chi theo tháng (6 tháng gần nhất)
+ * Lấy thống kê thu/chi theo tháng
  * @param walletId - ID ví cụ thể, hoặc undefined = tất cả ví
+ * @param months - Số tháng gần nhất (default: 6)
  */
-export function getMonthlyStats(walletId?: string): MonthlyStat[] {
+export function getMonthlyStats(walletId?: string, months: number = 6): MonthlyStat[] {
     const db = getDatabase();
 
-    // Tạo danh sách 6 tháng gần nhất
-    const months: string[] = [];
+    // Tạo danh sách N tháng gần nhất
+    const monthList: string[] = [];
     const now = new Date();
-    for (let i = 5; i >= 0; i--) {
+    for (let i = months - 1; i >= 0; i--) {
         const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
         const m = String(d.getMonth() + 1).padStart(2, '0');
-        months.push(`${d.getFullYear()}-${m}`);
+        monthList.push(`${d.getFullYear()}-${m}`);
     }
 
-    const stats: MonthlyStat[] = months.map(month => {
+    const stats: MonthlyStat[] = monthList.map(month => {
         const startDate = `${month}-01T00:00:00.000Z`;
-        // Tính ngày đầu tháng tiếp theo
         const [y, m] = month.split('-').map(Number);
         const nextMonth = new Date(y, m, 1);
         const endDate = nextMonth.toISOString();
@@ -503,10 +503,19 @@ export function getOverallStats(walletId?: string): OverallStat {
 }
 
 /**
- * Lấy N giao dịch gần nhất (tất cả ví)
+ * Lấy N giao dịch gần nhất
+ * @param limit - Số giao dịch cần lấy
+ * @param walletId - Lọc theo ví (optional)
  */
-export function getRecentTransactions(limit: number = 10): Transaction[] {
+export function getRecentTransactions(limit: number = 10, walletId?: string): Transaction[] {
     const db = getDatabase();
+    if (walletId) {
+        const result = db.execute(
+            `SELECT * FROM transactions WHERE wallet_id = ? ORDER BY created_at DESC LIMIT ?;`,
+            [walletId, limit],
+        );
+        return extractRows<Transaction>(result);
+    }
     const result = db.execute(
         `SELECT * FROM transactions ORDER BY created_at DESC LIMIT ?;`,
         [limit],

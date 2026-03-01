@@ -8,24 +8,15 @@
  *  - @react-native-community/blur (BlurView)
  */
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useRef, useEffect } from 'react';
 import {
+    Animated,
     Platform,
     StyleSheet,
     View,
     type LayoutChangeEvent,
     Pressable,
 } from 'react-native';
-import Animated, {
-    interpolateColor,
-    runOnJS,
-    useAnimatedStyle,
-    useDerivedValue,
-    useSharedValue,
-    withSpring,
-    type SharedValue,
-} from 'react-native-reanimated';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { BlurView } from '@react-native-community/blur';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -67,34 +58,26 @@ const INDICATOR_BORDER = 'rgba(255, 255, 255, 0.22)';
 interface TabLabelProps {
     label: string;
     index: number;
-    /** Shared value: current active index (animated) */
-    activeProgress: SharedValue<number>;
+    /** React Native Animated value: current active index */
+    activeProgress: Animated.Value;
     segmentWidth: number;
     onTap: (index: number) => void;
 }
 
 const TabLabel: React.FC<TabLabelProps> = React.memo(
     ({ label, index, activeProgress, segmentWidth, onTap }) => {
-        // Mỗi tab có một "progress" riêng: 0 = inactive, 1 = active
-        const tabProgress = useDerivedValue(() => {
-            const diff = Math.abs(activeProgress.value - index);
-            // Clamp 0..1 : khi diff = 0 → 1, diff >= 1 → 0
-            return Math.max(0, 1 - diff);
+        // Interpolate color directly from activeProgress
+        const color = activeProgress.interpolate({
+            inputRange: [index - 1, index, index + 1],
+            outputRange: [INACTIVE_TEXT_COLOR, ACTIVE_TEXT_COLOR, INACTIVE_TEXT_COLOR],
+            extrapolate: 'clamp',
         });
 
-        const animatedTextStyle = useAnimatedStyle(() => {
-            const color = interpolateColor(
-                tabProgress.value,
-                [0, 1],
-                [INACTIVE_TEXT_COLOR, ACTIVE_TEXT_COLOR],
-            );
-            return { color };
-        });
-
-        const animatedScaleStyle = useAnimatedStyle(() => {
-            // Nhẹ nhàng scale chữ lên khi active
-            const scale = 1 + tabProgress.value * 0.04;
-            return { transform: [{ scale }] };
+        // Interpolate scale directly from activeProgress
+        const scale = activeProgress.interpolate({
+            inputRange: [index - 1, index, index + 1],
+            outputRange: [1, 1.04, 1],
+            extrapolate: 'clamp',
         });
 
         return (
@@ -103,10 +86,10 @@ const TabLabel: React.FC<TabLabelProps> = React.memo(
                     style={[
                         localStyles.tabHitArea,
                         { width: segmentWidth },
-                        animatedScaleStyle,
+                        { transform: [{ scale }] },
                     ]}>
                     <Animated.Text
-                        style={[localStyles.tabText, animatedTextStyle]}
+                        style={[localStyles.tabText, { color }]}
                         numberOfLines={1}>
                         {label}
                     </Animated.Text>
@@ -125,12 +108,18 @@ const TransactionFilterBar: React.FC<TransactionFilterBarProps> = ({
 }) => {
     const [containerWidth, setContainerWidth] = useState(0);
 
-    // Shared value cho animation — giá trị float biểu thị index đang active
-    const activeIndex = useSharedValue(selectedIndex);
+    // React Native Animated value biểu thị index đang active
+    const activeIndex = useRef(new Animated.Value(selectedIndex)).current;
 
     // Cập nhật khi selectedIndex thay đổi từ props
-    React.useEffect(() => {
-        activeIndex.value = withSpring(selectedIndex, SPRING_CONFIG);
+    useEffect(() => {
+        Animated.spring(activeIndex, {
+            toValue: selectedIndex,
+            damping: SPRING_CONFIG.damping,
+            stiffness: SPRING_CONFIG.stiffness,
+            mass: SPRING_CONFIG.mass,
+            useNativeDriver: false, // Must be false for color interpolation in children
+        }).start();
     }, [selectedIndex, activeIndex]);
 
     // Kích thước mỗi tab
@@ -153,16 +142,9 @@ const TransactionFilterBar: React.FC<TransactionFilterBarProps> = ({
     );
 
     // ── Indicator animated style ──
-    const indicatorStyle = useAnimatedStyle(() => {
-        if (segmentWidth <= 0) {
-            return { opacity: 0 };
-        }
-        const translateX = activeIndex.value * segmentWidth;
-        return {
-            opacity: 1,
-            transform: [{ translateX }],
-            width: segmentWidth,
-        };
+    const translateX = activeIndex.interpolate({
+        inputRange: [0, Math.max(segments.length - 1, 1)],
+        outputRange: [0, segmentWidth * Math.max(segments.length - 1, 1)],
     });
 
     return (
@@ -188,7 +170,14 @@ const TransactionFilterBar: React.FC<TransactionFilterBarProps> = ({
             {/* Inner container chứa indicator + tabs */}
             <View style={localStyles.innerContainer}>
                 {/* Indicator — cục pill trượt */}
-                <Animated.View style={[localStyles.indicator, indicatorStyle]}>
+                <Animated.View style={[
+                    localStyles.indicator,
+                    {
+                        opacity: segmentWidth > 0 ? 1 : 0,
+                        transform: [{ translateX }],
+                        width: segmentWidth,
+                    }
+                ]}>
                     <View style={localStyles.indicatorInner} />
                 </Animated.View>
 

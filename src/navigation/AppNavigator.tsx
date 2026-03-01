@@ -244,24 +244,25 @@ const AppNavigator: React.FC = () => {
                 </GlassCard>
             </View>
 
-            {/* Wallet Detail — slides in from right, overlaps Tab Bar */}
-            {walletDetailRendered && displayWalletId && (
-                <Animated.View
-                    style={[
-                        StyleSheet.absoluteFill,
-                        {
-                            transform: [{ translateX: walletTranslateX }],
-                            zIndex: 100, // Ensure it covers the tab bar
-                            elevation: 100,
-                            backgroundColor: '#000000', // Solid background instead of Mesh 
-                        },
-                    ]}>
+            {/* Wallet Detail — slides in from right using RN Core Animated */}
+            <Animated.View
+                pointerEvents={activeWalletId ? 'auto' : 'none'}
+                style={[
+                    StyleSheet.absoluteFill,
+                    {
+                        transform: [{ translateX: walletTranslateX }],
+                        zIndex: 100, // Ensure it covers the tab bar
+                        elevation: 100,
+                        backgroundColor: '#000000', // Solid background instead of Mesh 
+                    },
+                ]}>
+                {walletDetailRendered && displayWalletId && (
                     <WalletDetailScreen
                         walletId={displayWalletId}
                         onGoBack={goBackFromWallet}
                     />
-                </Animated.View>
-            )}
+                )}
+            </Animated.View>
         </View>
     );
 };
