@@ -63,9 +63,10 @@ const AppNavigator: React.FC = () => {
     const { isDeveloperMode } = useStore();
 
     // ─── Dynamic Tabs ─────────────────────────────────────────────────────────
+    const [showDevScreen, setShowDevScreen] = useState(isDeveloperMode);
     const tabs = useMemo(() => {
-        return isDeveloperMode ? [...BASE_TABS, DEV_TAB] : BASE_TABS;
-    }, [isDeveloperMode]);
+        return (isDeveloperMode || showDevScreen) ? [...BASE_TABS, DEV_TAB] : BASE_TABS;
+    }, [isDeveloperMode, showDevScreen]);
     const tabCount = tabs.length;
 
     // ─── Navigation State ───────────────────────────────────────────────────────
@@ -80,12 +81,37 @@ const AppNavigator: React.FC = () => {
     const walletSlideAnim = useRef(new Animated.Value(0)).current;
     const [walletDetailRendered, setWalletDetailRendered] = useState(false);
 
+    // Dev tab animations
+    const devIconScale = useRef(new Animated.Value(isDeveloperMode ? 1 : 0)).current;
+    const navWidthAnim = useRef(new Animated.Value(0)).current; // will be set in layout
+
     // Safety: if dev mode disabled while on Dev tab, go home
     useEffect(() => {
-        if (!isDeveloperMode && activeTab === 'dev') {
-            setActiveTab('home');
+        if (isDeveloperMode) {
+            setShowDevScreen(true);
+            // Pop-in the dev icon
+            devIconScale.setValue(0);
+            Animated.spring(devIconScale, {
+                toValue: 1,
+                damping: 10,
+                stiffness: 200,
+                useNativeDriver: true,
+            }).start();
+        } else {
+            if (activeTab === 'dev') {
+                setActiveTab('home');
+            }
+            // Shrink dev icon, then unmount
+            Animated.spring(devIconScale, {
+                toValue: 0,
+                damping: 14,
+                stiffness: 200,
+                useNativeDriver: true,
+            }).start(() => {
+                setShowDevScreen(false);
+            });
         }
-    }, [isDeveloperMode, activeTab]);
+    }, [isDeveloperMode, devIconScale]);
 
     // Trigger tab slide animation
     useEffect(() => {
@@ -167,6 +193,16 @@ const AppNavigator: React.FC = () => {
         outputRange: Array.from({ length: tabCount }, (_, i) => tabWidth * (tabCount - 1 - i)),
     });
 
+    // Animate navbar width when tabCount changes
+    useEffect(() => {
+        Animated.spring(navWidthAnim, {
+            toValue: navbarWidth,
+            damping: 16,
+            stiffness: 180,
+            useNativeDriver: false, // width can't use native driver
+        }).start();
+    }, [navbarWidth, navWidthAnim]);
+
     // Wallet slide transforms
     const walletTranslateX = walletSlideAnim.interpolate({
         inputRange: [0, 1],
@@ -197,7 +233,7 @@ const AppNavigator: React.FC = () => {
                 <View style={{ width, height: '100%' }}>
                     <SettingsScreen />
                 </View>
-                {isDeveloperMode && (
+                {(isDeveloperMode || showDevScreen) && (
                     <View style={{ width, height: '100%' }}>
                         <DeveloperScreen />
                     </View>
@@ -211,14 +247,11 @@ const AppNavigator: React.FC = () => {
                     styles.tabBarContainer,
                     { paddingBottom: insets.bottom + 20 },
                 ]}>
-                <GlassCard
+                <Animated.View
                     style={[
                         styles.floatingTabBar,
-                        { width: navbarWidth },
-                    ]}
-                    borderRadius={40}
-                    backgroundOpacity={0.15}
-                    borderOpacity={0.2}>
+                        { width: navWidthAnim },
+                    ]}>
 
                     <View style={styles.tabBarContent}>
                         {/* Animated Active Pill Background */}
@@ -260,6 +293,7 @@ const AppNavigator: React.FC = () => {
                             });
 
                             const IconComponent = tab.icon;
+                            const isDevTab = tab.key === 'dev';
 
                             return (
                                 <Pressable
@@ -271,7 +305,13 @@ const AppNavigator: React.FC = () => {
                                     ]}>
                                     <Animated.View
                                         style={{
-                                            transform: [{ scale }],
+                                            transform: [
+                                                {
+                                                    scale: isDevTab
+                                                        ? Animated.multiply(scale, devIconScale) as any
+                                                        : scale
+                                                },
+                                            ],
                                             opacity,
                                             alignItems: 'center',
                                             justifyContent: 'center',
@@ -286,7 +326,7 @@ const AppNavigator: React.FC = () => {
                             );
                         })}
                     </View>
-                </GlassCard>
+                </Animated.View>
             </View>
 
             {/* Wallet Detail — slides in from right using RN Core Animated */}

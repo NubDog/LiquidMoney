@@ -382,17 +382,30 @@ const BarChart: React.FC<{
     data: ChartDataPoint[];
     period: Period;
 }> = React.memo(({ data, period }) => {
+    // Fade animation for chart changes
     const fadeAnim = useRef(new Animated.Value(0)).current;
+    // Scale animation for bars growing from bottom
+    const barScale = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
         fadeAnim.setValue(0);
-        Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 400,
-            easing: Easing.out(Easing.cubic),
-            useNativeDriver: true,
-        }).start();
-    }, [data, fadeAnim]);
+        barScale.setValue(0);
+
+        Animated.parallel([
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 400,
+                easing: Easing.out(Easing.cubic),
+                useNativeDriver: true,
+            }),
+            Animated.spring(barScale, {
+                toValue: 1,
+                damping: 14,
+                stiffness: 150,
+                useNativeDriver: true,
+            })
+        ]).start();
+    }, [data, fadeAnim, barScale]);
 
     const maxVal = Math.max(
         ...data.map(d => Math.max(d.income, d.expense)),
@@ -426,101 +439,106 @@ const BarChart: React.FC<{
                     </View>
                 ) : (
                     <Animated.View style={{ opacity: fadeAnim }}>
-                        <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
-                            <Defs>
-                                <LinearGradient id="incG" x1="0" y1="0" x2="0" y2="1">
-                                    <Stop offset="0" stopColor={Colors.income} stopOpacity="1" />
-                                    <Stop offset="1" stopColor={Colors.income} stopOpacity="0.3" />
-                                </LinearGradient>
-                                <LinearGradient id="expG" x1="0" y1="0" x2="0" y2="1">
-                                    <Stop offset="0" stopColor={Colors.expense} stopOpacity="1" />
-                                    <Stop offset="1" stopColor={Colors.expense} stopOpacity="0.3" />
-                                </LinearGradient>
-                            </Defs>
+                        <Animated.View style={{
+                            transform: [{ scaleY: barScale }],
+                            transformOrigin: 'bottom',
+                        }}>
+                            <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
+                                <Defs>
+                                    <LinearGradient id="incG" x1="0" y1="0" x2="0" y2="1">
+                                        <Stop offset="0" stopColor={Colors.income} stopOpacity="1" />
+                                        <Stop offset="1" stopColor={Colors.income} stopOpacity="0.3" />
+                                    </LinearGradient>
+                                    <LinearGradient id="expG" x1="0" y1="0" x2="0" y2="1">
+                                        <Stop offset="0" stopColor={Colors.expense} stopOpacity="1" />
+                                        <Stop offset="1" stopColor={Colors.expense} stopOpacity="0.3" />
+                                    </LinearGradient>
+                                </Defs>
 
-                            {data.map((d, i) => {
-                                const cx = i * groupWidth + groupWidth / 2;
-                                const rawInH = (d.income / maxVal) * BAR_AREA_HEIGHT;
-                                const rawOutH = (d.expense / maxVal) * BAR_AREA_HEIGHT;
-                                const inH = d.income > 0 ? Math.max(rawInH, 6) : 0;
-                                const outH = d.expense > 0 ? Math.max(rawOutH, 6) : 0;
+                                {data.map((d, i) => {
+                                    const cx = i * groupWidth + groupWidth / 2;
+                                    const rawInH = (d.income / maxVal) * BAR_AREA_HEIGHT;
+                                    const rawOutH = (d.expense / maxVal) * BAR_AREA_HEIGHT;
+                                    const inH = d.income > 0 ? Math.max(rawInH, 6) : 0;
+                                    const outH = d.expense > 0 ? Math.max(rawOutH, 6) : 0;
 
-                                // Single-bar group: center the bar under the label
-                                const isSingleBar = (inH > 0 && outH === 0) || (outH > 0 && inH === 0);
+                                    // Single-bar group: center the bar under the label
+                                    const isSingleBar = (inH > 0 && outH === 0) || (outH > 0 && inH === 0);
 
-                                // Position bars: centered for single, paired for dual
-                                const inBarX = isSingleBar
-                                    ? cx - barWidth / 2
-                                    : cx - barWidth - barGap / 2;
-                                const outBarX = isSingleBar
-                                    ? cx - barWidth / 2
-                                    : cx + barGap / 2;
-                                const inBarY = VALUE_LABEL_HEIGHT + BAR_AREA_HEIGHT - inH;
-                                const outBarY = VALUE_LABEL_HEIGHT + BAR_AREA_HEIGHT - outH;
+                                    // Position bars: centered for single, paired for dual
+                                    const inBarX = isSingleBar
+                                        ? cx - barWidth / 2
+                                        : cx - barWidth - barGap / 2;
+                                    const outBarX = isSingleBar
+                                        ? cx - barWidth / 2
+                                        : cx + barGap / 2;
+                                    const inBarY = VALUE_LABEL_HEIGHT + BAR_AREA_HEIGHT - inH;
+                                    const outBarY = VALUE_LABEL_HEIGHT + BAR_AREA_HEIGHT - outH;
 
-                                return (
-                                    <React.Fragment key={i}>
-                                        {/* Income bar + value label */}
-                                        {inH > 0 && (
-                                            <>
-                                                <SvgText
-                                                    x={inBarX + barWidth / 2}
-                                                    y={inBarY - 6}
-                                                    fontSize={10}
-                                                    fill={Colors.income}
-                                                    fontWeight="700"
-                                                    textAnchor="middle"
-                                                    opacity={0.9}>
-                                                    {formatVNDShort(d.income)}
-                                                </SvgText>
-                                                <Rect
-                                                    x={inBarX}
-                                                    y={inBarY}
-                                                    width={barWidth}
-                                                    height={inH}
-                                                    rx={barRadius}
-                                                    fill="url(#incG)"
-                                                />
-                                            </>
-                                        )}
-                                        {/* Expense bar + value label */}
-                                        {outH > 0 && (
-                                            <>
-                                                <SvgText
-                                                    x={outBarX + barWidth / 2}
-                                                    y={outBarY - 6}
-                                                    fontSize={10}
-                                                    fill={Colors.expense}
-                                                    fontWeight="700"
-                                                    textAnchor="middle"
-                                                    opacity={0.8}>
-                                                    {formatVNDShort(d.expense)}
-                                                </SvgText>
-                                                <Rect
-                                                    x={outBarX}
-                                                    y={outBarY}
-                                                    width={barWidth}
-                                                    height={outH}
-                                                    rx={barRadius}
-                                                    fill="url(#expG)"
-                                                />
-                                            </>
-                                        )}
+                                    return (
+                                        <React.Fragment key={i}>
+                                            {/* Income bar + value label */}
+                                            {inH > 0 && (
+                                                <>
+                                                    <SvgText
+                                                        x={inBarX + barWidth / 2}
+                                                        y={inBarY - 6}
+                                                        fontSize={10}
+                                                        fill={Colors.income}
+                                                        fontWeight="700"
+                                                        textAnchor="middle"
+                                                        opacity={0.9}>
+                                                        {formatVNDShort(d.income)}
+                                                    </SvgText>
+                                                    <Rect
+                                                        x={inBarX}
+                                                        y={inBarY}
+                                                        width={barWidth}
+                                                        height={inH}
+                                                        rx={barRadius}
+                                                        fill="url(#incG)"
+                                                    />
+                                                </>
+                                            )}
+                                            {/* Expense bar + value label */}
+                                            {outH > 0 && (
+                                                <>
+                                                    <SvgText
+                                                        x={outBarX + barWidth / 2}
+                                                        y={outBarY - 6}
+                                                        fontSize={10}
+                                                        fill={Colors.expense}
+                                                        fontWeight="700"
+                                                        textAnchor="middle"
+                                                        opacity={0.8}>
+                                                        {formatVNDShort(d.expense)}
+                                                    </SvgText>
+                                                    <Rect
+                                                        x={outBarX}
+                                                        y={outBarY}
+                                                        width={barWidth}
+                                                        height={outH}
+                                                        rx={barRadius}
+                                                        fill="url(#expG)"
+                                                    />
+                                                </>
+                                            )}
 
-                                        {/* X-axis label */}
-                                        <SvgText
-                                            x={cx}
-                                            y={CHART_HEIGHT - 4}
-                                            fontSize={11}
-                                            fill="rgba(255,255,255,0.40)"
-                                            fontWeight="600"
-                                            textAnchor="middle">
-                                            {d.label}
-                                        </SvgText>
-                                    </React.Fragment>
-                                );
-                            })}
-                        </Svg>
+                                            {/* X-axis label */}
+                                            <SvgText
+                                                x={cx}
+                                                y={CHART_HEIGHT - 4}
+                                                fontSize={11}
+                                                fill="rgba(255,255,255,0.40)"
+                                                fontWeight="600"
+                                                textAnchor="middle">
+                                                {d.label}
+                                            </SvgText>
+                                        </React.Fragment>
+                                    );
+                                })}
+                            </Svg>
+                        </Animated.View>
                     </Animated.View>
                 )}
 

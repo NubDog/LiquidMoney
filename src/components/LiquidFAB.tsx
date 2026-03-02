@@ -1,6 +1,6 @@
 /**
  * LiquidFAB.tsx — Apple Liquid Glass Floating Action Button
- * Translucent glass effect with subtle white border and soft glow
+ * Clean glass effect — no layered highlights that create visible edges
  * Press-to-scale spring animation
  */
 
@@ -49,14 +49,8 @@ const LiquidFAB: React.FC<LiquidFABProps> = ({ onPress, style }) => {
                 onPressIn={handlePressIn}
                 onPressOut={handlePressOut}
                 style={styles.button}>
-                {/* Glass background layers */}
+                {/* Single glass layer — no split highlights */}
                 <View style={styles.glassBg} />
-
-                {/* Top highlight — simulates light refraction */}
-                <View style={styles.topHighlight} />
-
-                {/* Bottom subtle gradient */}
-                <View style={styles.bottomGlow} />
 
                 {/* Plus icon */}
                 <Plus size={26} color="#FFFFFF" strokeWidth={2.5} style={styles.icon} />
@@ -73,12 +67,12 @@ const styles = StyleSheet.create({
         width: FAB_SIZE,
         height: FAB_SIZE,
         zIndex: 9999,
-        // Liquid Glass glow
-        shadowColor: 'rgba(255, 255, 255, 0.25)',
-        shadowOffset: { width: 0, height: 4 },
+        // Subtle outer glow
+        shadowColor: 'rgba(255, 255, 255, 0.20)',
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 1,
-        shadowRadius: 16,
-        elevation: 12,
+        shadowRadius: 12,
+        elevation: 10,
     },
     button: {
         width: FAB_SIZE,
@@ -87,35 +81,14 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         alignItems: 'center',
         justifyContent: 'center',
-        // Glass border
+        // Glass border — slight top highlight via borderTopColor
         borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.25)',
+        borderColor: 'rgba(255, 255, 255, 0.18)',
+        borderTopColor: 'rgba(255, 255, 255, 0.30)',
     },
     glassBg: {
         ...StyleSheet.absoluteFillObject,
-        // Semi-transparent dark glass
-        backgroundColor: 'rgba(30, 30, 35, 0.65)',
-    },
-    topHighlight: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: '45%',
-        borderTopLeftRadius: FAB_SIZE / 2,
-        borderTopRightRadius: FAB_SIZE / 2,
-        // Subtle top-half white glow (simulates glass reflection)
-        backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    },
-    bottomGlow: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: '30%',
-        borderBottomLeftRadius: FAB_SIZE / 2,
-        borderBottomRightRadius: FAB_SIZE / 2,
-        backgroundColor: 'rgba(255, 255, 255, 0.03)',
+        backgroundColor: 'rgba(25, 25, 30, 0.70)',
     },
     icon: {
         zIndex: 10,
