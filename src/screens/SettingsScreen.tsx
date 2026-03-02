@@ -1,356 +1,49 @@
 /**
- * SettingsScreen.tsx — Màn hình cài đặt
- * Backup / Restore + Thông tin ứng dụng
- * Dùng custom styled buttons thay vì GlassButton outline
+ * SettingsScreen.tsx — Settings screen
+ * Backup / Restore + App info + Developer Mode
+ * Refactored: Extracted InfoDialog and ConfirmImportDialog into standalone components.
  */
 
 import React, { useCallback, useState } from 'react';
 import {
-    Animated,
-    Modal,
     NativeModules,
     Pressable,
     ScrollView,
     StyleSheet,
+    Switch,
     Text,
     View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
     ChartPie,
+    Code,
     HardDrive,
     Info,
     Upload,
     Download,
     CheckCircle2,
     XCircle,
-    CheckCircle,
-    AlertTriangle,
     FolderOpen,
 } from 'lucide-react-native';
 import GlassCard from '../components/GlassCard';
+import InfoDialog from '../components/InfoDialog';
+import ConfirmImportDialog from '../components/ConfirmImportDialog';
 import { useStore } from '../store/useStore';
 import { isDatabaseAvailable } from '../database/db';
+import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
 
-// ─── Safe-require kiểm tra native modules ────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function isBackupAvailable(): boolean {
     return NativeModules.RNFSManager != null;
 }
 
-// ─── Info Dialog Component ────────────────────────────────────────────────────
-
-interface InfoDialogProps {
-    visible: boolean;
-    onClose: () => void;
-    title: string;
-    message: string;
-    type: 'success' | 'error';
-}
-
-const InfoDialog: React.FC<InfoDialogProps> = ({
-    visible,
-    onClose,
-    title,
-    message,
-    type,
-}) => {
-    const overlayOpacity = React.useRef(new Animated.Value(0)).current;
-    const cardScale = React.useRef(new Animated.Value(0.85)).current;
-
-    React.useEffect(() => {
-        if (visible) {
-            overlayOpacity.setValue(0);
-            cardScale.setValue(0.85);
-            Animated.parallel([
-                Animated.timing(overlayOpacity, {
-                    toValue: 1,
-                    duration: 200,
-                    useNativeDriver: true,
-                }),
-                Animated.spring(cardScale, {
-                    toValue: 1,
-                    friction: 8,
-                    tension: 80,
-                    useNativeDriver: true,
-                }),
-            ]).start();
-        }
-    }, [visible, overlayOpacity, cardScale]);
-
-    const handleClose = useCallback(() => {
-        Animated.parallel([
-            Animated.timing(overlayOpacity, {
-                toValue: 0,
-                duration: 150,
-                useNativeDriver: true,
-            }),
-            Animated.timing(cardScale, {
-                toValue: 0.85,
-                duration: 150,
-                useNativeDriver: true,
-            }),
-        ]).start(() => onClose());
-    }, [overlayOpacity, cardScale, onClose]);
-
-    return (
-        <Modal
-            visible={visible}
-            transparent
-            animationType="none"
-            statusBarTranslucent
-            onRequestClose={handleClose}>
-            <View style={dialogStyles.root}>
-                <Animated.View
-                    style={[
-                        StyleSheet.absoluteFill,
-                        dialogStyles.overlay,
-                        { opacity: overlayOpacity },
-                    ]}
-                />
-                <Pressable
-                    style={StyleSheet.absoluteFill}
-                    onPress={handleClose}
-                />
-                <Animated.View
-                    style={[
-                        dialogStyles.card,
-                        { transform: [{ scale: cardScale }] },
-                    ]}>
-                    {/* Icon */}
-                    <View style={dialogStyles.iconContainer}>
-                        {type === 'success' ? (
-                            <CheckCircle size={40} color="#4ade80" strokeWidth={2} />
-                        ) : (
-                            <AlertTriangle size={40} color="#f87171" strokeWidth={2} />
-                        )}
-                    </View>
-
-                    <Text style={dialogStyles.title}>{title}</Text>
-                    <Text style={dialogStyles.message}>{message}</Text>
-
-                    {/* OK Button */}
-                    <Pressable
-                        onPress={handleClose}
-                        style={({ pressed }) => [
-                            dialogStyles.okBtn,
-                            pressed && { opacity: 0.7 },
-                        ]}>
-                        <Text style={dialogStyles.okBtnText}>OK</Text>
-                    </Pressable>
-                </Animated.View>
-            </View>
-        </Modal>
-    );
-};
-
-const dialogStyles = StyleSheet.create({
-    root: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    overlay: {
-        backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    },
-    card: {
-        width: '82%',
-        maxWidth: 340,
-        backgroundColor: 'rgba(25, 25, 35, 0.97)',
-        borderRadius: 24,
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.1)',
-        padding: 28,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.4,
-        shadowRadius: 20,
-        elevation: 16,
-    },
-    iconContainer: {
-        marginBottom: 16,
-    },
-    title: {
-        fontSize: 20,
-        fontWeight: '800',
-        color: '#FFFFFF',
-        marginBottom: 10,
-        textAlign: 'center',
-    },
-    message: {
-        fontSize: 14,
-        color: 'rgba(255, 255, 255, 0.55)',
-        textAlign: 'center',
-        lineHeight: 20,
-        marginBottom: 24,
-    },
-    okBtn: {
-        paddingVertical: 12,
-        paddingHorizontal: 40,
-        borderRadius: 14,
-        backgroundColor: 'rgba(34, 211, 238, 0.2)',
-        borderWidth: 1,
-        borderColor: 'rgba(34, 211, 238, 0.35)',
-    },
-    okBtnText: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: '#22d3ee',
-    },
-});
-
-// ─── Confirm Dialog Component ─────────────────────────────────────────────────
-
-interface ConfirmImportDialogProps {
-    visible: boolean;
-    onCancel: () => void;
-    onConfirm: () => void;
-}
-
-const ConfirmImportDialog: React.FC<ConfirmImportDialogProps> = ({
-    visible,
-    onCancel,
-    onConfirm,
-}) => {
-    const overlayOpacity = React.useRef(new Animated.Value(0)).current;
-    const cardScale = React.useRef(new Animated.Value(0.85)).current;
-
-    React.useEffect(() => {
-        if (visible) {
-            overlayOpacity.setValue(0);
-            cardScale.setValue(0.85);
-            Animated.parallel([
-                Animated.timing(overlayOpacity, {
-                    toValue: 1,
-                    duration: 200,
-                    useNativeDriver: true,
-                }),
-                Animated.spring(cardScale, {
-                    toValue: 1,
-                    friction: 8,
-                    tension: 80,
-                    useNativeDriver: true,
-                }),
-            ]).start();
-        }
-    }, [visible, overlayOpacity, cardScale]);
-
-    const animateClose = useCallback(
-        (callback: () => void) => {
-            Animated.parallel([
-                Animated.timing(overlayOpacity, {
-                    toValue: 0,
-                    duration: 150,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(cardScale, {
-                    toValue: 0.85,
-                    duration: 150,
-                    useNativeDriver: true,
-                }),
-            ]).start(() => callback());
-        },
-        [overlayOpacity, cardScale],
-    );
-
-    return (
-        <Modal
-            visible={visible}
-            transparent
-            animationType="none"
-            statusBarTranslucent
-            onRequestClose={onCancel}>
-            <View style={dialogStyles.root}>
-                <Animated.View
-                    style={[
-                        StyleSheet.absoluteFill,
-                        dialogStyles.overlay,
-                        { opacity: overlayOpacity },
-                    ]}
-                />
-                <Pressable
-                    style={StyleSheet.absoluteFill}
-                    onPress={onCancel}
-                />
-                <Animated.View
-                    style={[
-                        dialogStyles.card,
-                        { transform: [{ scale: cardScale }] },
-                    ]}>
-                    <View style={dialogStyles.iconContainer}>
-                        <AlertTriangle size={40} color="#f59e0b" strokeWidth={2} />
-                    </View>
-
-                    <Text style={dialogStyles.title}>Nhập dữ liệu</Text>
-                    <Text style={dialogStyles.message}>
-                        Dữ liệu hiện tại sẽ bị GHI ĐÈ bởi dữ liệu trong file backup. Bạn có chắc chắn muốn tiếp tục?
-                    </Text>
-
-                    <View style={confirmStyles.actions}>
-                        <Pressable
-                            onPress={() => animateClose(onCancel)}
-                            style={({ pressed }) => [
-                                confirmStyles.cancelBtn,
-                                pressed && { opacity: 0.7 },
-                            ]}>
-                            <Text style={confirmStyles.cancelText}>Hủy</Text>
-                        </Pressable>
-                        <Pressable
-                            onPress={() => animateClose(onConfirm)}
-                            style={({ pressed }) => [
-                                confirmStyles.confirmBtn,
-                                pressed && { opacity: 0.7 },
-                            ]}>
-                            <Text style={confirmStyles.confirmText}>Nhập</Text>
-                        </Pressable>
-                    </View>
-                </Animated.View>
-            </View>
-        </Modal>
-    );
-};
-
-const confirmStyles = StyleSheet.create({
-    actions: {
-        flexDirection: 'row',
-        gap: 12,
-    },
-    cancelBtn: {
-        flex: 1,
-        paddingVertical: 12,
-        borderRadius: 14,
-        alignItems: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.08)',
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.15)',
-    },
-    cancelText: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: 'rgba(255, 255, 255, 0.6)',
-    },
-    confirmBtn: {
-        flex: 1,
-        paddingVertical: 12,
-        borderRadius: 14,
-        alignItems: 'center',
-        backgroundColor: 'rgba(239, 68, 68, 0.2)',
-        borderWidth: 1,
-        borderColor: 'rgba(239, 68, 68, 0.35)',
-    },
-    confirmText: {
-        fontSize: 15,
-        fontWeight: '700',
-        color: '#f87171',
-    },
-});
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const SettingsScreen: React.FC = () => {
     const insets = useSafeAreaInsets();
-    const { wallets, refreshWallets } = useStore();
+    const { wallets, refreshWallets, isDeveloperMode, toggleDeveloperMode } = useStore();
     const [exporting, setExporting] = useState(false);
     const [importing, setImporting] = useState(false);
 
@@ -427,7 +120,6 @@ const SettingsScreen: React.FC = () => {
             const { importBackup } = require('../services/backupService');
             const success = await importBackup();
             if (success) {
-                // Auto-reload dữ liệu
                 refreshWallets();
                 setInfoDialog({
                     visible: true,
@@ -446,7 +138,7 @@ const SettingsScreen: React.FC = () => {
         } finally {
             setImporting(false);
         }
-    }, []);
+    }, [refreshWallets]);
 
     // ─── Render ─────────────────────────────────────────────────────────────
 
@@ -461,10 +153,10 @@ const SettingsScreen: React.FC = () => {
                     style={styles.card}
                     backgroundOpacity={0.12}
                     borderOpacity={0.18}
-                    borderRadius={20}>
+                    borderRadius={Radii.xl}>
                     <View style={styles.cardInner}>
                         <View style={styles.cardHeader}>
-                            <ChartPie size={20} color="#C084FC" strokeWidth={2} />
+                            <ChartPie size={20} color={Colors.accentLight} strokeWidth={2} />
                             <Text style={styles.cardTitle}>Tổng quan</Text>
                         </View>
 
@@ -489,16 +181,16 @@ const SettingsScreen: React.FC = () => {
 
                         <View style={styles.infoRow}>
                             <Text style={styles.infoLabel}>Database</Text>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                            <View style={styles.statusRow}>
                                 {dbAvailable ? (
                                     <>
-                                        <CheckCircle2 size={16} color="#4ade80" />
-                                        <Text style={{ color: '#4ade80', fontWeight: '600' }}>Hoạt động</Text>
+                                        <CheckCircle2 size={16} color={Colors.income} />
+                                        <Text style={[styles.statusText, { color: Colors.income }]}>Hoạt động</Text>
                                     </>
                                 ) : (
                                     <>
-                                        <XCircle size={16} color="#f87171" />
-                                        <Text style={{ color: '#f87171', fontWeight: '600' }}>Chưa sẵn sàng</Text>
+                                        <XCircle size={16} color={Colors.expense} />
+                                        <Text style={[styles.statusText, { color: Colors.expense }]}>Chưa sẵn sàng</Text>
                                     </>
                                 )}
                             </View>
@@ -508,16 +200,16 @@ const SettingsScreen: React.FC = () => {
 
                         <View style={styles.infoRow}>
                             <Text style={styles.infoLabel}>Backup</Text>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                            <View style={styles.statusRow}>
                                 {backupAvailable ? (
                                     <>
-                                        <CheckCircle2 size={16} color="#4ade80" />
-                                        <Text style={{ color: '#4ade80', fontWeight: '600' }}>Sẵn sàng</Text>
+                                        <CheckCircle2 size={16} color={Colors.income} />
+                                        <Text style={[styles.statusText, { color: Colors.income }]}>Sẵn sàng</Text>
                                     </>
                                 ) : (
                                     <>
-                                        <XCircle size={16} color="#f87171" />
-                                        <Text style={{ color: '#f87171', fontWeight: '600' }}>Cần rebuild</Text>
+                                        <XCircle size={16} color={Colors.expense} />
+                                        <Text style={[styles.statusText, { color: Colors.expense }]}>Cần rebuild</Text>
                                     </>
                                 )}
                             </View>
@@ -530,19 +222,17 @@ const SettingsScreen: React.FC = () => {
                     style={styles.card}
                     backgroundOpacity={0.12}
                     borderOpacity={0.18}
-                    borderRadius={20}>
+                    borderRadius={Radii.xl}>
                     <View style={styles.cardInner}>
                         <View style={styles.cardHeader}>
-                            <HardDrive size={20} color="#C084FC" strokeWidth={2} />
+                            <HardDrive size={20} color={Colors.accentLight} strokeWidth={2} />
                             <Text style={styles.cardTitle}>Sao lưu & Phục hồi</Text>
                         </View>
                         <Text style={styles.cardDesc}>
                             Xuất toàn bộ ví + giao dịch ra file JSON vào thư mục Downloads. Nhập lại khi cần.
                         </Text>
 
-                        {/* Custom Buttons */}
                         <View style={styles.buttonGroup}>
-                            {/* Export Button */}
                             <Pressable
                                 onPress={handleExport}
                                 disabled={exporting || !dbAvailable}
@@ -552,13 +242,12 @@ const SettingsScreen: React.FC = () => {
                                     pressed && { opacity: 0.7 },
                                     (exporting || !dbAvailable) && styles.disabledBtn,
                                 ]}>
-                                <Upload size={18} color="#22d3ee" strokeWidth={2} />
+                                <Upload size={18} color={Colors.cyan} strokeWidth={2} />
                                 <Text style={styles.exportBtnText}>
                                     {exporting ? 'Đang xuất...' : 'Xuất dữ liệu'}
                                 </Text>
                             </Pressable>
 
-                            {/* Import Button */}
                             <Pressable
                                 onPress={handleImportPress}
                                 disabled={importing || !dbAvailable}
@@ -568,11 +257,40 @@ const SettingsScreen: React.FC = () => {
                                     pressed && { opacity: 0.7 },
                                     (importing || !dbAvailable) && styles.disabledBtn,
                                 ]}>
-                                <Download size={18} color="#c084fc" strokeWidth={2} />
+                                <Download size={18} color={Colors.accentLight} strokeWidth={2} />
                                 <Text style={styles.importBtnText}>
                                     {importing ? 'Đang nhập...' : 'Nhập dữ liệu'}
                                 </Text>
                             </Pressable>
+                        </View>
+                    </View>
+                </GlassCard>
+
+                {/* ── Developer Mode Card ── */}
+                <GlassCard
+                    style={styles.card}
+                    backgroundOpacity={0.10}
+                    borderOpacity={0.15}
+                    borderRadius={Radii.xl}>
+                    <View style={styles.cardInner}>
+                        <View style={styles.cardHeader}>
+                            <Code size={20} color={Colors.warning} strokeWidth={2} />
+                            <Text style={styles.cardTitle}>Developer Mode</Text>
+                        </View>
+                        <Text style={styles.cardDesc}>
+                            Bật chế độ nhà phát triển để truy cập công cụ debug.
+                        </Text>
+                        <View style={styles.infoRow}>
+                            <Text style={styles.infoLabel}>Chế độ Developer</Text>
+                            <Switch
+                                value={isDeveloperMode}
+                                onValueChange={toggleDeveloperMode}
+                                trackColor={{
+                                    false: 'rgba(255,255,255,0.12)',
+                                    true: 'rgba(245,158,11,0.4)',
+                                }}
+                                thumbColor={isDeveloperMode ? Colors.warning : 'rgba(255,255,255,0.5)'}
+                            />
                         </View>
                     </View>
                 </GlassCard>
@@ -582,10 +300,10 @@ const SettingsScreen: React.FC = () => {
                     style={styles.card}
                     backgroundOpacity={0.08}
                     borderOpacity={0.12}
-                    borderRadius={20}>
+                    borderRadius={Radii.xl}>
                     <View style={styles.cardInner}>
                         <View style={styles.cardHeader}>
-                            <Info size={20} color="#C084FC" strokeWidth={2} />
+                            <Info size={20} color={Colors.accentLight} strokeWidth={2} />
                             <Text style={styles.cardTitle}>Về ứng dụng</Text>
                         </View>
 
@@ -603,7 +321,6 @@ const SettingsScreen: React.FC = () => {
                     </View>
                 </GlassCard>
 
-                {/* Bottom spacer */}
                 <View style={{ height: insets.bottom + 40 }} />
             </ScrollView>
 
@@ -630,7 +347,7 @@ const SettingsScreen: React.FC = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingHorizontal: 20,
+        paddingHorizontal: Spacing.lg,
     },
     content: {
         paddingBottom: 40,
@@ -638,15 +355,15 @@ const styles = StyleSheet.create({
 
     // ── Card ──
     card: {
-        marginBottom: 16,
+        marginBottom: Spacing.md,
     },
     cardInner: {
-        padding: 20,
+        padding: Spacing.lg,
     },
     cardTitle: {
-        fontSize: 18,
+        fontSize: FontSizes.lg,
         fontWeight: '700',
-        color: '#FFFFFF',
+        color: Colors.text,
     },
     cardHeader: {
         flexDirection: 'row',
@@ -655,10 +372,10 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     cardDesc: {
-        fontSize: 14,
-        color: 'rgba(255, 255, 255, 0.5)',
+        fontSize: FontSizes.md - 1,
+        color: Colors.textSecondary,
         lineHeight: 20,
-        marginBottom: 16,
+        marginBottom: Spacing.md,
     },
 
     // ── Info rows ──
@@ -669,23 +386,31 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
     },
     infoLabel: {
-        fontSize: 15,
-        color: 'rgba(255, 255, 255, 0.55)',
+        fontSize: FontSizes.md,
+        color: Colors.textSecondary,
         fontWeight: '500',
     },
     infoValue: {
-        fontSize: 15,
+        fontSize: FontSizes.md,
         color: 'rgba(255, 255, 255, 0.85)',
         fontWeight: '600',
     },
     infoValueAccent: {
-        fontSize: 15,
-        color: '#c084fc',
+        fontSize: FontSizes.md,
+        color: Colors.accentLight,
         fontWeight: '700',
+    },
+    statusRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    statusText: {
+        fontWeight: '600',
     },
     divider: {
         height: 1,
-        backgroundColor: 'rgba(255, 255, 255, 0.06)',
+        backgroundColor: Colors.divider,
     },
 
     // ── Action Buttons ──
@@ -698,7 +423,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         gap: 10,
         paddingVertical: 15,
-        borderRadius: 16,
+        borderRadius: Radii.lg,
         borderWidth: 1,
     },
     exportBtn: {
@@ -706,21 +431,21 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(34, 211, 238, 0.3)',
     },
     exportBtnText: {
-        fontSize: 16,
+        fontSize: FontSizes.lg - 2,
         fontWeight: '700',
-        color: '#22d3ee',
+        color: Colors.cyan,
     },
     importBtn: {
         backgroundColor: 'rgba(192, 132, 252, 0.12)',
         borderColor: 'rgba(192, 132, 252, 0.3)',
     },
     importBtnText: {
-        fontSize: 16,
+        fontSize: FontSizes.lg - 2,
         fontWeight: '700',
-        color: '#c084fc',
+        color: Colors.accentLight,
     },
     disabledBtn: {
-        opacity: 0.3,
+        opacity: Colors.disabledOpacity,
     },
 });
 

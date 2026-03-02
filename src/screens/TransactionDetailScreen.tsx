@@ -1,7 +1,9 @@
 /**
- * TransactionDetailScreen.tsx — Màn hình chi tiết giao dịch
- * Liquid Glass style, hiển thị đầy đủ thông tin + hình ảnh
- * Hỗ trợ: Sửa giao dịch + Xóa giao dịch (custom confirm dialog)
+ * TransactionDetailScreen.tsx — Transaction detail screen
+ * Liquid Glass style, full transaction info + image
+ * Supports: Edit + Delete (custom confirm dialog)
+ *
+ * Refactored: Uses shared formatters, theme tokens.
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -19,7 +21,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GlassCard from '../components/GlassCard';
 import TransactionModal from '../components/TransactionModal';
 import ConfirmDialog from '../components/ConfirmDialog';
-import type { Transaction } from '../database/queries';
+import { formatVND, formatFullDate } from '../common/formatters';
+import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
+import type { Transaction } from '../common/types';
 import {
     ArrowDownLeft,
     ArrowUpRight,
@@ -49,24 +53,9 @@ interface TransactionDetailScreenProps {
     onDelete: (id: string, walletId: string) => void;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const { width } = Dimensions.get('window');
-
-function formatVND(n: number): string {
-    return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' ₫';
-}
-
-function formatFullDate(iso: string): string {
-    const d = new Date(iso);
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-    const hours = String(d.getHours()).padStart(2, '0');
-    const mins = String(d.getMinutes()).padStart(2, '0');
-    const secs = String(d.getSeconds()).padStart(2, '0');
-    return `${day}/${month}/${year} — ${hours}:${mins}:${secs}`;
-}
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -80,7 +69,6 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
     const insets = useSafeAreaInsets();
     const isIn = transaction.type === 'IN';
 
-    // ─── State ──────────────────────────────────────────────────────────────
     const [editModalVisible, setEditModalVisible] = useState(false);
     const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
 
@@ -96,9 +84,9 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
     }, [fadeAnim]);
 
     // ─── Colors ─────────────────────────────────────────────────────────────
-    const typeColor = isIn ? '#4ade80' : '#f87171';
-    const typeBg = isIn ? 'rgba(74, 222, 128, 0.12)' : 'rgba(248, 113, 113, 0.12)';
-    const typeBorder = isIn ? 'rgba(74, 222, 128, 0.25)' : 'rgba(248, 113, 113, 0.25)';
+    const typeColor = isIn ? Colors.income : Colors.expense;
+    const typeBg = isIn ? Colors.incomeBg : Colors.expenseBg;
+    const typeBorder = isIn ? Colors.incomeBorder : Colors.expenseBorder;
     const typeLabel = isIn ? 'Thu nhập' : 'Chi tiêu';
     const typeSign = isIn ? '+' : '-';
 
@@ -133,7 +121,7 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
             {/* Top Bar */}
             <View style={styles.topBar}>
                 <Pressable onPress={onGoBack} style={styles.backBtn}>
-                    <ChevronLeft size={24} color="#FFFFFF" />
+                    <ChevronLeft size={24} color={Colors.text} />
                 </Pressable>
                 <Text style={styles.topBarTitle}>Chi tiết giao dịch</Text>
                 <View style={{ width: 40 }} />
@@ -148,8 +136,7 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
                     style={styles.amountCard}
                     backgroundOpacity={0.15}
                     borderOpacity={0.2}
-                    borderRadius={24}>
-                    {/* Type badge */}
+                    borderRadius={Radii.xxl}>
                     <View style={[styles.typeBadge, { backgroundColor: typeBg, borderColor: typeBorder }]}>
                         {isIn ? (
                             <ArrowDownLeft size={18} color={typeColor} strokeWidth={2.5} />
@@ -160,8 +147,6 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
                             {typeLabel}
                         </Text>
                     </View>
-
-                    {/* Amount */}
                     <Text style={[styles.amount, { color: typeColor }]}>
                         {typeSign}{formatVND(transaction.amount)}
                     </Text>
@@ -172,17 +157,16 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
                     style={styles.infoCard}
                     backgroundOpacity={0.08}
                     borderOpacity={0.12}
-                    borderRadius={20}>
-
+                    borderRadius={Radii.xl}>
                     {/* Reason */}
                     <View style={styles.infoRow}>
                         <View style={styles.infoIconWrap}>
-                            <FileText size={18} color="#C084FC" strokeWidth={2} />
+                            <FileText size={18} color={Colors.accentLight} strokeWidth={2} />
                         </View>
                         <View style={styles.infoContent}>
                             <Text style={styles.infoLabel}>Lý do</Text>
                             <Text style={styles.infoValue}>
-                                {transaction.reason || (isIn ? 'Thu nhập' : 'Chi tiêu')}
+                                {transaction.reason || typeLabel}
                             </Text>
                         </View>
                     </View>
@@ -192,7 +176,7 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
                     {/* Date */}
                     <View style={styles.infoRow}>
                         <View style={styles.infoIconWrap}>
-                            <Calendar size={18} color="#22d3ee" strokeWidth={2} />
+                            <Calendar size={18} color={Colors.cyan} strokeWidth={2} />
                         </View>
                         <View style={styles.infoContent}>
                             <Text style={styles.infoLabel}>Thời gian</Text>
@@ -222,9 +206,9 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
                         style={styles.imageCard}
                         backgroundOpacity={0.08}
                         borderOpacity={0.12}
-                        borderRadius={20}>
+                        borderRadius={Radii.xl}>
                         <View style={styles.imageHeader}>
-                            <ImageIcon size={18} color="#22d3ee" strokeWidth={2} />
+                            <ImageIcon size={18} color={Colors.cyan} strokeWidth={2} />
                             <Text style={styles.imageHeaderText}>Hình ảnh đính kèm</Text>
                         </View>
                         <Image
@@ -244,7 +228,7 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
                             styles.editBtn,
                             pressed && { opacity: 0.7 },
                         ]}>
-                        <Pencil size={18} color="#22d3ee" strokeWidth={2} />
+                        <Pencil size={18} color={Colors.cyan} strokeWidth={2} />
                         <Text style={styles.editBtnText}>Sửa giao dịch</Text>
                     </Pressable>
 
@@ -255,7 +239,7 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
                             styles.delBtn,
                             pressed && { opacity: 0.7 },
                         ]}>
-                        <Trash2 size={18} color="#f87171" strokeWidth={2} />
+                        <Trash2 size={18} color={Colors.expense} strokeWidth={2} />
                         <Text style={styles.delBtnText}>Xóa giao dịch</Text>
                     </Pressable>
                 </View>
@@ -300,32 +284,32 @@ const styles = StyleSheet.create({
     topBar: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 16,
+        paddingHorizontal: Spacing.md,
         paddingVertical: 12,
     },
     backBtn: {
-        padding: 8,
-        borderRadius: 20,
+        padding: Spacing.sm,
+        borderRadius: Radii.xl,
         backgroundColor: 'rgba(255, 255, 255, 0.1)',
     },
     topBarTitle: {
         flex: 1,
         textAlign: 'center',
-        fontSize: 18,
+        fontSize: FontSizes.lg,
         fontWeight: '700',
-        color: '#FFFFFF',
+        color: Colors.text,
         letterSpacing: -0.3,
     },
     scrollContent: {
-        paddingHorizontal: 16,
-        paddingTop: 8,
+        paddingHorizontal: Spacing.md,
+        paddingTop: Spacing.sm,
     },
 
     // ── Amount Card ──
     amountCard: {
-        padding: 28,
+        padding: Spacing.xxl - 4,
         alignItems: 'center',
-        marginBottom: 16,
+        marginBottom: Spacing.md,
     },
     typeBadge: {
         flexDirection: 'row',
@@ -333,24 +317,24 @@ const styles = StyleSheet.create({
         gap: 6,
         paddingHorizontal: 14,
         paddingVertical: 6,
-        borderRadius: 20,
+        borderRadius: Radii.xl,
         borderWidth: 1,
-        marginBottom: 16,
+        marginBottom: Spacing.md,
     },
     typeBadgeText: {
-        fontSize: 14,
+        fontSize: FontSizes.md - 1,
         fontWeight: '700',
     },
     amount: {
-        fontSize: 36,
+        fontSize: FontSizes.title,
         fontWeight: '800',
         letterSpacing: -1,
     },
 
     // ── Info Card ──
     infoCard: {
-        padding: 20,
-        marginBottom: 16,
+        padding: Spacing.lg,
+        marginBottom: Spacing.md,
     },
     infoRow: {
         flexDirection: 'row',
@@ -360,8 +344,8 @@ const styles = StyleSheet.create({
     infoIconWrap: {
         width: 36,
         height: 36,
-        borderRadius: 10,
-        backgroundColor: 'rgba(255, 255, 255, 0.06)',
+        borderRadius: Radii.sm,
+        backgroundColor: Colors.card,
         alignItems: 'center',
         justifyContent: 'center',
         marginRight: 14,
@@ -370,48 +354,48 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     infoLabel: {
-        fontSize: 12,
+        fontSize: FontSizes.xs + 1,
         fontWeight: '500',
-        color: 'rgba(255, 255, 255, 0.4)',
+        color: Colors.textMuted,
         marginBottom: 2,
     },
     infoValue: {
-        fontSize: 15,
+        fontSize: FontSizes.md,
         fontWeight: '600',
-        color: '#FFFFFF',
+        color: Colors.text,
     },
     divider: {
         height: 1,
-        backgroundColor: 'rgba(255, 255, 255, 0.06)',
+        backgroundColor: Colors.divider,
         marginLeft: 50,
     },
 
     // ── Image Card ──
     imageCard: {
-        padding: 16,
-        marginBottom: 16,
+        padding: Spacing.md,
+        marginBottom: Spacing.md,
     },
     imageHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 8,
+        gap: Spacing.sm,
         marginBottom: 12,
     },
     imageHeaderText: {
-        fontSize: 14,
+        fontSize: FontSizes.md - 1,
         fontWeight: '600',
         color: 'rgba(255, 255, 255, 0.7)',
     },
     transactionImage: {
         width: '100%',
         height: width * 0.55,
-        borderRadius: 14,
+        borderRadius: Radii.md,
     },
 
     // ── Actions ──
     actionsContainer: {
         gap: 12,
-        marginTop: 8,
+        marginTop: Spacing.sm,
     },
     actionBtn: {
         flexDirection: 'row',
@@ -419,7 +403,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         gap: 10,
         paddingVertical: 15,
-        borderRadius: 16,
+        borderRadius: Radii.lg,
         borderWidth: 1,
     },
     editBtn: {
@@ -427,18 +411,18 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(34, 211, 238, 0.25)',
     },
     editBtnText: {
-        fontSize: 15,
+        fontSize: FontSizes.md,
         fontWeight: '700',
-        color: '#22d3ee',
+        color: Colors.cyan,
     },
     delBtn: {
         backgroundColor: 'rgba(239, 68, 68, 0.08)',
         borderColor: 'rgba(239, 68, 68, 0.25)',
     },
     delBtnText: {
-        fontSize: 15,
+        fontSize: FontSizes.md,
         fontWeight: '700',
-        color: '#f87171',
+        color: Colors.expense,
     },
 });
 

@@ -1,9 +1,12 @@
 /**
- * ConfirmDialog.tsx — Hộp thoại xác nhận tùy chỉnh, kiểu glassmorphism
- * Thay thế Alert.alert() mặc định của Android cho giao diện đẹp hơn
+ * ConfirmDialog.tsx — Custom glassmorphism confirmation dialog
+ * Replaces default Android Alert.alert() with better styling
+ *
+ * Refactored: Uses shared animation helpers and theme tokens.
+ * Removed dead `iconText` style.
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
     Animated,
     Modal,
@@ -13,6 +16,8 @@ import {
     View,
 } from 'react-native';
 import { AlertTriangle } from 'lucide-react-native';
+import { animateDialogOpen, animateDialogClose } from '../common/animations';
+import { Colors, FontSizes, Radii, Shadows, Spacing } from '../common/theme';
 
 interface ConfirmDialogProps {
     visible: boolean;
@@ -31,40 +36,26 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     message,
     cancelText = 'Hủy',
     confirmText = 'Xóa',
-    confirmColor = '#f87171',
+    confirmColor = Colors.expense,
     onCancel,
     onConfirm,
 }) => {
     const overlayOpacity = useRef(new Animated.Value(0)).current;
     const scale = useRef(new Animated.Value(0.85)).current;
-    const contentOpacity = useRef(new Animated.Value(0)).current;
 
-    useEffect(() => {
+    React.useEffect(() => {
         if (visible) {
-            Animated.parallel([
-                Animated.timing(overlayOpacity, {
-                    toValue: 1,
-                    duration: 200,
-                    useNativeDriver: true,
-                }),
-                Animated.spring(scale, {
-                    toValue: 1,
-                    friction: 8,
-                    tension: 100,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(contentOpacity, {
-                    toValue: 1,
-                    duration: 200,
-                    useNativeDriver: true,
-                }),
-            ]).start();
-        } else {
-            overlayOpacity.setValue(0);
-            scale.setValue(0.85);
-            contentOpacity.setValue(0);
+            animateDialogOpen(overlayOpacity, scale);
         }
-    }, [visible, overlayOpacity, scale, contentOpacity]);
+    }, [visible, overlayOpacity, scale]);
+
+    const handleCancel = useCallback(() => {
+        animateDialogClose(overlayOpacity, scale, onCancel);
+    }, [overlayOpacity, scale, onCancel]);
+
+    const handleConfirm = useCallback(() => {
+        animateDialogClose(overlayOpacity, scale, onConfirm);
+    }, [overlayOpacity, scale, onConfirm]);
 
     return (
         <Modal
@@ -72,9 +63,8 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             transparent
             animationType="none"
             statusBarTranslucent
-            onRequestClose={onCancel}>
+            onRequestClose={handleCancel}>
             <View style={styles.wrapper}>
-                {/* Animated overlay */}
                 <Animated.View
                     style={[
                         StyleSheet.absoluteFill,
@@ -82,48 +72,39 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                         { opacity: overlayOpacity },
                     ]}
                 />
-                <Pressable
-                    style={StyleSheet.absoluteFill}
-                    onPress={onCancel}
-                />
+                <Pressable style={StyleSheet.absoluteFill} onPress={handleCancel} />
 
-                {/* Dialog content */}
                 <Animated.View
                     style={[
                         styles.dialog,
-                        {
-                            opacity: contentOpacity,
-                            transform: [{ scale }],
-                        },
+                        { transform: [{ scale }] },
                     ]}>
                     {/* Icon */}
                     <View style={styles.iconContainer}>
-                        <AlertTriangle size={36} color="#ef4444" strokeWidth={2} />
+                        <AlertTriangle size={36} color={Colors.danger} strokeWidth={2} />
                     </View>
 
                     <Text style={styles.title}>{title}</Text>
                     <Text style={styles.message}>{message}</Text>
 
                     <View style={styles.actions}>
-                        {/* Cancel */}
                         <Pressable
-                            style={styles.cancelBtn}
-                            onPress={onCancel}>
-                            <Text style={styles.cancelText}>
-                                {cancelText}
-                            </Text>
+                            style={({ pressed }) => [
+                                styles.cancelBtn,
+                                pressed && { opacity: 0.7 },
+                            ]}
+                            onPress={handleCancel}>
+                            <Text style={styles.cancelText}>{cancelText}</Text>
                         </Pressable>
 
-                        {/* Confirm */}
                         <Pressable
-                            style={[
+                            style={({ pressed }) => [
                                 styles.confirmBtn,
                                 { backgroundColor: confirmColor },
+                                pressed && { opacity: 0.7 },
                             ]}
-                            onPress={onConfirm}>
-                            <Text style={styles.confirmText}>
-                                {confirmText}
-                            </Text>
+                            onPress={handleConfirm}>
+                            <Text style={styles.confirmText}>{confirmText}</Text>
                         </Pressable>
                     </View>
                 </Animated.View>
@@ -140,49 +121,41 @@ const styles = StyleSheet.create({
         padding: 40,
     },
     overlay: {
-        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        backgroundColor: Colors.overlayHeavy,
     },
     dialog: {
         width: '100%',
         maxWidth: 320,
-        backgroundColor: 'rgba(32, 32, 36, 0.98)',
-        borderRadius: 24,
+        backgroundColor: Colors.dialogBg,
+        borderRadius: Radii.xxl,
         borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.1)',
-        padding: 28,
+        borderColor: Colors.cardBorder,
+        padding: Spacing.xxl - 4,
         alignItems: 'center',
-        // Shadow
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 12 },
-        shadowOpacity: 0.5,
-        shadowRadius: 24,
-        elevation: 16,
+        ...Shadows.card,
     },
     iconContainer: {
         width: 56,
         height: 56,
         borderRadius: 28,
-        backgroundColor: 'rgba(248, 113, 113, 0.12)',
+        backgroundColor: Colors.expenseBg,
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 16,
-    },
-    iconText: {
-        fontSize: 28,
+        marginBottom: Spacing.md,
     },
     title: {
-        fontSize: 20,
+        fontSize: FontSizes.lg + 2,
         fontWeight: '700',
-        color: '#FFFFFF',
+        color: Colors.text,
         textAlign: 'center',
-        marginBottom: 8,
+        marginBottom: Spacing.sm,
     },
     message: {
-        fontSize: 15,
-        color: 'rgba(255, 255, 255, 0.55)',
+        fontSize: FontSizes.md,
+        color: Colors.textSecondary,
         textAlign: 'center',
         lineHeight: 22,
-        marginBottom: 28,
+        marginBottom: Spacing.xxl - 4,
     },
     actions: {
         flexDirection: 'row',
@@ -192,27 +165,27 @@ const styles = StyleSheet.create({
     cancelBtn: {
         flex: 1,
         paddingVertical: 14,
-        borderRadius: 14,
+        borderRadius: Radii.md,
         borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.15)',
-        backgroundColor: 'rgba(255, 255, 255, 0.06)',
+        borderColor: Colors.handleBar,
+        backgroundColor: Colors.card,
         alignItems: 'center',
     },
     cancelText: {
-        fontSize: 16,
+        fontSize: FontSizes.lg - 2,
         fontWeight: '600',
         color: 'rgba(255, 255, 255, 0.7)',
     },
     confirmBtn: {
         flex: 1,
         paddingVertical: 14,
-        borderRadius: 14,
+        borderRadius: Radii.md,
         alignItems: 'center',
     },
     confirmText: {
-        fontSize: 16,
+        fontSize: FontSizes.lg - 2,
         fontWeight: '700',
-        color: '#FFFFFF',
+        color: Colors.text,
     },
 });
 

@@ -1,215 +1,325 @@
 /**
- * StatsScreen.tsx — Màn hình thống kê thu/chi
- * Features:
- *  - Wallet filter: Tất cả ví hoặc chọn ví cụ thể
- *  - Time range selector: 3 / 6 / 12 tháng
- *  - Biểu đồ cột động (BarChart)
- *  - Tổng quan thu/chi (StatCard)
- *  - Danh sách giao dịch gần đây
- *  - Pull-to-refresh
- *  - Lottie empty state
+ * StatsScreen.tsx — Statistics screen for income/expenses
+ * Clean 4-color design, Daily/Weekly periods
+ * SVG bar chart, summary cards, recent transactions
+ *
+ * Refactored: Uses shared formatters, theme tokens, TransactionRow, EmptyState.
+ * Added React.memo to SummaryCard and PeriodTabs.
+ * Removed unused MONTH_LABELS and getMonthLabel.
  */
 
-import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+    Animated,
     FlatList,
+    Pressable,
     RefreshControl,
     ScrollView,
     StyleSheet,
     Text,
     View,
-    Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import LottieView from 'lottie-react-native';
-
-const FadeInView: React.FC<{
-    delay?: number;
-    duration?: number;
-    initialTranslateY?: number;
-    children: React.ReactNode;
-}> = ({ delay = 0, duration = 400, initialTranslateY = 0, children }) => {
-    const opacity = useRef(new Animated.Value(0)).current;
-    const translateY = useRef(new Animated.Value(initialTranslateY)).current;
-
-    useEffect(() => {
-        Animated.parallel([
-            Animated.timing(opacity, {
-                toValue: 1,
-                duration,
-                delay,
-                useNativeDriver: true,
-            }),
-            Animated.timing(translateY, {
-                toValue: 0,
-                duration,
-                delay,
-                useNativeDriver: true,
-            }),
-        ]).start();
-    }, [opacity, translateY, delay, duration]);
-
-    return (
-        <Animated.View style={{ opacity, transform: [{ translateY }] }}>
-            {children}
-        </Animated.View>
-    );
-};
-import { Pressable } from 'react-native';
+import Svg, { Rect } from 'react-native-svg';
 import GlassCard from '../components/GlassCard';
-import BarChart from '../components/BarChart';
-import StatCard from '../components/StatCard';
+import TransactionRow from '../components/TransactionRow';
+import EmptyState from '../components/EmptyState';
 import { isDatabaseAvailable } from '../database/db';
-import type { MonthlyStat, OverallStat, Transaction, Wallet } from '../database/queries';
+import type { DailyStat, OverallStat, Transaction, Wallet } from '../database/queries';
+import { formatVNDShort } from '../common/formatters';
+import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
 import {
     ArrowDownLeft,
     ArrowUpRight,
+    BarChart3,
+    TrendingDown,
     TrendingUp,
-    Clock,
     AlertTriangle,
     Wallet as WalletIcon,
 } from 'lucide-react-native';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type TimeRange = 3 | 6 | 12;
+type Period = 'day' | 'week';
+
+interface ChartDataPoint {
+    label: string;
+    income: number;
+    expense: number;
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatVND(n: number): string {
-    const abs = Math.abs(n);
-    return abs.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' ₫';
+function getDayLabel(dateStr: string): string {
+    const parts = dateStr.split('-');
+    return `${parts[2]}/${parts[1]}`;
 }
 
-function formatDate(iso: string): string {
-    const d = new Date(iso);
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const hours = String(d.getHours()).padStart(2, '0');
-    const mins = String(d.getMinutes()).padStart(2, '0');
-    return `${day}/${month} ${hours}:${mins}`;
-}
+// ─── Period Tab ───────────────────────────────────────────────────────────────
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+const PERIODS: { key: Period; label: string }[] = [
+    { key: 'day', label: 'Ngày' },
+    { key: 'week', label: 'Tuần' },
+];
 
-/** Chip cho wallet filter */
-const WalletChip: React.FC<{
+const PeriodTabs: React.FC<{
+    selected: Period;
+    onChange: (p: Period) => void;
+}> = React.memo(({ selected, onChange }) => {
+    const initialIdx = PERIODS.findIndex(p => p.key === selected);
+    const indicatorAnim = useRef(new Animated.Value(initialIdx >= 0 ? initialIdx : 0)).current;
+
+    useEffect(() => {
+        const idx = PERIODS.findIndex(p => p.key === selected);
+        Animated.spring(indicatorAnim, {
+            toValue: idx,
+            damping: 20,
+            stiffness: 200,
+            useNativeDriver: false,
+        }).start();
+    }, [selected, indicatorAnim]);
+
+    const tabCount = PERIODS.length;
+    const widthPercent = 100 / tabCount;
+
+    return (
+        <View style={s.periodContainer}>
+            <Animated.View
+                style={[
+                    s.periodIndicator,
+                    {
+                        width: `${widthPercent}%`,
+                        left: indicatorAnim.interpolate({
+                            inputRange: PERIODS.map((_, i) => i),
+                            outputRange: PERIODS.map((_, i) => `${i * widthPercent}%`),
+                        }),
+                    },
+                ]}
+            />
+            {PERIODS.map(p => (
+                <Pressable
+                    key={p.key}
+                    style={s.periodTab}
+                    onPress={() => onChange(p.key)}>
+                    <Text style={[
+                        s.periodText,
+                        selected === p.key && s.periodTextActive,
+                    ]}>
+                        {p.label}
+                    </Text>
+                </Pressable>
+            ))}
+        </View>
+    );
+});
+
+// ─── Summary Card ─────────────────────────────────────────────────────────────
+
+const SummaryCard: React.FC<{
     label: string;
-    isActive: boolean;
-    onPress: () => void;
-}> = ({ label, isActive, onPress }) => (
-    <Pressable
-        onPress={onPress}
-        style={[styles.chip, isActive && styles.chipActive]}>
-        <Text style={[styles.chipText, isActive && styles.chipTextActive]}>
-            {label}
+    value: number;
+    color: string;
+    icon: React.ReactNode;
+    prefix?: string;
+}> = React.memo(({ label, value, color, icon, prefix = '' }) => (
+    <View style={s.summaryCard}>
+        <View style={[s.summaryIconBg, { backgroundColor: `${color}15` }]}>
+            {icon}
+        </View>
+        <Text style={s.summaryLabel}>{label}</Text>
+        <Text style={[s.summaryValue, { color }]} numberOfLines={1}>
+            {prefix}{formatVNDShort(value)}
         </Text>
-    </Pressable>
-);
+    </View>
+));
 
-/** Chip cho time range */
-const RangeChip: React.FC<{
-    label: string;
-    isActive: boolean;
-    onPress: () => void;
-}> = ({ label, isActive, onPress }) => (
-    <Pressable
-        onPress={onPress}
-        style={[styles.rangeChip, isActive && styles.rangeChipActive]}>
-        <Text style={[styles.rangeChipText, isActive && styles.rangeChipTextActive]}>
-            {label}
-        </Text>
-    </Pressable>
-);
+// ─── SVG Bar Chart ────────────────────────────────────────────────────────────
 
-// ─── Component ────────────────────────────────────────────────────────────────
+const CHART_HEIGHT = 160;
+const BAR_GAP = 3;
+
+const MiniBarChart: React.FC<{ data: ChartDataPoint[] }> = ({ data }) => {
+    const chartWidth = Math.max(data.length * 46, 200);
+    const maxVal = Math.max(
+        ...data.map(d => Math.max(d.income, d.expense)),
+        1,
+    );
+
+    const barWidth = Math.max(
+        Math.floor((chartWidth / data.length - BAR_GAP * 3) / 2),
+        8,
+    );
+
+    return (
+        <View>
+            <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingHorizontal: 4 }}>
+                <Svg width={chartWidth} height={CHART_HEIGHT + 24}>
+                    {data.map((d, i) => {
+                        const groupX = i * (chartWidth / data.length);
+                        const centerX = groupX + (chartWidth / data.length) / 2;
+                        const inH = (d.income / maxVal) * CHART_HEIGHT;
+                        const outH = (d.expense / maxVal) * CHART_HEIGHT;
+
+                        return (
+                            <React.Fragment key={i}>
+                                <Rect
+                                    x={centerX - barWidth - BAR_GAP / 2}
+                                    y={CHART_HEIGHT - inH}
+                                    width={barWidth}
+                                    height={Math.max(inH, 2)}
+                                    rx={4}
+                                    fill={Colors.income}
+                                    opacity={0.85}
+                                />
+                                <Rect
+                                    x={centerX + BAR_GAP / 2}
+                                    y={CHART_HEIGHT - outH}
+                                    width={barWidth}
+                                    height={Math.max(outH, 2)}
+                                    rx={4}
+                                    fill={Colors.expense}
+                                    opacity={0.85}
+                                />
+                            </React.Fragment>
+                        );
+                    })}
+                </Svg>
+            </ScrollView>
+
+            {/* X Axis Labels */}
+            <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingHorizontal: 4 }}>
+                <View style={{ width: chartWidth, flexDirection: 'row' }}>
+                    {data.map((d, i) => (
+                        <View
+                            key={i}
+                            style={{
+                                width: chartWidth / data.length,
+                                alignItems: 'center',
+                            }}>
+                            <Text style={s.chartXLabel}>{d.label}</Text>
+                        </View>
+                    ))}
+                </View>
+            </ScrollView>
+
+            {/* Legend */}
+            <View style={s.chartLegend}>
+                <View style={s.legendItem}>
+                    <View style={[s.legendDot, { backgroundColor: Colors.income }]} />
+                    <Text style={s.legendText}>Thu</Text>
+                </View>
+                <View style={s.legendItem}>
+                    <View style={[s.legendDot, { backgroundColor: Colors.expense }]} />
+                    <Text style={s.legendText}>Chi</Text>
+                </View>
+                <Text style={s.legendMax}>Max: {formatVNDShort(maxVal)}</Text>
+            </View>
+        </View>
+    );
+};
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 
 const StatsScreen: React.FC = () => {
     const insets = useSafeAreaInsets();
 
-    // ─── State ──────────────────────────────────────────────────────────────
     const [wallets, setWallets] = useState<Wallet[]>([]);
     const [selectedWalletId, setSelectedWalletId] = useState<string | undefined>(undefined);
-    const [timeRange, setTimeRange] = useState<TimeRange>(6);
-    const [monthlyStats, setMonthlyStats] = useState<MonthlyStat[]>([]);
+    const [period, setPeriod] = useState<Period>('day');
+    const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
     const [overallStats, setOverallStats] = useState<OverallStat>({
-        totalIn: 0,
-        totalOut: 0,
-        txCount: 0,
+        totalIn: 0, totalOut: 0, txCount: 0,
     });
     const [recentTxns, setRecentTxns] = useState<Transaction[]>([]);
     const [refreshing, setRefreshing] = useState(false);
 
-    // ─── Load data ──────────────────────────────────────────────────────────
-
-    const loadStats = useCallback((wId?: string, months: number = 6) => {
+    const loadStats = useCallback((wId?: string, p: Period = 'day') => {
         if (!isDatabaseAvailable()) { return; }
         try {
             const {
                 getAllWallets,
-                getMonthlyStats,
-                getOverallStats,
+                getDailyStats,
+                getOverallStats: getOvr,
                 getRecentTransactions,
             } = require('../database/queries');
 
             setWallets(getAllWallets());
-            setMonthlyStats(getMonthlyStats(wId, months));
-            setOverallStats(getOverallStats(wId));
-            setRecentTxns(getRecentTransactions(20, wId));
+            setOverallStats(getOvr(wId));
+            setRecentTxns(getRecentTransactions(15, wId));
+
+            let points: ChartDataPoint[] = [];
+
+            if (p === 'day') {
+                const daily: DailyStat[] = getDailyStats(wId, 1);
+                points = daily.map(d => ({
+                    label: getDayLabel(d.date),
+                    income: d.totalIn,
+                    expense: d.totalOut,
+                }));
+            } else {
+                const now = new Date();
+                const todayDay = now.getDay();
+                const diffToMonday = todayDay === 0 ? 6 : todayDay - 1;
+                const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday);
+                const daysToFetch = diffToMonday + 1;
+                const allDays: DailyStat[] = getDailyStats(wId, daysToFetch);
+
+                const dayMap = new Map<string, DailyStat>();
+                for (const d of allDays) { dayMap.set(d.date, d); }
+
+                const DAY_NAMES = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+                for (let i = 0; i < 7; i++) {
+                    const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
+                    const mm = String(d.getMonth() + 1).padStart(2, '0');
+                    const dd = String(d.getDate()).padStart(2, '0');
+                    const dateStr = `${d.getFullYear()}-${mm}-${dd}`;
+                    const stat = dayMap.get(dateStr);
+                    points.push({
+                        label: `${DAY_NAMES[i]}\n${dd}/${mm}`,
+                        income: stat?.totalIn ?? 0,
+                        expense: stat?.totalOut ?? 0,
+                    });
+                }
+            }
+
+            setChartData(points);
         } catch (err) {
             console.warn('[Stats] Failed to load:', err);
         }
     }, []);
 
     useEffect(() => {
-        loadStats(selectedWalletId, timeRange);
-    }, [loadStats, selectedWalletId, timeRange]);
+        loadStats(selectedWalletId, period);
+    }, [loadStats, selectedWalletId, period]);
 
     const onRefresh = useCallback(() => {
         setRefreshing(true);
-        loadStats(selectedWalletId, timeRange);
+        loadStats(selectedWalletId, period);
         setRefreshing(false);
-    }, [loadStats, selectedWalletId, timeRange]);
+    }, [loadStats, selectedWalletId, period]);
 
-    // ─── Selected wallet label ───────────────────────────────────────────────
+    // ─── Derived ────────────────────────────────────────────────────────────
+    const periodTotalIn = useMemo(() => chartData.reduce((sum, d) => sum + d.income, 0), [chartData]);
+    const periodTotalOut = useMemo(() => chartData.reduce((sum, d) => sum + d.expense, 0), [chartData]);
+    const balance = periodTotalIn - periodTotalOut;
+
     const selectedWalletName = useMemo(() => {
         if (!selectedWalletId) { return 'Tất cả ví'; }
         const w = wallets.find(x => x.id === selectedWalletId);
         return w?.name ?? 'Tất cả ví';
     }, [selectedWalletId, wallets]);
 
-    // ─── Derived stats ───────────────────────────────────────────────────────
-    const savings = overallStats.totalIn - overallStats.totalOut;
-
-    // ─── Render items ────────────────────────────────────────────────────────
-
+    // ─── Render items ───────────────────────────────────────────────────────
     const renderRecentItem = useCallback(
-        ({ item, index }: { item: Transaction; index: number }) => {
-            const isIn = item.type === 'IN';
-            const amountColor = isIn ? '#4ade80' : '#f87171';
-            return (
-                <FadeInView delay={index * 40} duration={350} initialTranslateY={20}>
-                    <View style={styles.txRow}>
-                        <View style={[styles.txIconBg, { backgroundColor: isIn ? 'rgba(74,222,128,0.1)' : 'rgba(248,113,113,0.1)' }]}>
-                            {isIn
-                                ? <ArrowDownLeft size={16} color="#4ade80" strokeWidth={2} />
-                                : <ArrowUpRight size={16} color="#f87171" strokeWidth={2} />}
-                        </View>
-                        <View style={styles.txInfo}>
-                            <Text style={styles.txReason} numberOfLines={1}>
-                                {item.reason || (isIn ? 'Thu nhập' : 'Chi tiêu')}
-                            </Text>
-                            <Text style={styles.txDate}>
-                                {formatDate(item.created_at)}
-                            </Text>
-                        </View>
-                        <Text style={[styles.txAmount, { color: amountColor }]}>
-                            {isIn ? '+' : '-'}{formatVND(item.amount)}
-                        </Text>
-                    </View>
-                </FadeInView>
-            );
-        },
+        ({ item }: { item: Transaction }) => (
+            <TransactionRow item={item} variant="flat" />
+        ),
         [],
     );
 
@@ -217,152 +327,109 @@ const StatsScreen: React.FC = () => {
         () => (
             <View>
                 {/* Page Title */}
-                <FadeInView delay={0} duration={400} initialTranslateY={20}>
-                    <View style={styles.pageHeader}>
-                        <TrendingUp size={22} color="#22d3ee" strokeWidth={2} />
-                        <Text style={styles.pageTitle}>Thống kê</Text>
-                    </View>
-                </FadeInView>
+                <View style={s.pageHeader}>
+                    <BarChart3 size={22} color={Colors.cyan} strokeWidth={2} />
+                    <Text style={s.pageTitle}>Thống kê</Text>
+                </View>
 
                 {/* Wallet Filter */}
-                <FadeInView delay={60} duration={400} initialTranslateY={20}>
-                    <View style={styles.filterSection}>
-                        <View style={styles.filterLabelRow}>
-                            <WalletIcon size={13} color="rgba(255,255,255,0.4)" strokeWidth={2} />
-                            <Text style={styles.filterLabel}>Ví</Text>
-                        </View>
-                        <ScrollView
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                            contentContainerStyle={styles.chipsRow}>
-                            <WalletChip
-                                label="Tất cả"
-                                isActive={selectedWalletId === undefined}
-                                onPress={() => setSelectedWalletId(undefined)}
-                            />
-                            {wallets.map(w => (
-                                <WalletChip
-                                    key={w.id}
-                                    label={w.name}
-                                    isActive={selectedWalletId === w.id}
-                                    onPress={() => setSelectedWalletId(w.id)}
-                                />
-                            ))}
-                        </ScrollView>
+                <View style={s.filterSection}>
+                    <View style={s.filterLabelRow}>
+                        <WalletIcon size={12} color={Colors.textSecondary} strokeWidth={2} />
+                        <Text style={s.filterLabel}>Ví</Text>
                     </View>
-                </FadeInView>
-
-                {/* Time range selector */}
-                <FadeInView delay={100} duration={400} initialTranslateY={20}>
-                    <View style={styles.rangeRow}>
-                        {([3, 6, 12] as TimeRange[]).map(r => (
-                            <RangeChip
-                                key={r}
-                                label={`${r} tháng`}
-                                isActive={timeRange === r}
-                                onPress={() => setTimeRange(r)}
-                            />
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={s.chipsRow}>
+                        <Pressable
+                            onPress={() => setSelectedWalletId(undefined)}
+                            style={[s.chip, !selectedWalletId && s.chipActive]}>
+                            <Text style={[s.chipText, !selectedWalletId && s.chipTextActive]}>
+                                Tất cả
+                            </Text>
+                        </Pressable>
+                        {wallets.map(w => (
+                            <Pressable
+                                key={w.id}
+                                onPress={() => setSelectedWalletId(w.id)}
+                                style={[s.chip, selectedWalletId === w.id && s.chipActive]}>
+                                <Text style={[s.chipText, selectedWalletId === w.id && s.chipTextActive]}>
+                                    {w.name}
+                                </Text>
+                            </Pressable>
                         ))}
-                    </View>
-                </FadeInView>
+                    </ScrollView>
+                </View>
 
-                {/* Overall Stats Card */}
-                <FadeInView delay={140} duration={400} initialTranslateY={-20}>
-                    <StatCard
-                        totalIn={overallStats.totalIn}
-                        totalOut={overallStats.totalOut}
-                        txCount={overallStats.txCount}
+                {/* Period Tabs */}
+                <PeriodTabs selected={period} onChange={setPeriod} />
+
+                {/* Summary Cards */}
+                <View style={s.summaryRow}>
+                    <SummaryCard
+                        label="Thu nhập"
+                        value={periodTotalIn}
+                        color={Colors.income}
+                        icon={<ArrowDownLeft size={16} color={Colors.income} strokeWidth={2} />}
+                        prefix="+"
                     />
-                </FadeInView>
+                    <SummaryCard
+                        label="Chi tiêu"
+                        value={periodTotalOut}
+                        color={Colors.expense}
+                        icon={<ArrowUpRight size={16} color={Colors.expense} strokeWidth={2} />}
+                        prefix="-"
+                    />
+                    <SummaryCard
+                        label="Số dư"
+                        value={balance}
+                        color={balance >= 0 ? Colors.income : Colors.expense}
+                        icon={balance >= 0
+                            ? <TrendingUp size={16} color={Colors.income} strokeWidth={2} />
+                            : <TrendingDown size={16} color={Colors.expense} strokeWidth={2} />}
+                        prefix={balance >= 0 ? '+' : '-'}
+                    />
+                </View>
 
-                {/* Savings pill */}
-                <FadeInView delay={180} duration={400} initialTranslateY={-20}>
-                    <View style={[styles.savingsPill, {
-                        backgroundColor: savings >= 0
-                            ? 'rgba(74, 222, 128, 0.08)'
-                            : 'rgba(248, 113, 113, 0.08)',
-                        borderColor: savings >= 0
-                            ? 'rgba(74, 222, 128, 0.25)'
-                            : 'rgba(248, 113, 113, 0.25)',
-                    }]}>
-                        <Text style={styles.savingsLabel}>Tiết kiệm tháng này</Text>
-                        <Text style={[styles.savingsValue, {
-                            color: savings >= 0 ? '#4ade80' : '#f87171',
-                        }]}>
-                            {savings >= 0 ? '+' : ''}{formatVND(savings)}
-                        </Text>
-                    </View>
-                </FadeInView>
-
-                {/* Monthly Chart */}
-                <FadeInView delay={220} duration={400} initialTranslateY={-20}>
+                {/* Chart */}
+                {chartData.length > 0 && (
                     <GlassCard
-                        style={styles.chartCard}
-                        backgroundOpacity={0.1}
-                        borderOpacity={0.15}
-                        borderRadius={20}>
-                        <View style={styles.chartInner}>
-                            <View style={styles.chartTitleRow}>
-                                <TrendingUp size={16} color="#22d3ee" strokeWidth={2} />
-                                <Text style={styles.chartTitle}>
-                                    Thu/Chi {timeRange} tháng
-                                </Text>
-                                <Text style={styles.chartSubTitle}>
-                                    {selectedWalletName}
-                                </Text>
+                        style={s.chartCard}
+                        backgroundOpacity={0.06}
+                        borderOpacity={0.10}
+                        borderRadius={Radii.xl}>
+                        <View style={s.chartInner}>
+                            <View style={s.chartTitleRow}>
+                                <BarChart3 size={15} color={Colors.cyan} strokeWidth={2} />
+                                <Text style={s.chartTitle}>Dòng tiền</Text>
+                                <Text style={s.chartSubTitle}>{selectedWalletName}</Text>
                             </View>
-                            {monthlyStats.length > 0 ? (
-                                <BarChart data={monthlyStats} />
-                            ) : (
-                                <Text style={styles.emptyChart}>
-                                    Chưa có dữ liệu
-                                </Text>
-                            )}
+                            <MiniBarChart data={chartData} />
                         </View>
                     </GlassCard>
-                </FadeInView>
+                )}
 
-                {/* Recent transactions header */}
+                {/* Recent Transactions Section Header */}
                 {recentTxns.length > 0 && (
-                    <FadeInView delay={260} duration={400} initialTranslateY={20}>
-                        <View style={styles.sectionHeader}>
-                            <Clock size={15} color="rgba(255,255,255,0.45)" strokeWidth={2} />
-                            <Text style={styles.sectionTitle}>
-                                Giao dịch gần đây
-                            </Text>
-                            <Text style={styles.sectionSub}>
-                                {recentTxns.length} giao dịch
-                            </Text>
-                        </View>
-                        <GlassCard
-                            backgroundOpacity={0.08}
-                            borderOpacity={0.12}
-                            borderRadius={18}
-                            style={styles.txCard}>
-                            <View />
-                        </GlassCard>
-                    </FadeInView>
+                    <View style={s.sectionHeader}>
+                        <Text style={s.sectionTitle}>Giao dịch gần đây</Text>
+                        <Text style={s.sectionSub}>{recentTxns.length} giao dịch</Text>
+                    </View>
                 )}
             </View>
         ),
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [overallStats, monthlyStats, wallets, selectedWalletId, selectedWalletName, timeRange, savings, recentTxns.length],
+        [chartData, wallets, selectedWalletId, period, periodTotalIn, periodTotalOut, balance, selectedWalletName, recentTxns.length],
     );
 
-    const ListEmpty = useCallback(
+    const ListEmpty = useMemo(
         () => (
-            <View style={styles.emptyContainer}>
-                <LottieView
-                    source={require('../assets/Lottie Animation/nodata.json')}
-                    autoPlay
-                    loop
-                    style={styles.emptyLottie}
-                />
-                <Text style={styles.emptyText}>Chưa có giao dịch nào</Text>
-                <Text style={styles.emptySubtext}>
-                    Tạo giao dịch trong mục Ví tiền để xem thống kê
-                </Text>
-            </View>
+            <EmptyState
+                animation="nodata"
+                title="Chưa có giao dịch nào"
+                subtitle="Tạo giao dịch trong mục Ví tiền để xem thống kê"
+            />
         ),
         [],
     );
@@ -371,14 +438,9 @@ const StatsScreen: React.FC = () => {
 
     if (!isDatabaseAvailable()) {
         return (
-            <View
-                style={[
-                    styles.container,
-                    { paddingTop: insets.top + 16 },
-                    styles.centerContent,
-                ]}>
-                <AlertTriangle size={48} color="rgba(255,255,255,0.2)" strokeWidth={1} />
-                <Text style={styles.emptyText}>Database chưa sẵn sàng</Text>
+            <View style={[s.container, { paddingTop: insets.top + 16 }, s.centerContent]}>
+                <AlertTriangle size={48} color={Colors.textMuted} strokeWidth={1} />
+                <Text style={s.emptyText}>Database chưa sẵn sàng</Text>
             </View>
         );
     }
@@ -390,15 +452,15 @@ const StatsScreen: React.FC = () => {
             renderItem={renderRecentItem}
             ListHeaderComponent={ListHeader}
             ListEmptyComponent={ListEmpty}
-            style={[styles.container, { paddingTop: insets.top + 4 }]}
-            contentContainerStyle={[styles.content]}
+            style={[s.container, { paddingTop: insets.top + 4 }]}
+            contentContainerStyle={s.content}
             showsVerticalScrollIndicator={false}
             refreshControl={
                 <RefreshControl
                     refreshing={refreshing}
                     onRefresh={onRefresh}
-                    tintColor="rgba(255,255,255,0.4)"
-                    colors={['#22d3ee']}
+                    tintColor={Colors.textSecondary}
+                    colors={[Colors.cyan]}
                 />
             }
         />
@@ -407,233 +469,205 @@ const StatsScreen: React.FC = () => {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        paddingHorizontal: 16,
-    },
-    content: {
-        paddingBottom: 120,
-    },
-    centerContent: {
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
+const s = StyleSheet.create({
+    container: { flex: 1, paddingHorizontal: Spacing.md },
+    content: { paddingBottom: 120 },
+    centerContent: { alignItems: 'center', justifyContent: 'center' },
 
-    // ── Page Header ──
+    // ── Header ──
     pageHeader: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 10,
-        paddingTop: 8,
-        paddingBottom: 20,
+        paddingTop: Spacing.sm,
+        paddingBottom: Spacing.lg,
     },
     pageTitle: {
-        fontSize: 28,
+        fontSize: FontSizes.xxl,
         fontWeight: '800',
-        color: '#FFFFFF',
+        color: Colors.text,
         letterSpacing: -0.5,
     },
 
     // ── Wallet Filter ──
-    filterSection: {
-        marginBottom: 12,
-    },
+    filterSection: { marginBottom: Spacing.md },
     filterLabelRow: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 5,
-        marginBottom: 8,
+        marginBottom: Spacing.sm,
     },
     filterLabel: {
-        fontSize: 12,
+        fontSize: FontSizes.xs,
         fontWeight: '600',
-        color: 'rgba(255,255,255,0.4)',
-        letterSpacing: 0.5,
+        color: Colors.textMuted,
+        letterSpacing: 0.8,
         textTransform: 'uppercase',
     },
-    chipsRow: {
-        gap: 8,
-        paddingRight: 16,
-    },
+    chipsRow: { gap: Spacing.sm },
     chip: {
         paddingHorizontal: 14,
         paddingVertical: 7,
-        borderRadius: 20,
-        backgroundColor: 'rgba(255,255,255,0.06)',
+        borderRadius: Radii.xl,
+        backgroundColor: Colors.card,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
+        borderColor: Colors.cardBorder,
     },
     chipActive: {
-        backgroundColor: 'rgba(34, 211, 238, 0.15)',
-        borderColor: 'rgba(34, 211, 238, 0.5)',
+        backgroundColor: `${Colors.cyan}20`,
+        borderColor: `${Colors.cyan}80`,
     },
     chipText: {
-        fontSize: 13,
+        fontSize: FontSizes.sm,
         fontWeight: '600',
-        color: 'rgba(255,255,255,0.45)',
+        color: Colors.textSecondary,
     },
-    chipTextActive: {
-        color: '#22d3ee',
-    },
+    chipTextActive: { color: Colors.cyan },
 
-    // ── Time Range ──
-    rangeRow: {
+    // ── Period Tabs ──
+    periodContainer: {
         flexDirection: 'row',
-        gap: 8,
-        marginBottom: 16,
+        backgroundColor: Colors.card,
+        borderRadius: Radii.md,
+        borderWidth: 1,
+        borderColor: Colors.cardBorder,
+        padding: 6,
+        paddingHorizontal: Spacing.md,
+        marginBottom: Spacing.md,
+        position: 'relative',
     },
-    rangeChip: {
+    periodTab: {
         flex: 1,
-        paddingVertical: 8,
-        borderRadius: 12,
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.08)',
+        paddingVertical: 10,
         alignItems: 'center',
+        zIndex: 2,
     },
-    rangeChipActive: {
-        backgroundColor: 'rgba(192, 132, 252, 0.15)',
-        borderColor: 'rgba(192, 132, 252, 0.45)',
-    },
-    rangeChipText: {
-        fontSize: 13,
+    periodText: {
+        fontSize: FontSizes.md - 1,
         fontWeight: '600',
-        color: 'rgba(255,255,255,0.4)',
+        color: Colors.textSecondary,
     },
-    rangeChipTextActive: {
-        color: '#c084fc',
+    periodTextActive: { color: Colors.text },
+    periodIndicator: {
+        position: 'absolute',
+        top: 6,
+        bottom: 6,
+        backgroundColor: `${Colors.cyan}20`,
+        borderRadius: Radii.sm + 1,
+        borderWidth: 1,
+        borderColor: `${Colors.cyan}50`,
+        zIndex: 1,
     },
 
-    // ── Savings Pill ──
-    savingsPill: {
+    // ── Summary Cards ──
+    summaryRow: {
         flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        borderRadius: 14,
+        gap: 10,
+        marginBottom: Spacing.md,
+    },
+    summaryCard: {
+        flex: 1,
+        backgroundColor: Colors.card,
+        borderRadius: Radii.lg,
         borderWidth: 1,
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        marginBottom: 16,
+        borderColor: Colors.cardBorder,
+        padding: 14,
+        alignItems: 'center',
     },
-    savingsLabel: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: 'rgba(255,255,255,0.5)',
+    summaryIconBg: {
+        width: 32,
+        height: 32,
+        borderRadius: Radii.sm,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: Spacing.sm,
     },
-    savingsValue: {
-        fontSize: 16,
+    summaryLabel: {
+        fontSize: FontSizes.xs,
+        fontWeight: '500',
+        color: Colors.textSecondary,
+        marginBottom: 4,
+    },
+    summaryValue: {
+        fontSize: FontSizes.md,
         fontWeight: '800',
     },
 
-    // ── Chart Card ──
-    chartCard: {
-        marginBottom: 24,
-    },
-    chartInner: {
-        padding: 20,
-    },
+    // ── Chart ──
+    chartCard: { marginBottom: Spacing.lg },
+    chartInner: { padding: Spacing.md },
     chartTitleRow: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 8,
-        marginBottom: 4,
+        marginBottom: 12,
     },
     chartTitle: {
-        fontSize: 16,
+        fontSize: FontSizes.md,
         fontWeight: '700',
-        color: '#FFFFFF',
+        color: Colors.text,
     },
     chartSubTitle: {
-        fontSize: 12,
-        color: 'rgba(255,255,255,0.35)',
+        fontSize: FontSizes.xs + 1,
+        color: Colors.textMuted,
         marginLeft: 'auto',
     },
-    emptyChart: {
-        color: 'rgba(255, 255, 255, 0.3)',
-        fontSize: 14,
-        textAlign: 'center',
-        paddingVertical: 40,
+    chartXLabel: {
+        fontSize: 10,
+        color: Colors.textMuted,
+        fontWeight: '500',
+        marginTop: 6,
+    },
+    chartLegend: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 12,
+        gap: Spacing.md,
+    },
+    legendItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 5,
+    },
+    legendDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+    },
+    legendText: {
+        fontSize: FontSizes.xs + 1,
+        color: Colors.textSecondary,
+        fontWeight: '500',
+    },
+    legendMax: {
+        fontSize: FontSizes.xs,
+        color: Colors.textMuted,
+        marginLeft: 'auto',
     },
 
     // ── Section ──
     sectionHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 8,
-        marginBottom: 10,
+        justifyContent: 'space-between',
+        marginBottom: Spacing.sm,
     },
     sectionTitle: {
-        fontSize: 16,
+        fontSize: FontSizes.lg - 2,
         fontWeight: '700',
-        color: 'rgba(255, 255, 255, 0.7)',
+        color: Colors.textSecondary,
     },
     sectionSub: {
-        fontSize: 12,
-        color: 'rgba(255, 255, 255, 0.3)',
-        marginLeft: 'auto',
-    },
-    txCard: {
-        overflow: 'hidden',
-    },
-
-    // ── Transaction row ──
-    txRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255, 255, 255, 0.04)',
-    },
-    txIconBg: {
-        width: 34,
-        height: 34,
-        borderRadius: 10,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: 12,
-    },
-    txInfo: {
-        flex: 1,
-        marginRight: 8,
-    },
-    txReason: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#FFFFFF',
-    },
-    txDate: {
-        fontSize: 11,
-        color: 'rgba(255, 255, 255, 0.35)',
-        marginTop: 2,
-    },
-    txAmount: {
-        fontSize: 14,
-        fontWeight: '700',
+        fontSize: FontSizes.xs + 1,
+        color: Colors.textMuted,
     },
 
     // ── Empty ──
-    emptyContainer: {
-        alignItems: 'center',
-        paddingTop: 20,
-        paddingBottom: 40,
-    },
-    emptyLottie: {
-        width: 180,
-        height: 180,
-    },
     emptyText: {
         fontSize: 17,
         fontWeight: '700',
-        color: 'rgba(255, 255, 255, 0.6)',
+        color: Colors.textSecondary,
         marginTop: -8,
-    },
-    emptySubtext: {
-        fontSize: 13,
-        color: 'rgba(255, 255, 255, 0.35)',
-        marginTop: 8,
-        textAlign: 'center',
     },
 });
 

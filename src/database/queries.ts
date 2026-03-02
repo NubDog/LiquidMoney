@@ -248,6 +248,66 @@ export function createTransaction(
 }
 
 /**
+ * Developer Tool: Tạo giao dịch ngẫu nhiên hàng loạt cho một ví
+ * Cho phép random date (1-90 ngày trước)
+ */
+export function generateRandomTransactions(
+    walletId: string,
+    count: number,
+    progressCallback: (msg: string) => void
+): void {
+    const db = getDatabase();
+
+    // Categories/reasons random
+    const reasonsIn = ['Lương', 'Thưởng', 'Bán đồ', 'Cashback', 'Được cho'];
+    const reasonsOut = ['Ăn cơm', 'Cà phê', 'Tiền nhà', 'Điện nước', 'Bảo dưỡng', 'Đi chơi', 'Mua sắm', 'Đổ xăng', 'Siêu thị'];
+
+    const nowMs = Date.now();
+    const dayMs = 24 * 60 * 60 * 1000;
+
+    // Dùng executeBatch để insert cực nhanh
+    const commands: [string, any[]][] = [];
+
+    for (let i = 0; i < count; i++) {
+        // Random Type (60% OUT, 40% IN)
+        const isOut = Math.random() > 0.4;
+        const type = isOut ? 'OUT' : 'IN';
+
+        // Random Amount: 10k đến 5tr, làm tròn ngàn
+        const baseAmount = Math.floor(Math.random() * 4990000) + 10000;
+        const amount = Math.floor(baseAmount / 1000) * 1000;
+
+        // Random reason
+        const rArr = isOut ? reasonsOut : reasonsIn;
+        const reason = rArr[Math.floor(Math.random() * rArr.length)];
+
+        // Random date: quá khứ từ 0 đến 90 ngày
+        const randomDays = Math.floor(Math.random() * 91);
+        const dateMs = nowMs - (randomDays * dayMs);
+        const dateObj = new Date(dateMs);
+        const createdAt = dateObj.toISOString();
+
+        const id = generateUUID();
+
+        commands.push([
+            `INSERT INTO transactions (id, wallet_id, type, amount, reason, image_uri, created_at) VALUES (?, ?, ?, ?, ?, ?, ?);`,
+            [id, walletId, type, amount, reason, null, createdAt]
+        ]);
+    }
+
+    try {
+        progressCallback(`> Generating ${count} transactions using executeBatch...`);
+        db.executeBatch(commands);
+        progressCallback(`> [SUCCESS] Batch inserted ${count} records!`);
+
+        // Domino: Cập nhật biến thiên số dư ví 1 lần sau khi insert tất cả
+        recalculateBalance(walletId);
+    } catch (e: any) {
+        progressCallback(`> [ERROR] ${e.message}`);
+    }
+}
+
+/**
  * Cập nhật giao dịch và tính lại số dư ví
  * Hỗ trợ trường hợp chuyển giao dịch sang ví khác
  */
@@ -404,6 +464,26 @@ export interface OverallStat {
     txCount: number;
 }
 
+export interface DailyStat {
+    /** Ngày dạng 'YYYY-MM-DD' */
+    date: string;
+    /** Tổng thu trong ngày */
+    totalIn: number;
+    /** Tổng chi trong ngày */
+    totalOut: number;
+}
+
+export interface WeeklyStat {
+    /** Nhãn tuần hiển thị, vd: '24/02 - 02/03' */
+    weekLabel: string;
+    /** Ngày bắt đầu tuần (ISO) */
+    startDate: string;
+    /** Tổng thu trong tuần */
+    totalIn: number;
+    /** Tổng chi trong tuần */
+    totalOut: number;
+}
+
 /**
  * Lấy thống kê thu/chi theo tháng
  * @param walletId - ID ví cụ thể, hoặc undefined = tất cả ví
@@ -456,6 +536,128 @@ export function getMonthlyStats(walletId?: string, months: number = 6): MonthlyS
 
         return { month, totalIn, totalOut };
     });
+
+    return stats;
+}
+
+/**
+ * Lấy thống kê thu/chi theo ngày
+ * @param walletId - ID ví cụ thể, hoặc undefined = tất cả ví
+ * @param days - Số ngày gần nhất (default: 14)
+ */
+export function getDailyStats(walletId?: string, days: number = 14): DailyStat[] {
+    const db = getDatabase();
+
+    // Tạo danh sách N ngày gần nhất
+    const dayList: string[] = [];
+    const now = new Date();
+    for (let i = days - 1; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        dayList.push(`${yyyy}-${mm}-${dd}`);
+    }
+
+    const stats: DailyStat[] = dayList.map(date => {
+        const startDate = `${date}T00:00:00.000Z`;
+        const [y, m, d] = date.split('-').map(Number);
+        const nextDay = new Date(y, m - 1, d + 1);
+        const endDate = nextDay.toISOString();
+
+        let query: string;
+        let params: any[];
+
+        if (walletId) {
+            query = `SELECT type, COALESCE(SUM(amount), 0) as total
+                     FROM transactions
+                     WHERE wallet_id = ? AND created_at >= ? AND created_at < ?
+                     GROUP BY type;`;
+            params = [walletId, startDate, endDate];
+        } else {
+            query = `SELECT type, COALESCE(SUM(amount), 0) as total
+                     FROM transactions
+                     WHERE created_at >= ? AND created_at < ?
+                     GROUP BY type;`;
+            params = [startDate, endDate];
+        }
+
+        const result = db.execute(query, params);
+        const rows = extractRows<{ type: 'IN' | 'OUT'; total: number }>(result);
+
+        let totalIn = 0;
+        let totalOut = 0;
+        for (const row of rows) {
+            if (row.type === 'IN') { totalIn = row.total; }
+            if (row.type === 'OUT') { totalOut = row.total; }
+        }
+
+        return { date, totalIn, totalOut };
+    });
+
+    return stats;
+}
+
+/**
+ * Lấy thống kê thu/chi theo tuần
+ * @param walletId - ID ví cụ thể, hoặc undefined = tất cả ví
+ * @param weeks - Số tuần gần nhất (default: 8)
+ */
+export function getWeeklyStats(walletId?: string, weeks: number = 8): WeeklyStat[] {
+    const db = getDatabase();
+
+    // Tìm ngày đầu tuần hiện tại (Thứ 2)
+    const now = new Date();
+    const todayDay = now.getDay(); // 0=CN, 1=T2...
+    const diffToMonday = todayDay === 0 ? 6 : todayDay - 1;
+    const currentMonday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday);
+
+    const stats: WeeklyStat[] = [];
+
+    for (let i = weeks - 1; i >= 0; i--) {
+        const weekStart = new Date(currentMonday.getFullYear(), currentMonday.getMonth(), currentMonday.getDate() - (i * 7));
+        const weekEnd = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 7);
+
+        const startDate = weekStart.toISOString();
+        const endDate = weekEnd.toISOString();
+
+        // Nhãn tuần: 'dd/MM - dd/MM'
+        const startDD = String(weekStart.getDate()).padStart(2, '0');
+        const startMM = String(weekStart.getMonth() + 1).padStart(2, '0');
+        const endSun = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 6);
+        const endDD = String(endSun.getDate()).padStart(2, '0');
+        const endMM = String(endSun.getMonth() + 1).padStart(2, '0');
+        const weekLabel = `${startDD}/${startMM} - ${endDD}/${endMM}`;
+
+        let query: string;
+        let params: any[];
+
+        if (walletId) {
+            query = `SELECT type, COALESCE(SUM(amount), 0) as total
+                     FROM transactions
+                     WHERE wallet_id = ? AND created_at >= ? AND created_at < ?
+                     GROUP BY type;`;
+            params = [walletId, startDate, endDate];
+        } else {
+            query = `SELECT type, COALESCE(SUM(amount), 0) as total
+                     FROM transactions
+                     WHERE created_at >= ? AND created_at < ?
+                     GROUP BY type;`;
+            params = [startDate, endDate];
+        }
+
+        const result = db.execute(query, params);
+        const rows = extractRows<{ type: 'IN' | 'OUT'; total: number }>(result);
+
+        let totalIn = 0;
+        let totalOut = 0;
+        for (const row of rows) {
+            if (row.type === 'IN') { totalIn = row.total; }
+            if (row.type === 'OUT') { totalOut = row.total; }
+        }
+
+        stats.push({ weekLabel, startDate, totalIn, totalOut });
+    }
 
     return stats;
 }

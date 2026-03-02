@@ -45,6 +45,9 @@ interface StoreState {
 
     /** Đang loading */
     loading: boolean;
+
+    /** Chế độ Developer */
+    isDeveloperMode: boolean;
 }
 
 interface StoreActions {
@@ -106,6 +109,9 @@ interface StoreActions {
 
     /** Xóa giao dịch */
     removeTransaction: (id: string, walletId: string) => void;
+
+    /** Bật/tắt Developer Mode */
+    toggleDeveloperMode: () => void;
 }
 
 type Store = StoreState & StoreActions;
@@ -124,6 +130,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [currentWallet, setCurrentWallet] = useState<Wallet | null>(null);
     const [loading, setLoading] = useState(false);
+    const [isDeveloperMode, setIsDeveloperMode] = useState(false);
 
     // ─── Khởi tạo Database khi app start ─────────────────────────────────────
 
@@ -343,6 +350,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
         [refreshTransactions],
     );
 
+    // ─── Developer Mode ───────────────────────────────────────────────────────
+
+    const toggleDeveloperMode = useCallback(() => {
+        setIsDeveloperMode(prev => !prev);
+    }, []);
+
     // ─── Memoized store value ─────────────────────────────────────────────────
 
     const store = useMemo<Store>(
@@ -352,6 +365,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
             transactions,
             currentWallet,
             loading,
+            isDeveloperMode,
             refreshWallets,
             addWallet,
             editWallet,
@@ -362,6 +376,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
             addTransaction,
             editTransaction,
             removeTransaction,
+            toggleDeveloperMode,
         }),
         [
             isReady,
@@ -369,6 +384,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
             transactions,
             currentWallet,
             loading,
+            isDeveloperMode,
             refreshWallets,
             addWallet,
             editWallet,
@@ -379,6 +395,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
             addTransaction,
             editTransaction,
             removeTransaction,
+            toggleDeveloperMode,
         ],
     );
 

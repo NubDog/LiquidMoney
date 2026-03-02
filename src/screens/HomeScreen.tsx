@@ -1,6 +1,10 @@
 /**
- * HomeScreen.tsx — Màn hình chính hiển thị danh sách ví
+ * HomeScreen.tsx — Main screen showing wallet list
  * FlatList + FAB + Empty State + WalletModal
+ *
+ * Refactored: Uses shared formatters, theme tokens, EmptyState component.
+ * Fixed: Inline ItemSeparatorComponent lambda → named component.
+ * Cleaned: Removed empty cardWrapper style, duplicate FAB comment.
  */
 
 import React, { useCallback, useMemo, useState } from 'react';
@@ -15,8 +19,10 @@ import { useStore } from '../store/useStore';
 import WalletCard from '../components/WalletCard';
 import WalletModal from '../components/WalletModal';
 import LiquidFAB from '../components/LiquidFAB';
-import type { Wallet } from '../database/queries';
-import LottieView from 'lottie-react-native';
+import EmptyState from '../components/EmptyState';
+import { formatVND } from '../common/formatters';
+import { Colors, FontSizes, Spacing, Radii } from '../common/theme';
+import type { Wallet } from '../common/types';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -24,14 +30,9 @@ interface HomeScreenProps {
     onNavigateToWallet?: (walletId: string) => void;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Separator (named to avoid re-creation on every render) ───────────────────
 
-function formatVND(amount: number): string {
-    const formatted = Math.abs(amount)
-        .toString()
-        .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    return `${amount < 0 ? '-' : ''}${formatted} ₫`;
-}
+const ItemSeparator = () => <View style={styles.separator} />;
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -43,7 +44,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [editingWallet, setEditingWallet] = useState<Wallet | null>(null);
 
-    // ─── Tổng số dư ──────────────────────────────────────────────────────────
+    // ─── Total balance ────────────────────────────────────────────────────────
     const totalBalance = useMemo(
         () => wallets.reduce((sum, w) => sum + w.current_balance, 0),
         [wallets],
@@ -82,18 +83,16 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
 
     const renderWalletItem = useCallback(
         ({ item }: { item: Wallet }) => (
-            <View style={styles.cardWrapper}>
-                <WalletCard
-                    name={item.name}
-                    currentBalance={item.current_balance}
-                    initialBalance={item.initial_balance}
-                    imageUri={item.image_uri}
-                    icon={item.icon}
-                    createdAt={item.created_at}
-                    onPress={() => onNavigateToWallet?.(item.id)}
-                    onLongPress={() => openEditModal(item)}
-                />
-            </View>
+            <WalletCard
+                name={item.name}
+                currentBalance={item.current_balance}
+                initialBalance={item.initial_balance}
+                imageUri={item.image_uri}
+                icon={item.icon}
+                createdAt={item.created_at}
+                onPress={() => onNavigateToWallet?.(item.id)}
+                onLongPress={() => openEditModal(item)}
+            />
         ),
         [onNavigateToWallet, openEditModal],
     );
@@ -102,20 +101,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
 
     // ─── Empty State ──────────────────────────────────────────────────────────
 
-    const EmptyState = useMemo(
+    const emptyState = useMemo(
         () => (
-            <View style={styles.emptyContainer}>
-                <LottieView
-                    source={require('../assets/Lottie Animation/nodata.json')}
-                    autoPlay
-                    loop
-                    style={{ width: 150, height: 150, marginBottom: 8 }}
-                />
-                <Text style={styles.emptyTitle}>Chưa có ví nào</Text>
-                <Text style={styles.emptySubtitle}>
-                    Nhấn nút + bên dưới để tạo ví đầu tiên
-                </Text>
-            </View>
+            <EmptyState
+                animation="nodata"
+                title="Chưa có ví nào"
+                subtitle="Nhấn nút + bên dưới để tạo ví đầu tiên"
+                animationSize={150}
+            />
         ),
         [],
     );
@@ -125,7 +118,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
     const ListHeader = useMemo(
         () => (
             <View style={styles.headerSection}>
-                {/* Tổng số dư */}
                 {wallets.length > 0 && (
                     <View style={styles.totalSection}>
                         <Text style={styles.totalLabel}>Tổng số dư</Text>
@@ -149,17 +141,16 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
                 renderItem={renderWalletItem}
                 keyExtractor={keyExtractor}
                 ListHeaderComponent={ListHeader}
-                ListEmptyComponent={EmptyState}
+                ListEmptyComponent={emptyState}
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
-                ItemSeparatorComponent={() => <View style={styles.separator} />}
+                ItemSeparatorComponent={ItemSeparator}
             />
 
-            {/* FAB — Nút tạo ví mới */}
-            {/* FAB — Nút tạo ví mới */}
+            {/* FAB — Create new wallet */}
             <LiquidFAB onPress={openCreateModal} style={{ bottom: 140 }} />
 
-            {/* Modal tạo/sửa ví */}
+            {/* Create/Edit wallet modal */}
             <WalletModal
                 visible={modalVisible}
                 onClose={() => setModalVisible(false)}
@@ -187,66 +178,44 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     listContent: {
-        paddingHorizontal: 20,
-        paddingBottom: 100, // Dành chỗ cho FAB
+        paddingHorizontal: Spacing.lg,
+        paddingBottom: 100,
         flexGrow: 1,
     },
     headerSection: {
-        paddingTop: 16,
-        paddingBottom: 8,
+        paddingTop: Spacing.md,
+        paddingBottom: Spacing.sm,
     },
     totalSection: {
-        marginTop: 20,
-        paddingVertical: 20,
-        paddingHorizontal: 20,
-        backgroundColor: 'rgba(255, 255, 255, 0.06)',
-        borderRadius: 20,
+        marginTop: Spacing.lg,
+        paddingVertical: Spacing.lg,
+        paddingHorizontal: Spacing.lg,
+        backgroundColor: Colors.card,
+        borderRadius: Radii.xl,
         borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderColor: Colors.cardBorder,
     },
     totalLabel: {
-        fontSize: 14,
+        fontSize: FontSizes.md - 1,
         color: 'rgba(255, 255, 255, 0.45)',
         fontWeight: '500',
     },
     totalBalance: {
-        fontSize: 36,
+        fontSize: FontSizes.title,
         fontWeight: '800',
-        color: '#FFFFFF',
+        color: Colors.text,
         marginTop: 4,
         letterSpacing: -1,
     },
     walletCount: {
-        fontSize: 13,
+        fontSize: FontSizes.sm,
         color: 'rgba(255, 255, 255, 0.35)',
         marginTop: 6,
         fontWeight: '500',
     },
-    cardWrapper: {
-        // marginBottom handled by separator
-    },
     separator: {
         height: 14,
     },
-    emptyContainer: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingTop: 80,
-    },
-    emptyTitle: {
-        fontSize: 22,
-        fontWeight: '700',
-        color: '#FFFFFF',
-        marginBottom: 8,
-    },
-    emptySubtitle: {
-        fontSize: 15,
-        color: 'rgba(255, 255, 255, 0.4)',
-        textAlign: 'center',
-        lineHeight: 22,
-    },
-
 });
 
 export default HomeScreen;

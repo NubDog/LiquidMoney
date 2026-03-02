@@ -7,7 +7,7 @@
  * - No Labels (Icon Only)
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Animated,
     Dimensions,
@@ -25,17 +25,20 @@ import HomeScreen from '../screens/HomeScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import StatsScreen from '../screens/StatsScreen';
 import WalletDetailScreen from '../screens/WalletDetailScreen';
+import DeveloperScreen from '../screens/DeveloperScreen';
 
 import {
     BarChart2,
+    Code,
     House,
     Settings,
     type LucideIcon,
 } from 'lucide-react-native';
+import { useStore } from '../store/useStore';
 
 // ─── Tab Config ───────────────────────────────────────────────────────────────
 
-type TabName = 'home' | 'stats' | 'settings';
+type TabName = 'home' | 'stats' | 'settings' | 'dev';
 
 interface TabConfig {
     key: TabName;
@@ -43,17 +46,26 @@ interface TabConfig {
     icon: LucideIcon;
 }
 
-const TABS: TabConfig[] = [
+const BASE_TABS: TabConfig[] = [
     { key: 'home', label: 'Ví tiền', icon: House },
     { key: 'stats', label: 'Thống kê', icon: BarChart2 },
     { key: 'settings', label: 'Cài đặt', icon: Settings },
 ];
+
+const DEV_TAB: TabConfig = { key: 'dev', label: 'Dev', icon: Code };
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const AppNavigator: React.FC = () => {
     const insets = useSafeAreaInsets();
     const { width, height } = useWindowDimensions();
+    const { isDeveloperMode } = useStore();
+
+    // ─── Dynamic Tabs ─────────────────────────────────────────────────────────
+    const tabs = useMemo(() => {
+        return isDeveloperMode ? [...BASE_TABS, DEV_TAB] : BASE_TABS;
+    }, [isDeveloperMode]);
+    const tabCount = tabs.length;
 
     // ─── Navigation State ───────────────────────────────────────────────────────
     const [activeTab, setActiveTab] = useState<TabName>('home');
@@ -67,16 +79,23 @@ const AppNavigator: React.FC = () => {
     const walletSlideAnim = useRef(new Animated.Value(0)).current;
     const [walletDetailRendered, setWalletDetailRendered] = useState(false);
 
+    // Safety: if dev mode disabled while on Dev tab, go home
+    useEffect(() => {
+        if (!isDeveloperMode && activeTab === 'dev') {
+            setActiveTab('home');
+        }
+    }, [isDeveloperMode, activeTab]);
+
     // Trigger tab slide animation
     useEffect(() => {
-        const targetIndex = TABS.findIndex(t => t.key === activeTab);
+        const targetIndex = tabs.findIndex(t => t.key === activeTab);
         Animated.spring(slideAnim, {
             toValue: -targetIndex * width,
             useNativeDriver: true,
             friction: 14,
             tension: 60,
         }).start();
-    }, [activeTab, width, slideAnim]);
+    }, [activeTab, width, slideAnim, tabs]);
 
     // Trigger slide animation when wallet is selected/deselected
     useEffect(() => {
@@ -115,16 +134,18 @@ const AppNavigator: React.FC = () => {
     // ─── Calculations for Navbar ──────────────────────────────────────────────
 
     // Navbar dimensions
-    const NAVBAR_MAX_WIDTH = 280; // Compact width since no labels
-    const navbarWidth = Math.min(width * 0.7, NAVBAR_MAX_WIDTH);
+    // Navbar dimensions
+    const TAB_UNIT_WIDTH = 70;
+    const NAVBAR_MAX_WIDTH = TAB_UNIT_WIDTH * tabCount + 40;
+    const navbarWidth = Math.min(width * 0.75, NAVBAR_MAX_WIDTH);
     const navbarPadding = 6;
     const availableWidth = navbarWidth - navbarPadding * 2;
-    const tabWidth = availableWidth / 3;
+    const tabWidth = availableWidth / tabCount;
 
     // Active Pill Translation
     const pillTranslateX = slideAnim.interpolate({
-        inputRange: [-width * 2, 0],
-        outputRange: [tabWidth * 2, 0],
+        inputRange: Array.from({ length: tabCount }, (_, i) => -width * (tabCount - 1 - i)),
+        outputRange: Array.from({ length: tabCount }, (_, i) => tabWidth * (tabCount - 1 - i)),
     });
 
     // Wallet slide transforms
@@ -144,7 +165,7 @@ const AppNavigator: React.FC = () => {
                 style={[
                     styles.screensContainer,
                     {
-                        width: width * 3,
+                        width: width * tabCount,
                         transform: [{ translateX: slideAnim }],
                     },
                 ]}>
@@ -157,6 +178,11 @@ const AppNavigator: React.FC = () => {
                 <View style={{ width, height: '100%' }}>
                     <SettingsScreen />
                 </View>
+                {isDeveloperMode && (
+                    <View style={{ width, height: '100%' }}>
+                        <DeveloperScreen />
+                    </View>
+                )}
             </Animated.View>
 
             {/* Floating Glass Tab Bar — stays behind Wallet Detail */}
@@ -189,7 +215,7 @@ const AppNavigator: React.FC = () => {
                             ]}
                         />
 
-                        {TABS.map((tab, index) => {
+                        {tabs.map((tab, index) => {
                             const isActive = activeTab === tab.key;
 
                             // Interpolate Scale for Icon
