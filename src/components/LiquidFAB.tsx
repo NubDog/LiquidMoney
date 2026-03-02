@@ -1,19 +1,12 @@
 /**
- * LiquidFAB.tsx — Literal Moon & Universe Theme
- * Subtle, elegant, night sky focused. Focuses intensely on subtlety and elegance.
- * Features:
- * - Deep midnight space background
- * - A literal elegant crescent moon motif overlay (CSS rendered)
- * - 3 tiny twinkling starlight dots 
- * - Standard FAB size (56px) with zero flashy changing ring colors.
- * - Solid icy moonlight shadow/glow around the button
+ * LiquidFAB.tsx — Apple Liquid Glass Floating Action Button
+ * Translucent glass effect with subtle white border and soft glow
+ * Press-to-scale spring animation
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import {
     Animated,
-    Easing,
-    Platform,
     Pressable,
     StyleSheet,
     View,
@@ -26,66 +19,28 @@ interface LiquidFABProps {
     style?: ViewStyle;
 }
 
-const FAB_SIZE = 56;
+const FAB_SIZE = 58;
 
 const LiquidFAB: React.FC<LiquidFABProps> = ({ onPress, style }) => {
-    const isPressed = useRef(new Animated.Value(0)).current;
-
-    // Ngôi sao lấp lánh (Twinkling stars opacity)
-    const starOpacity1 = useRef(new Animated.Value(0.1)).current;
-    const starOpacity2 = useRef(new Animated.Value(0.3)).current;
-    const starOpacity3 = useRef(new Animated.Value(0.1)).current;
-
-    useEffect(() => {
-        // Hàm tạo nhịp đập lấp lánh ngẫu nhiên
-        const twinkle = (animValue: Animated.Value, duration: number) => {
-            Animated.loop(
-                Animated.sequence([
-                    Animated.timing(animValue, {
-                        toValue: 0.85,
-                        duration,
-                        easing: Easing.inOut(Easing.ease),
-                        useNativeDriver: true,
-                    }),
-                    Animated.timing(animValue, {
-                        toValue: 0.1,
-                        duration: duration * 1.5,
-                        easing: Easing.inOut(Easing.ease),
-                        useNativeDriver: true,
-                    }),
-                ])
-            ).start();
-        };
-
-        twinkle(starOpacity1, 1400);
-        twinkle(starOpacity2, 2100);
-        twinkle(starOpacity3, 1700);
-    }, [starOpacity1, starOpacity2, starOpacity3]);
+    const scale = useRef(new Animated.Value(1)).current;
 
     const handlePressIn = () => {
-        Animated.spring(isPressed, {
-            toValue: 1,
-            damping: 14,
+        Animated.spring(scale, {
+            toValue: 0.85,
+            damping: 12,
             stiffness: 300,
             useNativeDriver: true,
         }).start();
     };
 
     const handlePressOut = () => {
-        Animated.spring(isPressed, {
-            toValue: 0,
-            damping: 12,
+        Animated.spring(scale, {
+            toValue: 1,
+            damping: 10,
             stiffness: 200,
             useNativeDriver: true,
         }).start();
     };
-
-    // ─── Animated Styles ───
-    // Thu nhỏ nhẹ khi ấn
-    const scale = isPressed.interpolate({
-        inputRange: [0, 1],
-        outputRange: [1, 0.88]
-    });
 
     return (
         <Animated.View style={[styles.wrapper, style, { transform: [{ scale }] }]}>
@@ -93,34 +48,22 @@ const LiquidFAB: React.FC<LiquidFABProps> = ({ onPress, style }) => {
                 onPress={onPress}
                 onPressIn={handlePressIn}
                 onPressOut={handlePressOut}
-                style={styles.button}
-            >
-                {/* 1. Nền Vũ Trụ cực kỳ sâu (Deep Space Background) */}
-                <View style={styles.spaceBg} />
+                style={styles.button}>
+                {/* Glass background layers */}
+                <View style={styles.glassBg} />
 
-                {/* 2. Mặt Trăng Khuyết (Crescent Moon Silhouette) */}
-                <View style={styles.moonContainer}>
-                    {/* Quả cầu trăng sáng */}
-                    <View style={styles.moon} />
-                    {/* Shadow đè lên để tạo hình trăng khuyết tinh tế */}
-                    <View style={styles.moonShadow} />
-                </View>
+                {/* Top highlight — simulates light refraction */}
+                <View style={styles.topHighlight} />
 
-                {/* 3. Những Điểm Sao Nhỏ Lấp Lánh (Twinkling Stars) */}
-                <Animated.View style={[styles.star, styles.star1, { opacity: starOpacity1 }]} />
-                <Animated.View style={[styles.star, styles.star2, { opacity: starOpacity2 }]} />
-                <Animated.View style={[styles.star, styles.star3, { opacity: starOpacity3 }]} />
+                {/* Bottom subtle gradient */}
+                <View style={styles.bottomGlow} />
 
-                {/* 4. Viền ánh sáng mặt trăng bắt sáng lên đỉnh nút (Moonlight Highlight) */}
-                <View style={styles.moonlightReflection} />
-
+                {/* Plus icon */}
                 <Plus size={26} color="#FFFFFF" strokeWidth={2.5} style={styles.icon} />
             </Pressable>
         </Animated.View>
     );
 };
-
-// ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
     wrapper: {
@@ -130,12 +73,12 @@ const styles = StyleSheet.create({
         width: FAB_SIZE,
         height: FAB_SIZE,
         zIndex: 9999,
-        // Soft icy moonlight drop shadow 
-        shadowColor: 'rgba(219, 234, 254, 0.45)', // Màu sáng trắng xanh (Ánh trăng)
-        shadowOffset: { width: 0, height: 6 },
+        // Liquid Glass glow
+        shadowColor: 'rgba(255, 255, 255, 0.25)',
+        shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 1,
-        shadowRadius: 18,
-        elevation: 12, // Dành cho Android
+        shadowRadius: 16,
+        elevation: 12,
     },
     button: {
         width: FAB_SIZE,
@@ -144,72 +87,39 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         alignItems: 'center',
         justifyContent: 'center',
-        // Viền mỏng giả kim loại phản chiếu ánh sáng
+        // Glass border
         borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.18)',
+        borderColor: 'rgba(255, 255, 255, 0.25)',
     },
-
-    // ── Nền Vũ Trụ ──
-    spaceBg: {
+    glassBg: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: '#050914', // Xanh đen vô tận (không lòe loẹt, chỉ sâu thẳm)
+        // Semi-transparent dark glass
+        backgroundColor: 'rgba(30, 30, 35, 0.65)',
     },
-
-    // ── Hình Ảnh Trực Quan Mặt Trăng ──
-    moonContainer: {
-        position: 'absolute',
-        top: 6,
-        right: 6,
-        width: 18,
-        height: 18,
-    },
-    moon: {
-        width: 14,
-        height: 14,
-        borderRadius: 7,
-        backgroundColor: '#E2E8F0', // Ánh bạc dịu mắt
+    topHighlight: {
         position: 'absolute',
         top: 0,
+        left: 0,
         right: 0,
-    },
-    moonShadow: {
-        width: 14,
-        height: 14,
-        borderRadius: 7,
-        backgroundColor: '#050914', // Cùng màu với nền để khoét một nửa mặt trăng
-        position: 'absolute',
-        top: 3,
-        right: 4,
-    },
-
-    // ── Ngôi Sao Tinh Tế ──
-    star: {
-        position: 'absolute',
-        width: 2,
-        height: 2,
-        borderRadius: 1,
-        backgroundColor: '#FFFFFF',
-    },
-    // Rải rác quang nút bấm
-    star1: { top: 14, left: 16 },
-    star2: { bottom: 18, right: 14 },
-    star3: { bottom: 14, left: 22 },
-
-    // ── Khối Thể (3D Highlight) ──
-    moonlightReflection: {
-        position: 'absolute',
-        top: 0,
-        left: '20%',
-        right: '20%',
-        height: '30%',
-        borderRadius: FAB_SIZE / 2,
-        // Lớp Highlight làm bóng phía trên
+        height: '45%',
+        borderTopLeftRadius: FAB_SIZE / 2,
+        borderTopRightRadius: FAB_SIZE / 2,
+        // Subtle top-half white glow (simulates glass reflection)
         backgroundColor: 'rgba(255, 255, 255, 0.08)',
     },
-
+    bottomGlow: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: '30%',
+        borderBottomLeftRadius: FAB_SIZE / 2,
+        borderBottomRightRadius: FAB_SIZE / 2,
+        backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    },
     icon: {
         zIndex: 10,
-    }
+    },
 });
 
 export default LiquidFAB;

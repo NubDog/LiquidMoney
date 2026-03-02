@@ -8,6 +8,7 @@ import React, { useCallback, useState } from 'react';
 import {
     NativeModules,
     Pressable,
+    RefreshControl,
     ScrollView,
     StyleSheet,
     Switch,
@@ -56,6 +57,7 @@ const SettingsScreen: React.FC = () => {
     }>({ visible: false, title: '', message: '', type: 'success' });
 
     const [confirmImport, setConfirmImport] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
 
     // Thông tin tổng quan
     const totalWallets = wallets.length;
@@ -147,7 +149,19 @@ const SettingsScreen: React.FC = () => {
             <ScrollView
                 style={[styles.container, { paddingTop: insets.top + 16 }]}
                 contentContainerStyle={styles.content}
-                showsVerticalScrollIndicator={false}>
+                showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={() => {
+                            setRefreshing(true);
+                            refreshWallets();
+                            setTimeout(() => setRefreshing(false), 300);
+                        }}
+                        tintColor="rgba(255,255,255,0.3)"
+                        colors={['#22d3ee']}
+                    />
+                }>
                 {/* ── App Info Card ── */}
                 <GlassCard
                     style={styles.card}
@@ -350,7 +364,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: Spacing.lg,
     },
     content: {
-        paddingBottom: 40,
+        paddingBottom: 120,
     },
 
     // ── Card ──

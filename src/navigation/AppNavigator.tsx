@@ -10,6 +10,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Animated,
+    BackHandler,
     Dimensions,
     Pressable,
     StyleSheet,
@@ -130,6 +131,24 @@ const AppNavigator: React.FC = () => {
     const goBackFromWallet = useCallback(() => {
         setActiveWalletId(null);
     }, []);
+
+    // ─── Android Back Button ─────────────────────────────────────────────────
+    useEffect(() => {
+        const onBackPress = () => {
+            if (activeWalletId) {
+                goBackFromWallet();
+                return true;
+            }
+            if (activeTab !== 'home') {
+                setActiveTab('home');
+                return true;
+            }
+            return false;
+        };
+
+        const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+        return () => sub.remove();
+    }, [activeWalletId, activeTab, goBackFromWallet]);
 
     // ─── Calculations for Navbar ──────────────────────────────────────────────
 

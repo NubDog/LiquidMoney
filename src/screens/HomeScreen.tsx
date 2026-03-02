@@ -10,6 +10,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
     FlatList,
+    RefreshControl,
     StyleSheet,
     Text,
     View,
@@ -38,11 +39,12 @@ const ItemSeparator = () => <View style={styles.separator} />;
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
     const insets = useSafeAreaInsets();
-    const { wallets, addWallet, editWallet, removeWallet, isReady } = useStore();
+    const { wallets, addWallet, editWallet, removeWallet, isReady, refreshWallets } = useStore();
 
     // ─── Modal State ──────────────────────────────────────────────────────────
     const [modalVisible, setModalVisible] = useState(false);
     const [editingWallet, setEditingWallet] = useState<Wallet | null>(null);
+    const [refreshing, setRefreshing] = useState(false);
 
     // ─── Total balance ────────────────────────────────────────────────────────
     const totalBalance = useMemo(
@@ -145,6 +147,18 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
                 ItemSeparatorComponent={ItemSeparator}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={() => {
+                            setRefreshing(true);
+                            refreshWallets();
+                            setTimeout(() => setRefreshing(false), 300);
+                        }}
+                        tintColor="rgba(255,255,255,0.3)"
+                        colors={['#22d3ee']}
+                    />
+                }
             />
 
             {/* FAB — Create new wallet */}
@@ -179,7 +193,7 @@ const styles = StyleSheet.create({
     },
     listContent: {
         paddingHorizontal: Spacing.lg,
-        paddingBottom: 100,
+        paddingBottom: 120,
         flexGrow: 1,
     },
     headerSection: {

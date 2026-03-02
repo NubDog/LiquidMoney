@@ -8,6 +8,7 @@ import React, { useRef } from 'react';
 import {
     Animated,
     Image,
+    Platform,
     Pressable,
     StyleSheet,
     Text,
@@ -16,6 +17,7 @@ import {
 import LottieView from 'lottie-react-native';
 import GlassCard from './GlassCard';
 import { getWalletIcon } from '../constants/walletIcons';
+import { formatVND as sharedFormatVND } from '../common/formatters';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -137,8 +139,8 @@ const WalletCard: React.FC<WalletCardProps> = ({
                         />
                     )}
 
-                    {/* Gradient overlay để đảm bảo chữ dễ đọc */}
-                    <View style={[styles.imageOverlay, { backgroundColor: 'rgba(0, 0, 0, 0.1)' }]} />
+                    {/* Dark overlay for text readability */}
+                    <View style={styles.imageOverlay} />
 
                     {/* Nội dung */}
                     <View style={styles.content}>
@@ -190,7 +192,7 @@ const styles = StyleSheet.create({
     },
     imageOverlay: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(5, 0, 18, 0.55)',
+        backgroundColor: 'rgba(5, 0, 18, 0.45)',
         borderRadius: 22,
     },
     content: {
@@ -221,23 +223,37 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#FFFFFF',
         letterSpacing: 0.2,
+        // Text shadow for readability over animated background
+        textShadowColor: 'rgba(0, 0, 0, 0.8)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 4,
     },
     createdDate: {
         fontSize: 12,
-        color: 'rgba(255, 255, 255, 0.4)',
+        color: 'rgba(255, 255, 255, 0.5)',
         marginTop: 2,
+        textShadowColor: 'rgba(0, 0, 0, 0.6)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 3,
     },
     balance: {
         fontSize: 30,
         fontWeight: '800',
         color: '#FFFFFF',
         letterSpacing: -0.5,
+        // Strong text shadow so balance never blends into background
+        textShadowColor: 'rgba(0, 0, 0, 0.9)',
+        textShadowOffset: { width: 0, height: 2 },
+        textShadowRadius: 8,
     },
     diff: {
         fontSize: 13,
-        fontWeight: '500',
+        fontWeight: '600',
         marginTop: 6,
         letterSpacing: 0.1,
+        textShadowColor: 'rgba(0, 0, 0, 0.7)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 4,
     },
 });
 
