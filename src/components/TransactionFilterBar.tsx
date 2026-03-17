@@ -158,11 +158,11 @@ const TransactionFilterBar: React.FC<TransactionFilterBarProps> = ({
                     reducedTransparencyFallbackColor="rgba(20, 20, 20, 0.85)"
                 />
             ) : (
-                // Android: BlurView có thể hạn chế, dùng fallback solid
+                // Lớp kính mờ thủ công cho Android
                 <View
                     style={[
                         StyleSheet.absoluteFill,
-                        localStyles.androidBlurFallback,
+                        { backgroundColor: 'rgba(255, 255, 255, 0.05)' },
                     ]}
                 />
             )}
@@ -204,10 +204,8 @@ const localStyles = StyleSheet.create({
         borderRadius: CONTAINER_BORDER_RADIUS,
         overflow: 'hidden',
         borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.10)',
-    },
-    androidBlurFallback: {
-        backgroundColor: 'rgba(25, 25, 30, 0.88)',
+        borderColor: 'rgba(255, 255, 255, 0.15)',
+        backgroundColor: Platform.OS === 'android' ? 'rgba(0,0,0,0.2)' : 'transparent',
     },
     innerContainer: {
         flexDirection: 'row',
@@ -226,9 +224,9 @@ const localStyles = StyleSheet.create({
         flex: 1,
         width: '100%',
         borderRadius: INDICATOR_BORDER_RADIUS,
-        backgroundColor: INDICATOR_BG,
+        backgroundColor: 'rgba(255, 255, 255, 0.15)',
         borderWidth: 1,
-        borderColor: INDICATOR_BORDER,
+        borderColor: 'rgba(255, 255, 255, 0.25)',
         // Subtle glow
         ...(Platform.OS === 'ios'
             ? {
@@ -238,7 +236,7 @@ const localStyles = StyleSheet.create({
                 shadowRadius: 10,
             }
             : {
-                elevation: 4,
+                elevation: 0,
             }),
     },
     tabHitArea: {

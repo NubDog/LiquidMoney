@@ -73,15 +73,7 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
     const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
 
     // ─── Animation ──────────────────────────────────────────────────────────
-    const fadeAnim = useRef(new Animated.Value(0)).current;
-
-    useEffect(() => {
-        Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: true,
-        }).start();
-    }, [fadeAnim]);
+    // Removed fadeAnim to eliminate the "flash" during the slide transition.
 
     // ─── Colors ─────────────────────────────────────────────────────────────
     const typeColor = isIn ? Colors.income : Colors.expense;
@@ -117,7 +109,7 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
     // ─── Render ─────────────────────────────────────────────────────────────
 
     return (
-        <Animated.View style={[styles.container, { paddingTop: insets.top, opacity: fadeAnim }]}>
+        <Animated.View style={[styles.container, { paddingTop: insets.top }]}>
             {/* Top Bar */}
             <View style={styles.topBar}>
                 <Pressable onPress={onGoBack} style={styles.backBtn}>
@@ -134,14 +126,14 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
                 {/* ── Amount Card ── */}
                 <GlassCard
                     style={styles.amountCard}
-                    backgroundOpacity={0.15}
-                    borderOpacity={0.2}
+                    backgroundOpacity={0}
+                    borderOpacity={0}
                     borderRadius={Radii.xxl}>
-                    <View style={[styles.typeBadge, { backgroundColor: typeBg, borderColor: typeBorder }]}>
+                    <View style={[styles.typeBadge, { borderColor: typeColor }]}>
                         {isIn ? (
-                            <ArrowDownLeft size={18} color={typeColor} strokeWidth={2.5} />
+                            <ArrowDownLeft size={16} color={typeColor} strokeWidth={2.5} />
                         ) : (
-                            <ArrowUpRight size={18} color={typeColor} strokeWidth={2.5} />
+                            <ArrowUpRight size={16} color={typeColor} strokeWidth={2.5} />
                         )}
                         <Text style={[styles.typeBadgeText, { color: typeColor }]}>
                             {typeLabel}
@@ -155,13 +147,13 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
                 {/* ── Info Card ── */}
                 <GlassCard
                     style={styles.infoCard}
-                    backgroundOpacity={0.08}
-                    borderOpacity={0.12}
+                    backgroundOpacity={0}
+                    borderOpacity={0}
                     borderRadius={Radii.xl}>
                     {/* Reason */}
                     <View style={styles.infoRow}>
                         <View style={styles.infoIconWrap}>
-                            <FileText size={18} color={Colors.accentLight} strokeWidth={2} />
+                            <FileText size={18} color="rgba(255,255,255,0.7)" strokeWidth={2} />
                         </View>
                         <View style={styles.infoContent}>
                             <Text style={styles.infoLabel}>Lý do</Text>
@@ -176,7 +168,7 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
                     {/* Date */}
                     <View style={styles.infoRow}>
                         <View style={styles.infoIconWrap}>
-                            <Calendar size={18} color={Colors.cyan} strokeWidth={2} />
+                            <Calendar size={18} color="rgba(255,255,255,0.7)" strokeWidth={2} />
                         </View>
                         <View style={styles.infoContent}>
                             <Text style={styles.infoLabel}>Thời gian</Text>
@@ -191,7 +183,7 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
                     {/* Wallet */}
                     <View style={styles.infoRow}>
                         <View style={styles.infoIconWrap}>
-                            <Wallet size={18} color="#fbbf24" strokeWidth={2} />
+                            <Wallet size={18} color="rgba(255,255,255,0.7)" strokeWidth={2} />
                         </View>
                         <View style={styles.infoContent}>
                             <Text style={styles.infoLabel}>Ví</Text>
@@ -204,11 +196,11 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
                 {transaction.image_uri ? (
                     <GlassCard
                         style={styles.imageCard}
-                        backgroundOpacity={0.08}
-                        borderOpacity={0.12}
+                        backgroundOpacity={0}
+                        borderOpacity={0}
                         borderRadius={Radii.xl}>
                         <View style={styles.imageHeader}>
-                            <ImageIcon size={18} color={Colors.cyan} strokeWidth={2} />
+                            <ImageIcon size={18} color="rgba(255,255,255,0.7)" strokeWidth={2} />
                             <Text style={styles.imageHeaderText}>Hình ảnh đính kèm</Text>
                         </View>
                         <Image
@@ -228,7 +220,7 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
                             styles.editBtn,
                             pressed && { opacity: 0.7 },
                         ]}>
-                        <Pencil size={18} color={Colors.cyan} strokeWidth={2} />
+                        <Pencil size={18} color="rgba(255,255,255,0.85)" strokeWidth={2} />
                         <Text style={styles.editBtnText}>Sửa giao dịch</Text>
                     </Pressable>
 
@@ -239,7 +231,7 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
                             styles.delBtn,
                             pressed && { opacity: 0.7 },
                         ]}>
-                        <Trash2 size={18} color={Colors.expense} strokeWidth={2} />
+                        <Trash2 size={18} color="rgba(255,255,255,0.85)" strokeWidth={2} />
                         <Text style={styles.delBtnText}>Xóa giao dịch</Text>
                     </Pressable>
                 </View>
@@ -310,6 +302,8 @@ const styles = StyleSheet.create({
         padding: Spacing.xxl - 4,
         alignItems: 'center',
         marginBottom: Spacing.md,
+        elevation: 0,
+        shadowOpacity: 0,
     },
     typeBadge: {
         flexDirection: 'row',
@@ -335,6 +329,8 @@ const styles = StyleSheet.create({
     infoCard: {
         padding: Spacing.lg,
         marginBottom: Spacing.md,
+        elevation: 0,
+        shadowOpacity: 0,
     },
     infoRow: {
         flexDirection: 'row',
@@ -345,7 +341,7 @@ const styles = StyleSheet.create({
         width: 36,
         height: 36,
         borderRadius: Radii.sm,
-        backgroundColor: Colors.card,
+        backgroundColor: 'rgba(255, 255, 255, 0.04)',
         alignItems: 'center',
         justifyContent: 'center',
         marginRight: 14,
@@ -374,6 +370,8 @@ const styles = StyleSheet.create({
     imageCard: {
         padding: Spacing.md,
         marginBottom: Spacing.md,
+        elevation: 0,
+        shadowOpacity: 0,
     },
     imageHeader: {
         flexDirection: 'row',
@@ -407,22 +405,22 @@ const styles = StyleSheet.create({
         borderWidth: 1,
     },
     editBtn: {
-        backgroundColor: 'rgba(34, 211, 238, 0.08)',
-        borderColor: 'rgba(34, 211, 238, 0.25)',
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        borderColor: 'rgba(255, 255, 255, 0.15)',
     },
     editBtnText: {
         fontSize: FontSizes.md,
-        fontWeight: '700',
-        color: Colors.cyan,
+        fontWeight: '600',
+        color: 'rgba(255, 255, 255, 0.85)',
     },
     delBtn: {
-        backgroundColor: 'rgba(239, 68, 68, 0.08)',
-        borderColor: 'rgba(239, 68, 68, 0.25)',
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        borderColor: 'rgba(255, 255, 255, 0.15)',
     },
     delBtnText: {
         fontSize: FontSizes.md,
-        fontWeight: '700',
-        color: Colors.expense,
+        fontWeight: '600',
+        color: 'rgba(255, 255, 255, 0.85)',
     },
 });
 

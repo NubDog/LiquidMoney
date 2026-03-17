@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 import { animateModalOpen, animateModalClose, SpringConfigs } from '../common/animations';
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
+import { BlurView } from '@react-native-community/blur';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -78,10 +79,15 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
                 <Animated.View
                     style={[
                         StyleSheet.absoluteFill,
-                        styles.overlay,
                         { opacity: overlayOpacity },
-                    ]}
-                />
+                    ]}>
+                    <BlurView
+                        style={StyleSheet.absoluteFill}
+                        blurType="dark"
+                        blurAmount={50}
+                        overlayColor="transparent"
+                    />
+                </Animated.View>
                 <Pressable
                     style={StyleSheet.absoluteFill}
                     onPress={() => {
@@ -164,11 +170,11 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
     },
     sheet: {
-        backgroundColor: Colors.sheetBg,
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
         borderTopLeftRadius: Radii.xxl,
         borderTopRightRadius: Radii.xxl,
         borderWidth: 1,
-        borderColor: Colors.inputBorder,
+        borderColor: 'rgba(255, 255, 255, 0.15)',
         borderBottomWidth: 0,
         paddingHorizontal: Spacing.xl,
         paddingBottom: 40,
@@ -177,7 +183,7 @@ const styles = StyleSheet.create({
         width: 40,
         height: 4,
         borderRadius: 2,
-        backgroundColor: Colors.handleBar,
+        backgroundColor: 'rgba(255, 255, 255, 0.3)',
         alignSelf: 'center',
         marginTop: 12,
         marginBottom: Spacing.lg,
@@ -185,23 +191,23 @@ const styles = StyleSheet.create({
     title: {
         fontSize: FontSizes.xl,
         fontWeight: '700',
-        color: Colors.text,
+        color: '#FFFFFF',
         marginBottom: Spacing.xl,
     },
     label: {
         fontSize: FontSizes.md - 1,
         fontWeight: '600',
-        color: Colors.textSecondary,
+        color: 'rgba(255, 255, 255, 0.6)',
         marginBottom: Spacing.sm,
     },
     input: {
-        backgroundColor: Colors.inputBg,
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
         borderRadius: Radii.md,
         borderWidth: 1,
-        borderColor: Colors.inputBorder,
+        borderColor: 'rgba(255, 255, 255, 0.15)',
         padding: Spacing.md,
         fontSize: 17,
-        color: Colors.text,
+        color: '#FFFFFF',
         marginBottom: Spacing.lg,
     },
     actions: {
@@ -217,22 +223,22 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     saveBtnText: {
-        color: Colors.text,
+        color: '#FFFFFF',
         fontSize: FontSizes.lg - 2,
         fontWeight: '700',
     },
     cancelBtn: {
         paddingVertical: Spacing.md,
         borderRadius: Radii.md,
-        backgroundColor: 'rgba(255, 255, 255, 0.04)',
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
         borderWidth: 1,
-        borderColor: Colors.inputBorder,
+        borderColor: 'rgba(255, 255, 255, 0.15)',
         alignItems: 'center',
     },
     cancelBtnText: {
-        color: 'rgba(255, 255, 255, 0.6)',
+        color: 'rgba(255, 255, 255, 0.85)',
         fontSize: FontSizes.lg - 2,
-        fontWeight: '500',
+        fontWeight: '600',
     },
 });
 

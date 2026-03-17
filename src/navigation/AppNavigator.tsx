@@ -19,6 +19,7 @@ import {
     useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BlurView } from '@react-native-community/blur';
 
 import MeshBackground from '../components/MeshBackground';
 import GlassCard from '../components/GlassCard';
@@ -252,6 +253,13 @@ const AppNavigator: React.FC = () => {
                         styles.floatingTabBar,
                         { width: navWidthAnim },
                     ]}>
+                    <BlurView
+                        style={styles.blurBackground}
+                        blurType="dark"
+                        overlayColor="transparent"
+                        blurAmount={50}
+                        reducedTransparencyFallbackColor="#000000"
+                    />
 
                     <View style={styles.tabBarContent}>
                         {/* Animated Active Pill Background */}
@@ -376,10 +384,25 @@ const styles = StyleSheet.create({
     floatingTabBar: {
         height: 72, // Taller for bigger focus
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 12 },
-        shadowOpacity: 0.35,
-        shadowRadius: 24,
+        shadowOffset: { width: 0, height: 16 },
+        shadowOpacity: 0.4, // Softer shadow for clear glass, but deep enough to float
+        shadowRadius: 36,
         elevation: 12,
+        borderRadius: 36,
+        // Volumetric RIM Lighting for Clear Glass Water Drop
+        borderTopWidth: 1.5,
+        borderBottomWidth: 1,
+        borderLeftWidth: 1,
+        borderRightWidth: 1,
+        borderTopColor: 'rgba(255, 255, 255, 0.5)',
+        borderBottomColor: 'rgba(0, 0, 0, 0.2)', // Create depth underneath
+        borderLeftColor: 'rgba(255, 255, 255, 0.1)',
+        borderRightColor: 'rgba(255, 255, 255, 0.1)',
+        overflow: 'hidden',
+    },
+    blurBackground: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(255, 255, 255, 0.03)', // Barely visible tint to give the "water" volume
     },
     tabBarContent: {
         flexDirection: 'row',
@@ -392,14 +415,22 @@ const styles = StyleSheet.create({
         left: 6,
         top: 6,
         bottom: 6,
-        backgroundColor: 'rgba(255, 255, 255, 0.15)',
+        backgroundColor: 'rgba(255, 255, 255, 0.2)', // Brightly separate from dark background
         borderRadius: 30,
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.1)',
-        shadowColor: '#fff',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
+        // Volumetric bubble inside that pops OUT
+        borderTopWidth: 1.5,
+        borderBottomWidth: 1,
+        borderLeftWidth: 1,
+        borderRightWidth: 1,
+        borderTopColor: 'rgba(255, 255, 255, 0.8)', // Super bright top reflection
+        borderBottomColor: 'rgba(0, 0, 0, 0.3)', // Deep shadow bottom edge to lift it
+        borderLeftColor: 'rgba(255, 255, 255, 0.15)',
+        borderRightColor: 'rgba(255, 255, 255, 0.15)',
+        // Shadow projecting onto the blur behind it
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.4,
+        shadowRadius: 8,
     },
     tabItem: {
         height: '100%',

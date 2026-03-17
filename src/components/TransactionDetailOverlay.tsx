@@ -5,8 +5,8 @@
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, StyleSheet, useWindowDimensions } from 'react-native';
-import MeshBackground from './MeshBackground';
+import { Animated, StyleSheet, useWindowDimensions, Modal } from 'react-native';
+import { BlurView } from '@react-native-community/blur';
 import TransactionDetailScreen from '../screens/TransactionDetailScreen';
 import type { Transaction } from '../common/types';
 
@@ -39,6 +39,7 @@ const TransactionDetailOverlay: React.FC<TransactionDetailOverlayProps> = ({
             toValue: 0,
             damping: 18,
             stiffness: 100,
+            overshootClamping: true,
             useNativeDriver: true,
         }).start();
     }, [translateX]);
@@ -59,20 +60,33 @@ const TransactionDetailOverlay: React.FC<TransactionDetailOverlayProps> = ({
     if (!shouldRender) { return null; }
 
     return (
-        <Animated.View
-            style={[
-                StyleSheet.absoluteFill,
-                { transform: [{ translateX }], zIndex: 100, elevation: 100 },
-            ]}>
-            <MeshBackground />
-            <TransactionDetailScreen
-                transaction={transaction}
-                walletName={walletName}
-                onGoBack={handleClose}
-                onEdit={onEdit}
-                onDelete={onDelete}
-            />
-        </Animated.View>
+        <Modal
+            visible={shouldRender}
+            transparent
+            statusBarTranslucent={true}
+            animationType="none" // Handle sliding with our own Animated.View
+            onRequestClose={handleClose}
+        >
+            <Animated.View
+                style={[
+                    StyleSheet.absoluteFill,
+                    { transform: [{ translateX }], zIndex: 100, elevation: 100 },
+                ]}>
+                <BlurView
+                    style={StyleSheet.absoluteFill}
+                    blurType="dark"
+                    blurAmount={50}
+                    overlayColor="transparent"
+                />
+                <TransactionDetailScreen
+                    transaction={transaction}
+                    walletName={walletName}
+                    onGoBack={handleClose}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                />
+            </Animated.View>
+        </Modal>
     );
 };
 

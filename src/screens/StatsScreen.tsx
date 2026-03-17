@@ -33,6 +33,8 @@ import Svg, { Defs, LinearGradient, Rect, Stop, Text as SvgText } from 'react-na
 import GlassCard from '../components/GlassCard';
 import TransactionRow from '../components/TransactionRow';
 import EmptyState from '../components/EmptyState';
+import TransactionDetailOverlay from '../components/TransactionDetailOverlay';
+import { useStore } from '../store/useStore';
 import { isDatabaseAvailable } from '../database/db';
 import type { DailyStat, OverallStat, Transaction, Wallet } from '../database/queries';
 import { formatVND, formatVNDShort } from '../common/formatters';
@@ -662,6 +664,9 @@ const StatsScreen: React.FC = () => {
     });
     const [recentTxns, setRecentTxns] = useState<Transaction[]>([]);
     const [refreshing, setRefreshing] = useState(false);
+    const [viewingTx, setViewingTx] = useState<Transaction | null>(null);
+
+    const { editTransaction, removeTransaction } = useStore();
 
     // ── Load data ──────────────────────────────────────────────────────────
     const loadData = useCallback((wId?: string, p: Period = 'day') => {
@@ -769,6 +774,32 @@ const StatsScreen: React.FC = () => {
         setRefreshing(false);
     }, [loadData, selectedWalletId, period]);
 
+    // ── Handlers ───────────────────────────────────────────────────────────
+    const handleViewTransaction = useCallback((tx: Transaction) => {
+        setViewingTx(tx);
+    }, []);
+
+    const handleGoBackFromDetail = useCallback(() => {
+        setViewingTx(null);
+    }, []);
+
+    const handleEditFromDetail = useCallback(
+        (id: string, wId: string, type: 'IN' | 'OUT', amount: number, reason?: string | null, imageUri?: string | null) => {
+            editTransaction(id, wId, type, amount, reason, imageUri);
+            loadData(selectedWalletId, period);
+        },
+        [editTransaction, loadData, selectedWalletId, period],
+    );
+
+    const handleDeleteFromDetail = useCallback(
+        (id: string, wId: string) => {
+            removeTransaction(id, wId);
+            setViewingTx(null);
+            loadData(selectedWalletId, period);
+        },
+        [removeTransaction, loadData, selectedWalletId, period],
+    );
+
     // ── Render ─────────────────────────────────────────────────────────────
 
     if (!isDatabaseAvailable()) {
@@ -828,7 +859,7 @@ const StatsScreen: React.FC = () => {
                                     </Text>
                                 </View>
                                 {recentTxns.map(tx => (
-                                    <TransactionRow key={tx.id} item={tx} variant="flat" />
+                                    <TransactionRow key={tx.id} item={tx} variant="flat" onPress={handleViewTransaction} />
                                 ))}
                             </>
                         ) : (
@@ -840,6 +871,19 @@ const StatsScreen: React.FC = () => {
                         )}
                     </ScrollView>
                 </Animated.View>
+            )}
+
+            {/* Transaction Detail Overlay */}
+            {viewingTx && (
+                <TransactionDetailOverlay
+                    transaction={viewingTx}
+                    walletName={
+                        wallets.find(w => w.id === viewingTx.wallet_id)?.name || 'Ví'
+                    }
+                    onGoBack={handleGoBackFromDetail}
+                    onEdit={handleEditFromDetail}
+                    onDelete={handleDeleteFromDetail}
+                />
             )}
         </View>
     );

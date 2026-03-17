@@ -201,13 +201,8 @@ const styles = StyleSheet.create({
         paddingBottom: Spacing.sm,
     },
     totalSection: {
-        marginTop: Spacing.lg,
-        paddingVertical: Spacing.lg,
-        paddingHorizontal: Spacing.lg,
-        backgroundColor: Colors.card,
-        borderRadius: Radii.xl,
-        borderWidth: 1,
-        borderColor: Colors.cardBorder,
+        marginTop: Spacing.sm,
+        paddingHorizontal: Spacing.sm,
     },
     totalLabel: {
         fontSize: FontSizes.md - 1,

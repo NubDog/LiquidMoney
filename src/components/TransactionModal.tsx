@@ -343,10 +343,15 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
             <Animated.View
                 style={[
                     StyleSheet.absoluteFill,
-                    styles.overlay,
                     { opacity: overlayOpacity },
                 ]}
             >
+                <BlurView
+                    style={StyleSheet.absoluteFill}
+                    blurType="dark"
+                    blurAmount={50}
+                    overlayColor="transparent"
+                />
                 <Pressable
                     style={StyleSheet.absoluteFill}
                     onPress={handleClose}
@@ -374,8 +379,8 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                     <Pressable onPress={Keyboard.dismiss}>
                         <GlassCard
                             style={styles.modalCard}
-                            backgroundOpacity={0.95}
-                            borderOpacity={0.2}
+                            backgroundOpacity={0.02}
+                            borderOpacity={0.15}
                             borderRadius={28}>
                             <ScrollView
                                 showsVerticalScrollIndicator={false}
@@ -384,9 +389,9 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                                 <View style={styles.header}>
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                                         {isEdit ? (
-                                            <Pencil size={20} color="#22d3ee" strokeWidth={2} />
+                                            <Pencil size={20} color="#FFFFFF" strokeWidth={2} />
                                         ) : (
-                                            <FilePlus2 size={20} color="#22d3ee" strokeWidth={2} />
+                                            <FilePlus2 size={20} color="#FFFFFF" strokeWidth={2} />
                                         )}
                                         <Text style={styles.headerTitle}>
                                             {isEdit
@@ -464,13 +469,13 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                                         <Pressable
                                             onPress={handlePickFromCamera}
                                             style={styles.imagePickerBtn}>
-                                            <Camera size={20} color="#22d3ee" strokeWidth={2} />
+                                            <Camera size={20} color="#FFFFFF" strokeWidth={2} />
                                             <Text style={styles.imagePickerText}>Chụp ảnh</Text>
                                         </Pressable>
                                         <Pressable
                                             onPress={handlePickFromGallery}
                                             style={styles.imagePickerBtn}>
-                                            <ImagePlus size={20} color="#c084fc" strokeWidth={2} />
+                                            <ImagePlus size={20} color="#FFFFFF" strokeWidth={2} />
                                             <Text style={styles.imagePickerText}>Thư viện</Text>
                                         </Pressable>
                                     </View>
@@ -482,19 +487,21 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                                         onPress={handleSave}
                                         style={({ pressed }) => [
                                             styles.liquidBtn,
+                                            isEdit && styles.glassBtn,
                                             { transform: [{ scale: pressed ? 0.95 : 1 }] },
                                         ]}>
-                                        <View style={[StyleSheet.absoluteFill, styles.liquidBtnOverflow]}>
-                                            <View
-                                                style={[
-                                                    StyleSheet.absoluteFill,
-                                                    { backgroundColor: accentColor },
-                                                ]}
-                                            />
-                                            {/* Ánh sáng phản chiếu mặt trên (Glass shine) */}
-                                            <View style={styles.liquidBtnShine} />
-                                        </View>
-                                        <View style={[styles.liquidBtnBorder, { borderColor: accentBorder }]} />
+                                        {!isEdit && (
+                                            <View style={[StyleSheet.absoluteFill, styles.liquidBtnOverflow]}>
+                                                <View
+                                                    style={[
+                                                        StyleSheet.absoluteFill,
+                                                        { backgroundColor: accentColor },
+                                                    ]}
+                                                />
+                                                <View style={styles.liquidBtnShine} />
+                                            </View>
+                                        )}
+                                        <View style={[styles.liquidBtnBorder, !isEdit && { borderColor: accentBorder }]} />
                                         <Text style={[styles.liquidBtnText, { color: textColor }]}>
                                             {isEdit ? 'Cập nhật' : 'Thêm giao dịch'}
                                         </Text>
@@ -552,7 +559,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255, 255, 255, 0.25)',
     },
     modalCard: {
-        backgroundColor: 'rgba(18, 18, 22, 0.97)',
+        // BlurView handles the background through GlassCard
     },
     header: {
         flexDirection: 'row',
@@ -592,7 +599,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255, 255, 255, 0.05)',
         borderRadius: 14,
         borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.08)',
+        borderColor: 'rgba(255, 255, 255, 0.15)',
         paddingHorizontal: 16,
         paddingVertical: 14,
         fontSize: 16,
@@ -625,7 +632,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255, 255, 255, 0.05)',
         borderRadius: 14,
         borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderColor: 'rgba(255, 255, 255, 0.15)',
     },
     imagePickerText: {
         fontSize: 14,
@@ -696,6 +703,11 @@ const styles = StyleSheet.create({
         textShadowColor: 'rgba(0,0,0,0.15)',
         textShadowOffset: { width: 0, height: 1 },
         textShadowRadius: 2,
+    },
+    glassBtn: {
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.25)',
     },
     deleteBtn: {
         flexDirection: 'row',

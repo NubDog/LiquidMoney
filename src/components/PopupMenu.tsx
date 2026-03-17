@@ -5,7 +5,7 @@
  */
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, Text, View, Modal } from 'react-native';
 import { Pencil, Trash2 } from 'lucide-react-native';
 import { Colors, FontSizes, Radii, Shadows } from '../common/theme';
 
@@ -73,42 +73,50 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
     if (!shouldRender) { return null; }
 
     return (
-        <Pressable style={styles.backdrop} onPress={onClose}>
-            <Animated.View
-                style={[
-                    styles.container,
-                    {
-                        top: anchorY + 8,
-                        right: anchorX,
-                        opacity,
-                        transform: [{ scale }],
-                    },
-                ]}>
-                {/* Edit */}
-                <Pressable
-                    style={styles.item}
-                    onPress={() => {
-                        onClose();
-                        setTimeout(onEdit, 150);
-                    }}>
-                    <Pencil size={18} color={Colors.text} strokeWidth={1.5} />
-                    <Text style={styles.itemText}>Chỉnh sửa</Text>
-                </Pressable>
+        <Modal
+            visible={shouldRender}
+            transparent
+            animationType="none"
+            statusBarTranslucent={true}
+            onRequestClose={onClose}
+        >
+            <Pressable style={styles.backdrop} onPress={onClose}>
+                <Animated.View
+                    style={[
+                        styles.container,
+                        {
+                            top: anchorY + 8,
+                            right: anchorX,
+                            opacity,
+                            transform: [{ scale }],
+                        },
+                    ]}>
+                    {/* Edit */}
+                    <Pressable
+                        style={styles.item}
+                        onPress={() => {
+                            onClose();
+                            setTimeout(onEdit, 150);
+                        }}>
+                        <Pencil size={18} color={Colors.text} strokeWidth={1.5} />
+                        <Text style={styles.itemText}>Chỉnh sửa</Text>
+                    </Pressable>
 
-                {/* Delete */}
-                <Pressable
-                    style={styles.item}
-                    onPress={() => {
-                        onClose();
-                        setTimeout(onDelete, 150);
-                    }}>
-                    <Trash2 size={18} color={Colors.expense} strokeWidth={1.5} />
-                    <Text style={[styles.itemText, { color: Colors.expense }]}>
-                        Xóa ví
-                    </Text>
-                </Pressable>
-            </Animated.View>
-        </Pressable>
+                    {/* Delete */}
+                    <Pressable
+                        style={styles.item}
+                        onPress={() => {
+                            onClose();
+                            setTimeout(onDelete, 150);
+                        }}>
+                        <Trash2 size={18} color={Colors.expense} strokeWidth={1.5} />
+                        <Text style={[styles.itemText, { color: Colors.expense }]}>
+                            Xóa ví
+                        </Text>
+                    </Pressable>
+                </Animated.View>
+            </Pressable>
+        </Modal>
     );
 };
 
