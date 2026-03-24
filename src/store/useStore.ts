@@ -24,6 +24,8 @@ import {
     createTransaction as dbCreateTransaction,
     updateTransaction as dbUpdateTransaction,
     deleteTransaction as dbDeleteTransaction,
+    getSetting,
+    setSetting,
     type Wallet,
     type Transaction,
 } from '../database/queries';
@@ -48,6 +50,9 @@ interface StoreState {
 
     /** Chế độ Developer */
     isDeveloperMode: boolean;
+
+    /** Background ID đang chọn */
+    selectedBackgroundId: string | null;
 }
 
 interface StoreActions {
@@ -112,6 +117,9 @@ interface StoreActions {
 
     /** Bật/tắt Developer Mode */
     toggleDeveloperMode: () => void;
+
+    /** Cập nhật hình nền */
+    setSelectedBackground: (id: string | null) => void;
 }
 
 type Store = StoreState & StoreActions;
@@ -131,6 +139,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
     const [currentWallet, setCurrentWallet] = useState<Wallet | null>(null);
     const [loading, setLoading] = useState(false);
     const [isDeveloperMode, setIsDeveloperMode] = useState(false);
+    const [selectedBackgroundId, setSelectedBackgroundIdState] = useState<string | null>(null);
 
     // ─── Khởi tạo Database khi app start ─────────────────────────────────────
 
@@ -140,6 +149,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
             if (success) {
                 const allWallets = getAllWallets();
                 setWallets(allWallets);
+                
+                const bgId = getSetting('app_background_id');
+                setSelectedBackgroundIdState(bgId);
             } else {
                 console.warn('[Store] DB chưa sẵn sàng — cần rebuild native app.');
             }
@@ -350,10 +362,24 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
         [refreshTransactions],
     );
 
-    // ─── Developer Mode ───────────────────────────────────────────────────────
+    // ─── Settings / Preferences ───────────────────────────────────────────────
 
     const toggleDeveloperMode = useCallback(() => {
         setIsDeveloperMode(prev => !prev);
+    }, []);
+
+    const setSelectedBackground = useCallback((id: string | null) => {
+        if (!isDatabaseAvailable()) return;
+        try {
+            if (id) {
+                setSetting('app_background_id', id);
+            } else {
+                setSetting('app_background_id', '');
+            }
+            setSelectedBackgroundIdState(id);
+        } catch (err) {
+            console.error('[Store] setSelectedBackground error:', err);
+        }
     }, []);
 
     // ─── Memoized store value ─────────────────────────────────────────────────
@@ -366,6 +392,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
             currentWallet,
             loading,
             isDeveloperMode,
+            selectedBackgroundId,
             refreshWallets,
             addWallet,
             editWallet,
@@ -377,6 +404,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
             editTransaction,
             removeTransaction,
             toggleDeveloperMode,
+            setSelectedBackground,
         }),
         [
             isReady,
@@ -385,6 +413,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
             currentWallet,
             loading,
             isDeveloperMode,
+            selectedBackgroundId,
             refreshWallets,
             addWallet,
             editWallet,
@@ -396,6 +425,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
             editTransaction,
             removeTransaction,
             toggleDeveloperMode,
+            setSelectedBackground,
         ],
     );
 

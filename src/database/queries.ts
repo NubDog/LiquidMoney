@@ -800,3 +800,21 @@ export function importData(data: ExportData): void {
         recalculateBalance(w.id);
     }
 }
+
+// ─── SETTINGS ─────────────────────────────────────────────────────────────────
+
+export function getSetting(key: string): string | null {
+    const db = getDatabase();
+    const result = db.execute('SELECT value FROM settings WHERE key = ?;', [key]);
+    const rows = extractRows<{ value: string }>(result);
+    return rows.length > 0 ? rows[0].value : null;
+}
+
+export function setSetting(key: string, value: string): void {
+    const db = getDatabase();
+    db.execute(
+        `INSERT INTO settings (key, value) VALUES (?, ?)
+         ON CONFLICT(key) DO UPDATE SET value = ?;`,
+        [key, value, value],
+    );
+}

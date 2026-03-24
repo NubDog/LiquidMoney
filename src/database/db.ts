@@ -89,6 +89,14 @@ export function initDatabase(): boolean {
     );
   `);
 
+    // Tạo bảng settings lưu cấu hình
+    db.execute(`
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY NOT NULL,
+      value TEXT
+    );
+  `);
+
     return true;
 }
 

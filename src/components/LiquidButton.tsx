@@ -5,6 +5,7 @@ import {
     StyleSheet,
     Text,
     type ViewStyle,
+    type StyleProp,
     View,
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
@@ -13,7 +14,7 @@ interface LiquidButtonProps {
     onPress: () => void;
     title?: string;
     children?: React.ReactNode;
-    style?: ViewStyle;
+    style?: StyleProp<ViewStyle>;
     disabled?: boolean;
     variant?: 'filled' | 'outline' | 'ghost';
 }
@@ -67,21 +68,25 @@ const LiquidButton: React.FC<LiquidButtonProps> = ({
                 style,
             ]}>
             {isFilled && (
-                <View style={[StyleSheet.absoluteFill, { borderRadius: 16, overflow: 'hidden' }]}>
-                    <BlurView 
-                        style={StyleSheet.absoluteFill} 
+                <View style={[StyleSheet.absoluteFill, { borderRadius: 9999, overflow: 'hidden' }]}>
+                    <BlurView
+                        style={StyleSheet.absoluteFill}
                         blurType="light"
-                        blurAmount={20}
-                        overlayColor="rgba(255, 255, 255, 0.08)"
+                        blurAmount={15}
+                        reducedTransparencyFallbackColor="transparent"
                     />
+                    <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255, 255, 255, 0.05)' }]} />
                 </View>
             )}
-            
+
             {(isFilled || isOutline) && (
                 <View style={[
-                    StyleSheet.absoluteFill, 
-                    styles.borderHighlight,
-                    isFilled ? styles.borderFilled : styles.borderOutline
+                    StyleSheet.absoluteFill,
+                    {
+                        borderRadius: 9999,
+                        borderWidth: StyleSheet.hairlineWidth,
+                        borderColor: 'rgba(255, 255, 255, 0.3)',
+                    }
                 ]} pointerEvents="none" />
             )}
 
@@ -100,23 +105,11 @@ const LiquidButton: React.FC<LiquidButtonProps> = ({
 
 const styles = StyleSheet.create({
     base: {
-        paddingVertical: 14,
-        paddingHorizontal: 24,
-        borderRadius: 16,
+        paddingVertical: 12,
+        paddingHorizontal: 28,
+        borderRadius: 9999,
         alignItems: 'center',
         justifyContent: 'center',
-    },
-    borderHighlight: {
-        borderRadius: 16,
-        borderWidth: 1,
-    },
-    borderFilled: {
-        borderBottomWidth: 0,
-        borderRightWidth: 0,
-        borderColor: 'rgba(255, 255, 255, 0.25)',
-    },
-    borderOutline: {
-        borderColor: 'rgba(255, 255, 255, 0.4)',
     },
     disabled: {
         opacity: 0.4,
@@ -124,14 +117,11 @@ const styles = StyleSheet.create({
     text: {
         fontSize: 16,
         fontWeight: '600',
-        letterSpacing: 0.3,
+        letterSpacing: -0.2,
         zIndex: 1,
     },
     textFilled: {
         color: '#FFFFFF',
-        textShadowColor: 'rgba(0,0,0,0.5)',
-        textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 2,
     },
     textOutline: {
         color: 'rgba(255, 255, 255, 0.95)',

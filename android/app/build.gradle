@@ -83,7 +83,12 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "2.0"
+        versionName "3.0"
+    }
+
+    aaptOptions {
+        cruncherEnabled = false
+        noCompress 'jpg', 'jpeg', 'png'
     }
     signingConfigs {
         debug {

@@ -23,6 +23,8 @@ import { format } from 'date-fns';
 import { animateSheetIn, animateSheetOut } from '../common/animations';
 import AnimatedOverlay from './AnimatedOverlay';
 import LiquidCard from './LiquidCard';
+import LiquidButton from './LiquidButton';
+import LiquidIconButton from './LiquidIconButton';
 import SegmentedControl from './SegmentedControl';
 import { Colors, FontSizes, Shadows, Spacing, Radii } from '../common/theme';
 
@@ -114,16 +116,16 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                     <Animated.View style={[styles.sheetContainer, { transform: [{ translateY }] }]}>
                         <LiquidCard
                             style={styles.sheet}
-                            intensity="heavy"
+                            intensity="light"
                             
                             borderRadius={Radii.xxl}
                         >
                             <View style={styles.handleBar} />
                             <View style={styles.header}>
                                 <Text style={styles.title}>Giao dịch mới</Text>
-                                <Pressable onPress={handleClose} style={styles.closeBtn}>
-                                    <X size={24} color="#FFFFFF" strokeWidth={2.5} />
-                                </Pressable>
+                                <LiquidIconButton onPress={handleClose} style={styles.closeBtn} size={36}>
+                                    <X size={20} color="#FFFFFF" strokeWidth={2.5} />
+                                </LiquidIconButton>
                             </View>
 
                             <ScrollView style={styles.scroll} keyboardShouldPersistTaps="handled">
@@ -186,20 +188,12 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                                 )}
 
                                 {/* ACTION BUTTON */}
-                                <Pressable
+                                <LiquidButton
+                                    title="Lưu Giao Dịch"
                                     onPress={handleSave}
                                     disabled={isSubmitting}
-                                    style={({ pressed }) => [
-                                        styles.saveBtn,
-                                        pressed && { opacity: 0.8 },
-                                        isSubmitting && { opacity: 0.5 },
-                                    ]}>
-                                    {isSubmitting ? (
-                                        <ActivityIndicator color="#FFFFFF" />
-                                    ) : (
-                                        <Text style={styles.saveBtnText}>Lưu Giao Dịch</Text>
-                                    )}
-                                </Pressable>
+                                    style={{ marginTop: Spacing.md, marginBottom: Spacing.xxl }}
+                                />
                             </ScrollView>
                         </LiquidCard>
                     </Animated.View>
@@ -248,9 +242,6 @@ const styles = StyleSheet.create({
         textShadowRadius: 2,
     },
     closeBtn: {
-        padding: 6,
-        backgroundColor: 'rgba(255,255,255,0.1)',
-        borderRadius: Radii.pill,
     },
     scroll: {
         paddingHorizontal: Spacing.xl,
@@ -297,20 +288,6 @@ const styles = StyleSheet.create({
         fontSize: FontSizes.lg - 2,
         color: '#FFFFFF',
         fontWeight: '500',
-    },
-    saveBtn: {
-        backgroundColor: 'rgba(34, 211, 238, 0.3)', // Cyan accent
-        borderRadius: Radii.lg,
-        paddingVertical: Spacing.lg,
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: 'rgba(34, 211, 238, 0.6)',
-        marginBottom: Spacing.xxl,
-    },
-    saveBtnText: {
-        fontSize: FontSizes.lg,
-        fontWeight: '800',
-        color: '#FFFFFF',
     },
 });
 

@@ -39,7 +39,7 @@ const WalletCard: React.FC<WalletCardProps> = ({
         >
             <LiquidCard 
                 style={styles.card}
-                intensity="heavy"
+                intensity="light"
                 
                 borderRadius={Radii.xl}
             >

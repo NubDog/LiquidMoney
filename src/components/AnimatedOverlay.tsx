@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, View } from 'react-native';
-import { BlurView } from '@react-native-community/blur';
 
 interface AnimatedOverlayProps {
     visible: boolean;
@@ -36,14 +35,7 @@ const AnimatedOverlay: React.FC<AnimatedOverlayProps> = ({
             ]}
             pointerEvents={visible ? 'auto' : 'none'}>
             
-            <View style={[StyleSheet.absoluteFill, { zIndex: 0 }]}>
-                <BlurView 
-                    style={StyleSheet.absoluteFill} 
-                    blurType="dark"
-                    blurAmount={25}
-                    overlayColor="rgba(11, 15, 25, 0.65)"
-                />
-            </View>
+            <View style={[StyleSheet.absoluteFill, { zIndex: 0 }]} />
 
             {onPress ? (
                 <Pressable style={[StyleSheet.absoluteFill, { zIndex: 1 }]} onPress={onPress}>

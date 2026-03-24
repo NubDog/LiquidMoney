@@ -20,6 +20,7 @@ import { animateModalOpen, animateModalClose, SpringConfigs } from '../common/an
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
 import LiquidCard from './LiquidCard';
 import AnimatedOverlay from './AnimatedOverlay';
+import LiquidButton from './LiquidButton';
 
 interface EditWalletModalProps {
     visible: boolean;
@@ -105,7 +106,7 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
                     <Animated.View style={[{ transform: [{ translateY: sheetTranslateY }] }]}>
                         <LiquidCard 
                             style={styles.sheet}
-                            intensity="heavy"
+                            intensity="light"
                             
                             borderRadius={Radii.xxl}
                         >
@@ -136,12 +137,8 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
                                 />
 
                                 <View style={styles.actions}>
-                                    <Pressable onPress={handleSave} style={styles.saveBtn}>
-                                        <Text style={styles.saveBtnText}>Lưu thay đổi</Text>
-                                    </Pressable>
-                                    <Pressable onPress={handleClose} style={styles.cancelBtn}>
-                                        <Text style={styles.cancelBtnText}>Hủy</Text>
-                                    </Pressable>
+                                    <LiquidButton title="Lưu thay đổi" onPress={handleSave} />
+                                    <LiquidButton title="Hủy" onPress={handleClose} variant="outline" />
                                 </View>
                             </Pressable>
                         </LiquidCard>
@@ -202,32 +199,6 @@ const styles = StyleSheet.create({
     actions: {
         gap: 12,
         marginTop: Spacing.sm,
-    },
-    saveBtn: {
-        paddingVertical: Spacing.md,
-        borderRadius: Radii.md,
-        backgroundColor: 'rgba(168, 85, 247, 0.4)', // Higher contrast
-        borderWidth: 1,
-        borderColor: 'rgba(168, 85, 247, 0.6)',
-        alignItems: 'center',
-    },
-    saveBtnText: {
-        color: '#FFFFFF',
-        fontSize: FontSizes.lg - 2,
-        fontWeight: '700',
-    },
-    cancelBtn: {
-        paddingVertical: Spacing.md,
-        borderRadius: Radii.md,
-        backgroundColor: 'rgba(255, 255, 255, 0.08)',
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.2)',
-        alignItems: 'center',
-    },
-    cancelBtnText: {
-        color: '#FFFFFF',
-        fontSize: FontSizes.lg - 2,
-        fontWeight: '600',
     },
 });
 

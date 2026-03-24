@@ -79,7 +79,7 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
                 <Animated.View style={[styles.menuContainer, { transform: [{ scale: menuScale }] }]}>
                     <LiquidCard 
                         style={styles.card}
-                        intensity="heavy"
+                        intensity="light"
                         
                         borderRadius={Radii.xl}
                     >

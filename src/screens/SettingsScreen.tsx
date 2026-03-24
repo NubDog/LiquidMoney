@@ -30,6 +30,7 @@ import {
 import LiquidCard from '../components/LiquidCard';
 import InfoDialog from '../components/InfoDialog';
 import ConfirmImportDialog from '../components/ConfirmImportDialog';
+import BackgroundPickerModal from '../components/BackgroundPickerModal';
 import { useStore } from '../store/useStore';
 import { isDatabaseAvailable } from '../database/db';
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
@@ -57,6 +58,7 @@ const SettingsScreen: React.FC = () => {
     }>({ visible: false, title: '', message: '', type: 'success' });
 
     const [confirmImport, setConfirmImport] = useState(false);
+    const [backgroundPickerVisible, setBackgroundPickerVisible] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
 
     // Thông tin tổng quan
@@ -231,6 +233,35 @@ const SettingsScreen: React.FC = () => {
                     </View>
                 </LiquidCard>
 
+                {/* ── Appearance Card ── */}
+                <LiquidCard
+                    style={styles.card}
+                    intensity="heavy"
+                    borderRadius={Radii.xl}>
+                    <View style={styles.cardInner}>
+                        <View style={styles.cardHeader}>
+                            <FolderOpen size={20} color={Colors.cyan} strokeWidth={2} />
+                            <Text style={styles.cardTitle}>Giao diện</Text>
+                        </View>
+                        <Text style={styles.cardDesc}>
+                            Tùy chỉnh hình nền hiển thị trong ứng dụng.
+                        </Text>
+                        <View style={styles.buttonGroup}>
+                            <Pressable
+                                onPress={() => setBackgroundPickerVisible(true)}
+                                style={({ pressed }) => [
+                                    styles.actionBtn,
+                                    { backgroundColor: 'rgba(255, 255, 255, 0.1)', borderColor: 'rgba(255, 255, 255, 0.2)' },
+                                    pressed && { opacity: 0.7 },
+                                ]}>
+                                <Text style={[styles.exportBtnText, { color: '#FFF' }]}>
+                                    Chọn Hình Nền
+                                </Text>
+                            </Pressable>
+                        </View>
+                    </View>
+                </LiquidCard>
+
                 {/* ── Backup / Restore Card ── */}
                 <LiquidCard
                     style={styles.card}
@@ -351,6 +382,11 @@ const SettingsScreen: React.FC = () => {
                 visible={confirmImport}
                 onCancel={() => setConfirmImport(false)}
                 onConfirm={handleImportConfirm}
+            />
+
+            <BackgroundPickerModal
+                visible={backgroundPickerVisible}
+                onClose={() => setBackgroundPickerVisible(false)}
             />
         </>
     );

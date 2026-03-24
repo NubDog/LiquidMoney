@@ -35,6 +35,7 @@ import EditWalletModal from '../components/EditWalletModal';
 import PopupMenu from '../components/PopupMenu';
 import LiquidFAB from '../components/LiquidFAB';
 import LiquidBackground from '../components/LiquidBackground';
+import LiquidIconButton from '../components/LiquidIconButton';
 import { WalletDetailSkeleton } from '../components/WalletDetailSkeleton';
 import EmptyState from '../components/EmptyState';
 
@@ -419,19 +420,20 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
 
             {/* LAYER 1: IMMEDIATE SHELL */}
             <View style={styles.topBar}>
-                <Pressable onPress={onGoBack} style={styles.backBtn}>
+                <LiquidIconButton onPress={onGoBack} style={styles.backBtn} size={42}>
                     <ChevronLeft size={24} color={Colors.text} />
-                </Pressable>
+                </LiquidIconButton>
 
                 <View style={{ flex: 1 }} />
 
                 <View ref={menuBtnRef} collapsable={false}>
-                    <Pressable
+                    <LiquidIconButton
                         onPress={handleMenuPress}
-                        style={[styles.menuBtn, !isReady && { opacity: Colors.disabledOpacity }]}
-                        disabled={!isReady}>
+                        style={[styles.menuBtn, !isReady && { opacity: 0.5 }]}
+                        disabled={!isReady}
+                        size={42}>
                         <MoreVertical size={22} color={Colors.text} strokeWidth={1.5} />
-                    </Pressable>
+                    </LiquidIconButton>
                 </View>
             </View>
 
@@ -468,14 +470,8 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
     },
     backBtn: {
-        padding: Spacing.sm,
-        borderRadius: Radii.xl,
-        backgroundColor: 'rgba(255, 255, 255, 0.1)',
     },
     menuBtn: {
-        padding: Spacing.sm,
-        borderRadius: Radii.xl,
-        backgroundColor: 'rgba(255, 255, 255, 0.1)',
     },
     payloadContainer: {
         flex: 1,
