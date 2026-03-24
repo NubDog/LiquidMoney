@@ -87,17 +87,9 @@ export const FontSizes = {
 
 export const Shadows = {
     card: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.4,
-        shadowRadius: 20,
-        elevation: 16,
+        // Removed to prevent Android elevation glowing bugs on transparent BlurViews
     },
     menu: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.4,
-        shadowRadius: 16,
-        elevation: 12,
+        // Removed to prevent Android elevation glowing bugs on transparent BlurViews
     },
 } as const;

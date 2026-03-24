@@ -21,8 +21,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from '@react-native-community/blur';
 
-import MeshBackground from '../components/MeshBackground';
-import GlassCard from '../components/GlassCard';
+import LiquidBackground from '../components/LiquidBackground';
+import LiquidCard from '../components/LiquidCard';
 import HomeScreen from '../screens/HomeScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import StatsScreen from '../screens/StatsScreen';
@@ -214,7 +214,7 @@ const AppNavigator: React.FC = () => {
 
     return (
         <View style={styles.root}>
-            <MeshBackground />
+            <LiquidBackground />
 
             {/* Sliding Container — always rendered */}
             <Animated.View
@@ -365,7 +365,7 @@ const AppNavigator: React.FC = () => {
 const styles = StyleSheet.create({
     root: {
         flex: 1,
-        backgroundColor: '#000000',
+        backgroundColor: '#000', // Fallback
     },
     screensContainer: {
         flex: 1,

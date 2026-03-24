@@ -25,7 +25,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronLeft, MoreVertical } from 'lucide-react-native';
 
 // ─── Components ───────────────────────────────────────────────────────────────
-import GlassCard from '../components/GlassCard';
+import LiquidCard from '../components/LiquidCard';
 import TransactionFilterBar from '../components/TransactionFilterBar';
 import TransactionModal from '../components/TransactionModal';
 import TransactionRow from '../components/TransactionRow';
@@ -34,8 +34,8 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import EditWalletModal from '../components/EditWalletModal';
 import PopupMenu from '../components/PopupMenu';
 import LiquidFAB from '../components/LiquidFAB';
-import MeshBackground from '../components/MeshBackground';
-import WalletDetailSkeleton from '../components/WalletDetailSkeleton';
+import LiquidBackground from '../components/LiquidBackground';
+import { WalletDetailSkeleton } from '../components/WalletDetailSkeleton';
 import EmptyState from '../components/EmptyState';
 
 // ─── Shared ───────────────────────────────────────────────────────────────────
@@ -213,10 +213,10 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
     const listHeader = useMemo(
         () => (
             <View>
-                <GlassCard
+                <LiquidCard
                     style={styles.summaryCard}
-                    backgroundOpacity={0.15}
-                    borderOpacity={0.2}
+                    intensity="heavy"
+                    
                     borderRadius={Radii.xxl}>
                     <Text style={styles.walletName}>{wallet?.name || 'Ví'}</Text>
                     <Text style={styles.balanceLabel}>Số dư hiện tại</Text>
@@ -239,13 +239,13 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
                             </Text>
                         </View>
                     </View>
-                </GlassCard>
+                </LiquidCard>
 
                 <View style={styles.filterWrapper}>
                     <TransactionFilterBar
-                        segments={FILTER_SEGMENTS}
-                        selectedIndex={filterIndex}
-                        onChange={setFilterIndex}
+                        options={FILTER_SEGMENTS.map((seg, i) => ({ id: i.toString(), label: seg }))}
+                        activeFilterId={filterIndex.toString()}
+                        onSelectFilter={(id) => setFilterIndex(parseInt(id, 10))}
                     />
                 </View>
 
@@ -274,10 +274,10 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
             <PopupMenu
                 visible={menuVisible}
                 onClose={() => setMenuVisible(false)}
-                onEdit={handleEditWallet}
-                onDelete={handleDeleteWallet}
-                anchorY={menuAnchorY}
-                anchorX={menuAnchorX}
+                items={[
+                    { id: 'edit', label: 'Sửa ví', onPress: handleEditWallet },
+                    { id: 'delete', label: 'Xóa ví', onPress: handleDeleteWallet, color: '#ef4444' }
+                ]}
             />
 
             {/* Transaction List */}
@@ -315,9 +315,11 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
             {/* Transaction Detail Overlay */}
             {viewingTx && (
                 <TransactionDetailOverlay
+                    visible={!!viewingTx}
                     transaction={viewingTx}
                     walletName={wallet?.name || 'Ví'}
                     onGoBack={handleGoBackFromDetail}
+                    onClose={handleGoBackFromDetail}
                     onEdit={handleEditFromDetail}
                     onDelete={handleDeleteFromDetail}
                 />
@@ -410,6 +412,11 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
 
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
+            {/* Vibe Layer: Mesh Background drives the Liquid Glass */}
+            <View style={StyleSheet.absoluteFill}>
+                <LiquidBackground />
+            </View>
+
             {/* LAYER 1: IMMEDIATE SHELL */}
             <View style={styles.topBar}>
                 <Pressable onPress={onGoBack} style={styles.backBtn}>
@@ -452,7 +459,7 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.bg,
+        backgroundColor: '#000',
     },
     topBar: {
         flexDirection: 'row',

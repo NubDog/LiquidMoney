@@ -1,9 +1,3 @@
-/**
- * LiquidFAB.tsx — Apple Liquid Glass Floating Action Button
- * Clean glass effect — no layered highlights that create visible edges
- * Press-to-scale spring animation
- */
-
 import React, { useRef } from 'react';
 import {
     Animated,
@@ -13,6 +7,7 @@ import {
     type ViewStyle,
 } from 'react-native';
 import { Plus } from 'lucide-react-native';
+import { BlurView } from '@react-native-community/blur';
 
 interface LiquidFABProps {
     onPress: () => void;
@@ -49,11 +44,20 @@ const LiquidFAB: React.FC<LiquidFABProps> = ({ onPress, style }) => {
                 onPressIn={handlePressIn}
                 onPressOut={handlePressOut}
                 style={styles.button}>
-                {/* Single glass layer — no split highlights */}
-                <View style={styles.glassBg} />
+                
+                <View style={StyleSheet.absoluteFill}>
+                    <BlurView 
+                        style={StyleSheet.absoluteFill} 
+                        blurType="dark"
+                        blurAmount={20}
+                        overlayColor="transparent"
+                    />
+                </View>
+                
+                {/* Subtle border instead of volumetric cyan */}
+                <View style={styles.innerHighlight} pointerEvents="none" />
 
-                {/* Plus icon */}
-                <Plus size={26} color="#FFFFFF" strokeWidth={2.5} style={styles.icon} />
+                <Plus size={26} color="#FFFFFF" strokeWidth={3} style={styles.icon} />
             </Pressable>
         </Animated.View>
     );
@@ -67,11 +71,11 @@ const styles = StyleSheet.create({
         width: FAB_SIZE,
         height: FAB_SIZE,
         zIndex: 9999,
-        // Subtle outer glow
-        shadowColor: 'rgba(255, 255, 255, 0.20)',
-        shadowOffset: { width: 0, height: 2 },
+        // Theming shadows
+        shadowColor: 'rgba(0, 0, 0, 0.6)',
+        shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 1,
-        shadowRadius: 12,
+        shadowRadius: 10,
         elevation: 10,
     },
     button: {
@@ -81,14 +85,12 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         alignItems: 'center',
         justifyContent: 'center',
-        // Glass border — slight top highlight via borderTopColor
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.18)',
-        borderTopColor: 'rgba(255, 255, 255, 0.30)',
     },
-    glassBg: {
+    innerHighlight: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(25, 25, 30, 0.70)',
+        borderRadius: FAB_SIZE / 2,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.15)',
     },
     icon: {
         zIndex: 10,

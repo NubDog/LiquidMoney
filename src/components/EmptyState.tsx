@@ -1,35 +1,24 @@
 /**
  * EmptyState.tsx — Reusable empty state component with Lottie animation
- * Consolidates 3 duplicate empty state implementations from
- * HomeScreen, StatsScreen, and WalletDetailScreen.
+ * Refactored text colors for better contrast on glass
  */
 
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import LottieView from 'lottie-react-native';
-import { Colors, FontSizes } from '../common/theme';
-
-// ─── Animation Sources ────────────────────────────────────────────────────────
+import { FontSizes } from '../common/theme';
 
 const ANIMATIONS = {
     nodata: require('../assets/Lottie Animation/nodata.json'),
     noresult: require('../assets/Lottie Animation/No Result Green theme.json'),
 } as const;
 
-// ─── Props ────────────────────────────────────────────────────────────────────
-
 interface EmptyStateProps {
-    /** Which Lottie animation to show */
     animation?: keyof typeof ANIMATIONS;
-    /** Main message */
     title: string;
-    /** Secondary helper text */
     subtitle?: string;
-    /** Custom size for the Lottie animation */
     animationSize?: number;
 }
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 const EmptyState: React.FC<EmptyStateProps> = ({
     animation = 'nodata',
@@ -51,8 +40,6 @@ const EmptyState: React.FC<EmptyStateProps> = ({
     </View>
 );
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
 const styles = StyleSheet.create({
     container: {
         alignItems: 'center',
@@ -62,11 +49,14 @@ const styles = StyleSheet.create({
     title: {
         fontSize: FontSizes.lg,
         fontWeight: '700',
-        color: Colors.textSecondary,
+        color: '#FFFFFF', // High contrast
+        textShadowColor: 'rgba(0,0,0,0.5)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
     },
     subtitle: {
         fontSize: FontSizes.md,
-        color: Colors.textMuted,
+        color: 'rgba(255, 255, 255, 0.7)',
         marginTop: 8,
         textAlign: 'center',
         lineHeight: 22,

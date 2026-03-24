@@ -1,204 +1,100 @@
 /**
- * WalletDetailSkeleton.tsx — Premium skeleton loader for WalletDetailScreen
- * Uses Reanimated 4 withRepeat + withTiming for breathing pulse effect
- * Pure UI — zero data dependencies, zero Zustand, zero side effects
+ * WalletDetailSkeleton.tsx
+ * Shimmer effect utilizing the LiquidCard wrapper and Animated APIs
  */
 
 import React, { useEffect, useRef } from 'react';
-import { StyleSheet, View, Animated, Easing } from 'react-native';
+import { Animated, StyleSheet, View } from 'react-native';
+import { Spacing, Radii } from '../common/theme';
+import LiquidCard from './LiquidCard';
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const PULSE_DURATION = 1200;
-const OPACITY_MIN = 0.3;
-const OPACITY_MAX = 0.7;
-
-const SKELETON_BASE_COLOR = 'rgba(255, 255, 255, 0.06)';
-const SKELETON_HIGHLIGHT_COLOR = 'rgba(255, 255, 255, 0.12)';
-
-// ─── Shared Pulse Hook ────────────────────────────────────────────────────────
-
-const usePulseAnimation = () => {
-    const pulseAnim = useRef(new Animated.Value(OPACITY_MIN)).current;
+export const WalletDetailSkeleton = () => {
+    const pulseAnim = useRef(new Animated.Value(0.3)).current;
 
     useEffect(() => {
         Animated.loop(
             Animated.sequence([
                 Animated.timing(pulseAnim, {
-                    toValue: OPACITY_MAX,
-                    duration: PULSE_DURATION,
-                    easing: Easing.inOut(Easing.ease),
+                    toValue: 0.7,
+                    duration: 800,
                     useNativeDriver: true,
                 }),
                 Animated.timing(pulseAnim, {
-                    toValue: OPACITY_MIN,
-                    duration: PULSE_DURATION,
-                    easing: Easing.inOut(Easing.ease),
+                    toValue: 0.3,
+                    duration: 800,
                     useNativeDriver: true,
                 }),
             ]),
         ).start();
     }, [pulseAnim]);
 
-    return pulseAnim;
-};
-
-// ─── Skeleton Bar ─────────────────────────────────────────────────────────────
-
-interface SkeletonBarProps {
-    width: number | string;
-    height: number;
-    borderRadius?: number;
-    style?: object;
-}
-
-const SkeletonBar: React.FC<SkeletonBarProps> = React.memo(({
-    width,
-    height,
-    borderRadius = 8,
-    style,
-}) => {
-    const pulseAnim = usePulseAnimation();
-
     return (
-        <Animated.View
-            style={[
-                {
-                    width: width as any,
-                    height,
-                    borderRadius,
-                    backgroundColor: SKELETON_HIGHLIGHT_COLOR,
-                    opacity: pulseAnim,
-                },
-                style,
-            ]}
-        />
-    );
-});
+        <View style={styles.container}>
+            {/* Wallet Info Skel */}
+            <LiquidCard style={styles.headerCard} intensity="heavy" borderRadius={Radii.xl}>
+                <Animated.View style={[styles.shimmerBox, { width: 120, height: 20, opacity: pulseAnim }]} />
+                <Animated.View style={[styles.shimmerBox, { width: 200, height: 40, marginTop: 12, opacity: pulseAnim }]} />
+            </LiquidCard>
 
-// ─── Skeleton Circle ──────────────────────────────────────────────────────────
-
-interface SkeletonCircleProps {
-    size: number;
-    style?: object;
-}
-
-const SkeletonCircle: React.FC<SkeletonCircleProps> = React.memo(({ size, style }) => {
-    const pulseAnim = usePulseAnimation();
-
-    return (
-        <Animated.View
-            style={[
-                {
-                    width: size,
-                    height: size,
-                    borderRadius: size / 2,
-                    backgroundColor: SKELETON_HIGHLIGHT_COLOR,
-                    opacity: pulseAnim,
-                },
-                style,
-            ]}
-        />
-    );
-});
-
-// ─── Transaction Item Skeleton ────────────────────────────────────────────────
-
-const TransactionItemSkeleton: React.FC = React.memo(() => (
-    <View style={skeletonStyles.txItem}>
-        <SkeletonCircle size={44} />
-        <View style={skeletonStyles.txTextContainer}>
-            <SkeletonBar width="65%" height={14} />
-            <SkeletonBar width="40%" height={10} style={{ marginTop: 8 }} />
-        </View>
-        <SkeletonBar width={72} height={16} borderRadius={6} />
-    </View>
-));
-
-// ─── Main Skeleton Component ──────────────────────────────────────────────────
-
-const WalletDetailSkeleton: React.FC = () => {
-    return (
-        <View style={skeletonStyles.container}>
-            {/* ── Summary Card Skeleton ── */}
-            <View style={skeletonStyles.summaryCard}>
-                {/* Wallet name */}
-                <SkeletonBar width="45%" height={18} style={{ marginBottom: 16 }} />
-                {/* Balance label */}
-                <SkeletonBar width="35%" height={11} style={{ marginBottom: 8 }} />
-                {/* Balance amount */}
-                <SkeletonBar width="70%" height={30} borderRadius={10} style={{ marginBottom: 20 }} />
-                {/* Two columns */}
-                <View style={skeletonStyles.summaryRow}>
-                    <View style={skeletonStyles.summaryCol}>
-                        <SkeletonBar width="60%" height={10} style={{ marginBottom: 6 }} />
-                        <SkeletonBar width="80%" height={14} />
-                    </View>
-                    <View style={skeletonStyles.summaryCol}>
-                        <SkeletonBar width="60%" height={10} style={{ marginBottom: 6 }} />
-                        <SkeletonBar width="80%" height={14} />
-                    </View>
-                </View>
+            {/* Title Skel */}
+            <View style={{ paddingHorizontal: Spacing.xl, marginTop: Spacing.xxl }}>
+                <Animated.View style={[styles.shimmerBox, { width: 140, height: 24, opacity: pulseAnim }]} />
             </View>
 
-            {/* ── Filter Bar Skeleton ── */}
-            <View style={skeletonStyles.filterBar}>
-                <SkeletonBar width="100%" height={44} borderRadius={22} />
+            {/* List Skel */}
+            <View style={styles.list}>
+                {[1, 2, 3, 4, 5].map((key) => (
+                    <LiquidCard key={key} style={styles.rowCard} intensity="heavy" borderRadius={Radii.lg}>
+                        <View style={styles.rowContent}>
+                            <Animated.View style={[styles.avatarSkel, { opacity: pulseAnim }]} />
+                            <View style={styles.textWrap}>
+                                <Animated.View style={[styles.shimmerBox, { width: '80%', height: 16, marginBottom: 6, opacity: pulseAnim }]} />
+                                <Animated.View style={[styles.shimmerBox, { width: '40%', height: 12, opacity: pulseAnim }]} />
+                            </View>
+                            <Animated.View style={[styles.shimmerBox, { width: 60, height: 20, opacity: pulseAnim }]} />
+                        </View>
+                    </LiquidCard>
+                ))}
             </View>
-
-            {/* ── Section Title Skeleton ── */}
-            <SkeletonBar width="40%" height={13} style={{ marginBottom: 16 }} />
-
-            {/* ── Transaction Items Skeleton ── */}
-            <TransactionItemSkeleton />
-            <TransactionItemSkeleton />
-            <TransactionItemSkeleton />
-            <TransactionItemSkeleton />
-            <TransactionItemSkeleton />
         </View>
     );
 };
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
-const skeletonStyles = StyleSheet.create({
+const styles = StyleSheet.create({
     container: {
-        paddingHorizontal: 16,
-        paddingTop: 4,
-    },
-    summaryCard: {
-        backgroundColor: SKELETON_BASE_COLOR,
-        borderRadius: 24,
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.06)',
-        padding: 20,
-        marginBottom: 16,
-    },
-    summaryRow: {
-        flexDirection: 'row',
-        gap: 16,
-    },
-    summaryCol: {
         flex: 1,
+        paddingTop: Spacing.xl,
     },
-    filterBar: {
-        marginBottom: 16,
+    headerCard: {
+        marginHorizontal: Spacing.xl,
+        padding: Spacing.xl,
+        alignItems: 'center',
     },
-    txItem: {
+    shimmerBox: {
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        borderRadius: Radii.sm,
+    },
+    list: {
+        marginTop: Spacing.md,
+    },
+    rowCard: {
+        marginHorizontal: Spacing.xl,
+        marginBottom: Spacing.sm,
+        padding: Spacing.md,
+    },
+    rowContent: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: SKELETON_BASE_COLOR,
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.04)',
-        padding: 14,
-        marginBottom: 10,
     },
-    txTextContainer: {
+    avatarSkel: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: 'rgba(255,255,255,0.15)',
+        marginRight: Spacing.md,
+    },
+    textWrap: {
         flex: 1,
-        marginLeft: 12,
-        marginRight: 8,
+        marginRight: Spacing.md,
     },
 });
-
-export default WalletDetailSkeleton;

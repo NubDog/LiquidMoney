@@ -1,7 +1,6 @@
 /**
  * ConfirmImportDialog.tsx — Confirmation dialog for data import
- * Extracted from SettingsScreen.tsx (lines 213-349).
- * Uses shared animation helpers.
+ * Refactored to Volumetric Liquid Glass (LiquidCard)
  */
 
 import React, { useCallback, useRef } from 'react';
@@ -15,17 +14,14 @@ import {
 } from 'react-native';
 import { AlertTriangle } from 'lucide-react-native';
 import { animateDialogOpen, animateDialogClose } from '../common/animations';
-import { Colors, FontSizes, Radii, Shadows, Spacing } from '../common/theme';
-
-// ─── Props ────────────────────────────────────────────────────────────────────
+import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
+import LiquidCard from './LiquidCard';
 
 interface ConfirmImportDialogProps {
     visible: boolean;
     onCancel: () => void;
     onConfirm: () => void;
 }
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 const ConfirmImportDialog: React.FC<ConfirmImportDialogProps> = ({
     visible,
@@ -67,45 +63,46 @@ const ConfirmImportDialog: React.FC<ConfirmImportDialogProps> = ({
                     style={StyleSheet.absoluteFill}
                     onPress={onCancel}
                 />
-                <Animated.View
-                    style={[
-                        styles.card,
-                        { transform: [{ scale: cardScale }] },
-                    ]}>
-                    <View style={styles.iconContainer}>
-                        <AlertTriangle size={40} color={Colors.warning} strokeWidth={2} />
-                    </View>
+                <Animated.View style={[styles.cardContainer, { transform: [{ scale: cardScale }] }]}>
+                    <LiquidCard 
+                        style={styles.card}
+                        intensity="heavy"
+                        
+                        borderRadius={Radii.xxl}
+                    >
+                        <View style={styles.iconContainer}>
+                            <AlertTriangle size={40} color={Colors.warning} strokeWidth={2.5} />
+                        </View>
 
-                    <Text style={styles.title}>Nhập dữ liệu</Text>
-                    <Text style={styles.message}>
-                        Dữ liệu hiện tại sẽ bị GHI ĐÈ bởi dữ liệu trong file backup. Bạn có chắc chắn muốn tiếp tục?
-                    </Text>
+                        <Text style={styles.title}>Nhập dữ liệu</Text>
+                        <Text style={styles.message}>
+                            Dữ liệu hiện tại sẽ bị GHI ĐÈ bởi dữ liệu trong file backup. Bạn có chắc chắn muốn tiếp tục?
+                        </Text>
 
-                    <View style={styles.actions}>
-                        <Pressable
-                            onPress={() => animateClose(onCancel)}
-                            style={({ pressed }) => [
-                                styles.cancelBtn,
-                                pressed && { opacity: 0.7 },
-                            ]}>
-                            <Text style={styles.cancelText}>Hủy</Text>
-                        </Pressable>
-                        <Pressable
-                            onPress={() => animateClose(onConfirm)}
-                            style={({ pressed }) => [
-                                styles.confirmBtn,
-                                pressed && { opacity: 0.7 },
-                            ]}>
-                            <Text style={styles.confirmText}>Nhập</Text>
-                        </Pressable>
-                    </View>
+                        <View style={styles.actions}>
+                            <Pressable
+                                onPress={() => animateClose(onCancel)}
+                                style={({ pressed }) => [
+                                    styles.cancelBtn,
+                                    pressed && { opacity: 0.7 },
+                                ]}>
+                                <Text style={styles.cancelText}>Hủy</Text>
+                            </Pressable>
+                            <Pressable
+                                onPress={() => animateClose(onConfirm)}
+                                style={({ pressed }) => [
+                                    styles.confirmBtn,
+                                    pressed && { opacity: 0.7 },
+                                ]}>
+                                <Text style={styles.confirmText}>Nhập</Text>
+                            </Pressable>
+                        </View>
+                    </LiquidCard>
                 </Animated.View>
             </View>
         </Modal>
     );
 };
-
-// ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
     root: {
@@ -116,30 +113,38 @@ const styles = StyleSheet.create({
     overlay: {
         backgroundColor: Colors.overlayHeavy,
     },
-    card: {
+    cardContainer: {
         width: '82%',
         maxWidth: 340,
-        backgroundColor: Colors.dialogBg,
-        borderRadius: Radii.xxl,
-        borderWidth: 1,
-        borderColor: Colors.cardBorder,
+    },
+    card: {
         padding: Spacing.xxl - 4,
         alignItems: 'center',
-        ...Shadows.card,
     },
     iconContainer: {
         marginBottom: Spacing.md,
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: 'rgba(250, 204, 21, 0.15)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(250, 204, 21, 0.3)',
     },
     title: {
         fontSize: FontSizes.lg + 2,
         fontWeight: '800',
-        color: Colors.text,
+        color: '#FFFFFF',
         marginBottom: Spacing.sm + 2,
         textAlign: 'center',
+        textShadowColor: 'rgba(0,0,0,0.5)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
     },
     message: {
         fontSize: FontSizes.md - 1,
-        color: Colors.textSecondary,
+        color: 'rgba(255, 255, 255, 0.8)',
         textAlign: 'center',
         lineHeight: 20,
         marginBottom: Spacing.xl,
@@ -153,14 +158,14 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         borderRadius: Radii.md,
         alignItems: 'center',
-        backgroundColor: Colors.cardHeavy,
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
         borderWidth: 1,
-        borderColor: Colors.handleBar,
+        borderColor: 'rgba(255, 255, 255, 0.2)',
     },
     cancelText: {
         fontSize: FontSizes.md,
         fontWeight: '600',
-        color: 'rgba(255, 255, 255, 0.6)',
+        color: '#FFFFFF',
     },
     confirmBtn: {
         flex: 1,
@@ -174,7 +179,7 @@ const styles = StyleSheet.create({
     confirmText: {
         fontSize: FontSizes.md,
         fontWeight: '700',
-        color: Colors.expense,
+        color: '#FFFFFF',
     },
 });
 

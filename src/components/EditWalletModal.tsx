@@ -1,7 +1,6 @@
 /**
  * EditWalletModal.tsx — Modal for editing wallet name and balance
- * Extracted from WalletDetailScreen.tsx (lines 122-280).
- * Uses shared animation helpers from common/animations.ts.
+ * Refactored to Volumetric Liquid Glass
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -19,9 +18,8 @@ import {
 } from 'react-native';
 import { animateModalOpen, animateModalClose, SpringConfigs } from '../common/animations';
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
-import { BlurView } from '@react-native-community/blur';
-
-// ─── Props ────────────────────────────────────────────────────────────────────
+import LiquidCard from './LiquidCard';
+import AnimatedOverlay from './AnimatedOverlay';
 
 interface EditWalletModalProps {
     visible: boolean;
@@ -30,8 +28,6 @@ interface EditWalletModalProps {
     walletName: string;
     walletBalance: number;
 }
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 const EditWalletModal: React.FC<EditWalletModalProps> = ({
     visible,
@@ -43,20 +39,37 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
     const [name, setName] = useState(walletName);
     const [balanceStr, setBalanceStr] = useState(walletBalance.toString());
 
-    const overlayOpacity = useRef(new Animated.Value(0)).current;
     const sheetTranslateY = useRef(new Animated.Value(400)).current;
+    const [shouldRender, setShouldRender] = useState(false);
 
     useEffect(() => {
         if (visible) {
+            setShouldRender(true);
             setName(walletName);
             setBalanceStr(walletBalance.toString());
-            animateModalOpen(overlayOpacity, sheetTranslateY, SpringConfigs.gentle);
+            // Animate after mount
+            requestAnimationFrame(() => {
+                Animated.spring(sheetTranslateY, {
+                    toValue: 0,
+                    ...SpringConfigs.gentle,
+                    useNativeDriver: true,
+                }).start();
+            });
         }
-    }, [visible, walletName, walletBalance, overlayOpacity, sheetTranslateY]);
+    }, [visible, walletName, walletBalance, sheetTranslateY]);
 
     const handleClose = useCallback(() => {
-        animateModalClose(overlayOpacity, sheetTranslateY, onClose);
-    }, [overlayOpacity, sheetTranslateY, onClose]);
+        Animated.timing(sheetTranslateY, {
+            toValue: 400,
+            duration: 250,
+            useNativeDriver: true, // We will manually hide via timeout or parallel with Overlay
+        }).start(({ finished }) => {
+            if (finished) {
+                setShouldRender(false);
+                onClose();
+            }
+        });
+    }, [sheetTranslateY, onClose]);
 
     const handleSave = useCallback(() => {
         const trimmedName = name.trim();
@@ -67,88 +80,71 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
         handleClose();
     }, [name, balanceStr, onSave, handleClose]);
 
+    if (!shouldRender && !visible) return null;
+
     return (
         <Modal
-            visible={visible}
+            visible={shouldRender}
             transparent
             animationType="none"
             statusBarTranslucent
             onRequestClose={handleClose}>
             <View style={styles.root}>
-                {/* Animated overlay */}
-                <Animated.View
-                    style={[
-                        StyleSheet.absoluteFill,
-                        { opacity: overlayOpacity },
-                    ]}>
-                    <BlurView
-                        style={StyleSheet.absoluteFill}
-                        blurType="dark"
-                        blurAmount={50}
-                        overlayColor="transparent"
-                    />
-                </Animated.View>
-                <Pressable
-                    style={StyleSheet.absoluteFill}
+                <AnimatedOverlay 
+                    visible={visible} 
                     onPress={() => {
                         Keyboard.dismiss();
                         handleClose();
-                    }}
+                    }} 
                 />
 
-                {/* Sheet */}
                 <KeyboardAvoidingView
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                     style={styles.keyboardView}
                     pointerEvents="box-none">
-                    <Animated.View
-                        style={[
-                            styles.sheet,
-                            { transform: [{ translateY: sheetTranslateY }] },
-                        ]}>
-                        <Pressable onPress={Keyboard.dismiss}>
-                            {/* Handle bar */}
-                            <View style={styles.handleBar} />
+                    <Animated.View style={[{ transform: [{ translateY: sheetTranslateY }] }]}>
+                        <LiquidCard 
+                            style={styles.sheet}
+                            intensity="heavy"
+                            
+                            borderRadius={Radii.xxl}
+                        >
+                            <Pressable onPress={Keyboard.dismiss}>
+                                <View style={styles.handleBar} />
 
-                            <Text style={styles.title}>Chỉnh sửa ví</Text>
+                                <Text style={styles.title}>Chỉnh sửa ví</Text>
 
-                            {/* Name input */}
-                            <Text style={styles.label}>Tên ví</Text>
-                            <TextInput
-                                style={styles.input}
-                                value={name}
-                                onChangeText={setName}
-                                placeholder="Nhập tên ví"
-                                placeholderTextColor={Colors.textMuted}
-                                selectionColor={Colors.accent}
-                            />
+                                <Text style={styles.label}>Tên ví</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    value={name}
+                                    onChangeText={setName}
+                                    placeholder="Nhập tên ví"
+                                    placeholderTextColor="rgba(255,255,255,0.4)"
+                                    selectionColor={Colors.accent}
+                                />
 
-                            {/* Balance input */}
-                            <Text style={styles.label}>Số dư hiện tại (₫)</Text>
-                            <TextInput
-                                style={styles.input}
-                                value={balanceStr}
-                                onChangeText={setBalanceStr}
-                                placeholder="0"
-                                placeholderTextColor={Colors.textMuted}
-                                keyboardType="numeric"
-                                selectionColor={Colors.accent}
-                            />
+                                <Text style={styles.label}>Số dư hiện tại (₫)</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    value={balanceStr}
+                                    onChangeText={setBalanceStr}
+                                    placeholder="0"
+                                    placeholderTextColor="rgba(255,255,255,0.4)"
+                                    keyboardType="numeric"
+                                    selectionColor={Colors.accent}
+                                />
 
-                            {/* Actions */}
-                            <View style={styles.actions}>
-                                <Pressable
-                                    onPress={handleSave}
-                                    style={styles.saveBtn}>
-                                    <Text style={styles.saveBtnText}>Lưu thay đổi</Text>
-                                </Pressable>
-                                <Pressable
-                                    onPress={handleClose}
-                                    style={styles.cancelBtn}>
-                                    <Text style={styles.cancelBtnText}>Hủy</Text>
-                                </Pressable>
-                            </View>
-                        </Pressable>
+                                <View style={styles.actions}>
+                                    <Pressable onPress={handleSave} style={styles.saveBtn}>
+                                        <Text style={styles.saveBtnText}>Lưu thay đổi</Text>
+                                    </Pressable>
+                                    <Pressable onPress={handleClose} style={styles.cancelBtn}>
+                                        <Text style={styles.cancelBtnText}>Hủy</Text>
+                                    </Pressable>
+                                </View>
+                            </Pressable>
+                        </LiquidCard>
                     </Animated.View>
                 </KeyboardAvoidingView>
             </View>
@@ -156,25 +152,15 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
     );
 };
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
 const styles = StyleSheet.create({
-    root: {
-        flex: 1,
-    },
-    overlay: {
-        backgroundColor: Colors.overlay,
-    },
+    root: { flex: 1 },
     keyboardView: {
         flex: 1,
         justifyContent: 'flex-end',
     },
     sheet: {
-        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-        borderTopLeftRadius: Radii.xxl,
-        borderTopRightRadius: Radii.xxl,
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.15)',
+        borderBottomLeftRadius: 0,
+        borderBottomRightRadius: 0,
         borderBottomWidth: 0,
         paddingHorizontal: Spacing.xl,
         paddingBottom: 40,
@@ -183,7 +169,7 @@ const styles = StyleSheet.create({
         width: 40,
         height: 4,
         borderRadius: 2,
-        backgroundColor: 'rgba(255, 255, 255, 0.3)',
+        backgroundColor: 'rgba(255, 255, 255, 0.4)',
         alignSelf: 'center',
         marginTop: 12,
         marginBottom: Spacing.lg,
@@ -193,18 +179,21 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#FFFFFF',
         marginBottom: Spacing.xl,
+        textShadowColor: 'rgba(0,0,0,0.5)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
     },
     label: {
         fontSize: FontSizes.md - 1,
         fontWeight: '600',
-        color: 'rgba(255, 255, 255, 0.6)',
+        color: 'rgba(255, 255, 255, 0.7)',
         marginBottom: Spacing.sm,
     },
     input: {
-        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        backgroundColor: 'rgba(255, 255, 255, 0.08)',
         borderRadius: Radii.md,
         borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.15)',
+        borderColor: 'rgba(255, 255, 255, 0.2)',
         padding: Spacing.md,
         fontSize: 17,
         color: '#FFFFFF',
@@ -217,9 +206,9 @@ const styles = StyleSheet.create({
     saveBtn: {
         paddingVertical: Spacing.md,
         borderRadius: Radii.md,
-        backgroundColor: 'rgba(168, 85, 247, 0.35)',
+        backgroundColor: 'rgba(168, 85, 247, 0.4)', // Higher contrast
         borderWidth: 1,
-        borderColor: 'rgba(168, 85, 247, 0.5)',
+        borderColor: 'rgba(168, 85, 247, 0.6)',
         alignItems: 'center',
     },
     saveBtnText: {
@@ -230,13 +219,13 @@ const styles = StyleSheet.create({
     cancelBtn: {
         paddingVertical: Spacing.md,
         borderRadius: Radii.md,
-        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        backgroundColor: 'rgba(255, 255, 255, 0.08)',
         borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.15)',
+        borderColor: 'rgba(255, 255, 255, 0.2)',
         alignItems: 'center',
     },
     cancelBtnText: {
-        color: 'rgba(255, 255, 255, 0.85)',
+        color: '#FFFFFF',
         fontSize: FontSizes.lg - 2,
         fontWeight: '600',
     },

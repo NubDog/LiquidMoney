@@ -19,7 +19,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Code, Database, Bug, Play, TerminalSquare } from 'lucide-react-native';
-import GlassCard from '../components/GlassCard';
+import LiquidCard from '../components/LiquidCard';
 import TerminalLogModal from '../components/TerminalLogModal';
 import { useStore } from '../store/useStore';
 import { generateRandomTransactions } from '../database/queries';
@@ -113,10 +113,10 @@ const DeveloperScreen: React.FC = () => {
                 </View>
 
                 {/* Mock Data Generator Card */}
-                <GlassCard
+                <LiquidCard
                     style={styles.card}
-                    backgroundOpacity={0.12}
-                    borderOpacity={0.18}
+                    intensity="heavy"
+                    
                     borderRadius={Radii.xl}>
                     <View style={styles.cardInner}>
                         <View style={styles.cardHeader}>
@@ -159,13 +159,13 @@ const DeveloperScreen: React.FC = () => {
                             )}
                         </Pressable>
                     </View>
-                </GlassCard>
+                </LiquidCard>
 
                 {/* Placeholder Card */}
-                <GlassCard
+                <LiquidCard
                     style={styles.card}
-                    backgroundOpacity={0.08}
-                    borderOpacity={0.12}
+                    intensity="heavy"
+                    
                     borderRadius={Radii.xl}>
                     <View style={styles.cardInner}>
                         <View style={styles.placeholderRow}>
@@ -182,7 +182,7 @@ const DeveloperScreen: React.FC = () => {
                             <Text style={styles.comingSoon}>Coming soon</Text>
                         </View>
                     </View>
-                </GlassCard>
+                </LiquidCard>
 
                 <Text style={styles.infoText}>
                     Đây là màn hình dành cho nhà phát triển.{'\n'}

@@ -30,7 +30,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Rect, Stop, Text as SvgText } from 'react-native-svg';
-import GlassCard from '../components/GlassCard';
+import LiquidCard from '../components/LiquidCard';
 import TransactionRow from '../components/TransactionRow';
 import EmptyState from '../components/EmptyState';
 import TransactionDetailOverlay from '../components/TransactionDetailOverlay';
@@ -309,10 +309,10 @@ const SummarySection: React.FC<{
 }> = React.memo(({ totalIn, totalOut }) => {
     const balance = totalIn - totalOut;
     return (
-        <GlassCard
+        <LiquidCard
             style={sumStyles.card}
-            backgroundOpacity={0.05}
-            borderOpacity={0.10}
+            intensity="heavy"
+            
             borderRadius={Radii.xl}>
             <View style={sumStyles.inner}>
                 <View style={sumStyles.row}>
@@ -345,7 +345,7 @@ const SummarySection: React.FC<{
                     {balance >= 0 ? '+' : '-'}{formatVND(Math.abs(balance))}
                 </Text>
             </View>
-        </GlassCard>
+        </LiquidCard>
     );
 });
 
@@ -427,10 +427,10 @@ const BarChart: React.FC<{
     const barRadius = Math.min(barWidth / 2, 8);
 
     return (
-        <GlassCard
+        <LiquidCard
             style={chStyles.card}
-            backgroundOpacity={0.04}
-            borderOpacity={0.08}
+            intensity="heavy"
+            
             borderRadius={Radii.xl}>
             <View style={chStyles.inner}>
                 <Text style={chStyles.title}>Dòng tiền</Text>
@@ -556,7 +556,7 @@ const BarChart: React.FC<{
                     </View>
                 </View>
             </View>
-        </GlassCard>
+        </LiquidCard>
     );
 });
 
@@ -815,7 +815,8 @@ const StatsScreen: React.FC = () => {
             {!isReady ? (
                 <StatsSkeleton />
             ) : (
-                <Animated.View style={{ flex: 1, opacity: showContent ? contentOpacity : 0 }}>
+                <>
+                    <Animated.View style={{ flex: 1, opacity: showContent ? contentOpacity : 0 }}>
                     <ScrollView
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={s.content}
@@ -871,19 +872,16 @@ const StatsScreen: React.FC = () => {
                         )}
                     </ScrollView>
                 </Animated.View>
-            )}
-
-            {/* Transaction Detail Overlay */}
-            {viewingTx && (
                 <TransactionDetailOverlay
+                    visible={!!viewingTx}
                     transaction={viewingTx}
-                    walletName={
-                        wallets.find(w => w.id === viewingTx.wallet_id)?.name || 'Ví'
-                    }
-                    onGoBack={handleGoBackFromDetail}
+                    walletName="Tài khoản" // Adjust if mapping wallet ids
+                    onGoBack={() => setViewingTx(null)}
+                    onClose={() => setViewingTx(null)}
                     onEdit={handleEditFromDetail}
                     onDelete={handleDeleteFromDetail}
                 />
+                </>
             )}
         </View>
     );

@@ -27,7 +27,7 @@ import {
     XCircle,
     FolderOpen,
 } from 'lucide-react-native';
-import GlassCard from '../components/GlassCard';
+import LiquidCard from '../components/LiquidCard';
 import InfoDialog from '../components/InfoDialog';
 import ConfirmImportDialog from '../components/ConfirmImportDialog';
 import { useStore } from '../store/useStore';
@@ -163,10 +163,10 @@ const SettingsScreen: React.FC = () => {
                     />
                 }>
                 {/* ── App Info Card ── */}
-                <GlassCard
+                <LiquidCard
                     style={styles.card}
-                    backgroundOpacity={0.12}
-                    borderOpacity={0.18}
+                    intensity="heavy"
+                    
                     borderRadius={Radii.xl}>
                     <View style={styles.cardInner}>
                         <View style={styles.cardHeader}>
@@ -229,13 +229,13 @@ const SettingsScreen: React.FC = () => {
                             </View>
                         </View>
                     </View>
-                </GlassCard>
+                </LiquidCard>
 
                 {/* ── Backup / Restore Card ── */}
-                <GlassCard
+                <LiquidCard
                     style={styles.card}
-                    backgroundOpacity={0.12}
-                    borderOpacity={0.18}
+                    intensity="heavy"
+                    
                     borderRadius={Radii.xl}>
                     <View style={styles.cardInner}>
                         <View style={styles.cardHeader}>
@@ -278,13 +278,13 @@ const SettingsScreen: React.FC = () => {
                             </Pressable>
                         </View>
                     </View>
-                </GlassCard>
+                </LiquidCard>
 
                 {/* ── Developer Mode Card ── */}
-                <GlassCard
+                <LiquidCard
                     style={styles.card}
-                    backgroundOpacity={0.10}
-                    borderOpacity={0.15}
+                    intensity="heavy"
+                    
                     borderRadius={Radii.xl}>
                     <View style={styles.cardInner}>
                         <View style={styles.cardHeader}>
@@ -307,13 +307,13 @@ const SettingsScreen: React.FC = () => {
                             />
                         </View>
                     </View>
-                </GlassCard>
+                </LiquidCard>
 
                 {/* ── About Card ── */}
-                <GlassCard
+                <LiquidCard
                     style={styles.card}
-                    backgroundOpacity={0.08}
-                    borderOpacity={0.12}
+                    intensity="heavy"
+                    
                     borderRadius={Radii.xl}>
                     <View style={styles.cardInner}>
                         <View style={styles.cardHeader}>
@@ -333,7 +333,7 @@ const SettingsScreen: React.FC = () => {
                             <Text style={styles.infoValue}>React Native</Text>
                         </View>
                     </View>
-                </GlassCard>
+                </LiquidCard>
 
                 <View style={{ height: insets.bottom + 40 }} />
             </ScrollView>

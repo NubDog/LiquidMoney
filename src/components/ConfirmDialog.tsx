@@ -1,9 +1,6 @@
 /**
  * ConfirmDialog.tsx — Custom glassmorphism confirmation dialog
- * Replaces default Android Alert.alert() with better styling
- *
- * Refactored: Uses shared animation helpers and theme tokens.
- * Removed dead `iconText` style.
+ * Refactored to use Volumetric Liquid Glass (LiquidCard)
  */
 
 import React, { useCallback, useRef } from 'react';
@@ -17,7 +14,9 @@ import {
 } from 'react-native';
 import { AlertTriangle } from 'lucide-react-native';
 import { animateDialogOpen, animateDialogClose } from '../common/animations';
-import { Colors, FontSizes, Radii, Shadows, Spacing } from '../common/theme';
+import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
+import LiquidCard from './LiquidCard';
+import AnimatedOverlay from './AnimatedOverlay';
 
 interface ConfirmDialogProps {
     visible: boolean;
@@ -65,48 +64,44 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             statusBarTranslucent
             onRequestClose={handleCancel}>
             <View style={styles.wrapper}>
-                <Animated.View
-                    style={[
-                        StyleSheet.absoluteFill,
-                        styles.overlay,
-                        { opacity: overlayOpacity },
-                    ]}
-                />
-                <Pressable style={StyleSheet.absoluteFill} onPress={handleCancel} />
+                <AnimatedOverlay visible={visible} onPress={handleCancel} />
 
-                <Animated.View
-                    style={[
-                        styles.dialog,
-                        { transform: [{ scale }] },
-                    ]}>
-                    {/* Icon */}
-                    <View style={styles.iconContainer}>
-                        <AlertTriangle size={36} color={Colors.danger} strokeWidth={2} />
-                    </View>
+                <Animated.View style={[styles.dialogContainer, { transform: [{ scale }] }]}>
+                    <LiquidCard 
+                        style={styles.dialog}
+                        intensity="heavy"
+                        
+                        borderRadius={Radii.xxl}
+                    >
+                        {/* Icon */}
+                        <View style={styles.iconContainer}>
+                            <AlertTriangle size={36} color={Colors.danger} strokeWidth={2.5} />
+                        </View>
 
-                    <Text style={styles.title}>{title}</Text>
-                    <Text style={styles.message}>{message}</Text>
+                        <Text style={styles.title}>{title}</Text>
+                        <Text style={styles.message}>{message}</Text>
 
-                    <View style={styles.actions}>
-                        <Pressable
-                            style={({ pressed }) => [
-                                styles.cancelBtn,
-                                pressed && { opacity: 0.7 },
-                            ]}
-                            onPress={handleCancel}>
-                            <Text style={styles.cancelText}>{cancelText}</Text>
-                        </Pressable>
+                        <View style={styles.actions}>
+                            <Pressable
+                                style={({ pressed }) => [
+                                    styles.cancelBtn,
+                                    pressed && { opacity: 0.7 },
+                                ]}
+                                onPress={handleCancel}>
+                                <Text style={styles.cancelText}>{cancelText}</Text>
+                            </Pressable>
 
-                        <Pressable
-                            style={({ pressed }) => [
-                                styles.confirmBtn,
-                                { backgroundColor: confirmColor },
-                                pressed && { opacity: 0.7 },
-                            ]}
-                            onPress={handleConfirm}>
-                            <Text style={styles.confirmText}>{confirmText}</Text>
-                        </Pressable>
-                    </View>
+                            <Pressable
+                                style={({ pressed }) => [
+                                    styles.confirmBtn,
+                                    { backgroundColor: confirmColor },
+                                    pressed && { opacity: 0.7 },
+                                ]}
+                                onPress={handleConfirm}>
+                                <Text style={styles.confirmText}>{confirmText}</Text>
+                            </Pressable>
+                        </View>
+                    </LiquidCard>
                 </Animated.View>
             </View>
         </Modal>
@@ -123,36 +118,38 @@ const styles = StyleSheet.create({
     overlay: {
         backgroundColor: Colors.overlayHeavy,
     },
-    dialog: {
+    dialogContainer: {
         width: '100%',
         maxWidth: 320,
-        backgroundColor: Colors.dialogBg,
-        borderRadius: Radii.xxl,
-        borderWidth: 1,
-        borderColor: Colors.cardBorder,
+    },
+    dialog: {
         padding: Spacing.xxl - 4,
         alignItems: 'center',
-        ...Shadows.card,
     },
     iconContainer: {
         width: 56,
         height: 56,
         borderRadius: 28,
-        backgroundColor: Colors.expenseBg,
+        backgroundColor: 'rgba(239, 68, 68, 0.15)',
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: Spacing.md,
+        borderWidth: 1,
+        borderColor: 'rgba(239, 68, 68, 0.3)',
     },
     title: {
         fontSize: FontSizes.lg + 2,
         fontWeight: '700',
-        color: Colors.text,
+        color: '#FFFFFF', // High contrast
         textAlign: 'center',
         marginBottom: Spacing.sm,
+        textShadowColor: 'rgba(0,0,0,0.5)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
     },
     message: {
         fontSize: FontSizes.md,
-        color: Colors.textSecondary,
+        color: 'rgba(255, 255, 255, 0.8)', // High contrast
         textAlign: 'center',
         lineHeight: 22,
         marginBottom: Spacing.xxl - 4,
@@ -167,25 +164,27 @@ const styles = StyleSheet.create({
         paddingVertical: 14,
         borderRadius: Radii.md,
         borderWidth: 1,
-        borderColor: Colors.handleBar,
-        backgroundColor: Colors.card,
+        borderColor: 'rgba(255, 255, 255, 0.2)',
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
         alignItems: 'center',
     },
     cancelText: {
         fontSize: FontSizes.lg - 2,
         fontWeight: '600',
-        color: 'rgba(255, 255, 255, 0.7)',
+        color: '#FFFFFF',
     },
     confirmBtn: {
         flex: 1,
         paddingVertical: 14,
         borderRadius: Radii.md,
         alignItems: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.3)',
     },
     confirmText: {
         fontSize: FontSizes.lg - 2,
         fontWeight: '700',
-        color: Colors.text,
+        color: '#FFFFFF',
     },
 });
 

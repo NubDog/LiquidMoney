@@ -1,155 +1,201 @@
 /**
- * PopupMenu.tsx — Animated popup context menu
- * Extracted from WalletDetailScreen.tsx (lines 282-382).
- * Supports open/close animations with scale and opacity.
+ * PopupMenu.tsx — Context menu / Popup
+ * Refactored to Volumetric Liquid Glass using LiquidCard
  */
 
-import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View, Modal } from 'react-native';
-import { Pencil, Trash2 } from 'lucide-react-native';
-import { Colors, FontSizes, Radii, Shadows } from '../common/theme';
+import React, { useRef } from 'react';
+import {
+    Animated,
+    Modal,
+    Pressable,
+    StyleSheet,
+    Text,
+    View,
+} from 'react-native';
+import { Check } from 'lucide-react-native';
+import { animateDialogOpen, animateDialogClose } from '../common/animations';
+import { Colors, FontSizes, Radii, Shadows, Spacing } from '../common/theme';
+import LiquidCard from './LiquidCard';
 
-// ─── Props ────────────────────────────────────────────────────────────────────
+interface MenuItem {
+    id: string;
+    label: string;
+    icon?: React.ReactNode;
+    color?: string;
+    onPress: () => void;
+}
 
 interface PopupMenuProps {
     visible: boolean;
     onClose: () => void;
-    onEdit: () => void;
-    onDelete: () => void;
-    anchorY: number;
-    anchorX: number;
+    items: MenuItem[];
+    title?: string;
+    selectedId?: string;
 }
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 const PopupMenu: React.FC<PopupMenuProps> = ({
     visible,
     onClose,
-    onEdit,
-    onDelete,
-    anchorY,
-    anchorX,
+    items,
+    title,
+    selectedId,
 }) => {
-    const opacity = useRef(new Animated.Value(0)).current;
-    const scale = useRef(new Animated.Value(0.85)).current;
-    const [shouldRender, setShouldRender] = useState(false);
+    const overlayOpacity = useRef(new Animated.Value(0)).current;
+    const menuScale = useRef(new Animated.Value(0.9)).current;
 
-    useEffect(() => {
+    React.useEffect(() => {
         if (visible) {
-            setShouldRender(true);
-            Animated.parallel([
-                Animated.timing(opacity, {
-                    toValue: 1,
-                    duration: 150,
-                    useNativeDriver: true,
-                }),
-                Animated.spring(scale, {
-                    toValue: 1,
-                    damping: 12,
-                    stiffness: 120,
-                    useNativeDriver: true,
-                }),
-            ]).start();
-        } else if (shouldRender) {
-            Animated.parallel([
-                Animated.timing(opacity, {
-                    toValue: 0,
-                    duration: 120,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(scale, {
-                    toValue: 0.85,
-                    duration: 120,
-                    useNativeDriver: true,
-                }),
-            ]).start(({ finished }) => {
-                if (finished) {
-                    setShouldRender(false);
-                }
-            });
+            animateDialogOpen(overlayOpacity, menuScale);
         }
-    }, [visible, opacity, scale, shouldRender]);
+    }, [visible, overlayOpacity, menuScale]);
 
-    if (!shouldRender) { return null; }
+    const handleItemPress = (onPress: () => void) => {
+        animateDialogClose(overlayOpacity, menuScale, () => {
+            onPress();
+            onClose();
+        });
+    };
 
     return (
         <Modal
-            visible={shouldRender}
+            visible={visible}
             transparent
             animationType="none"
-            statusBarTranslucent={true}
-            onRequestClose={onClose}
-        >
-            <Pressable style={styles.backdrop} onPress={onClose}>
+            statusBarTranslucent
+            onRequestClose={onClose}>
+            <View style={styles.root}>
                 <Animated.View
                     style={[
-                        styles.container,
-                        {
-                            top: anchorY + 8,
-                            right: anchorX,
-                            opacity,
-                            transform: [{ scale }],
-                        },
-                    ]}>
-                    {/* Edit */}
-                    <Pressable
-                        style={styles.item}
-                        onPress={() => {
-                            onClose();
-                            setTimeout(onEdit, 150);
-                        }}>
-                        <Pencil size={18} color={Colors.text} strokeWidth={1.5} />
-                        <Text style={styles.itemText}>Chỉnh sửa</Text>
-                    </Pressable>
-
-                    {/* Delete */}
-                    <Pressable
-                        style={styles.item}
-                        onPress={() => {
-                            onClose();
-                            setTimeout(onDelete, 150);
-                        }}>
-                        <Trash2 size={18} color={Colors.expense} strokeWidth={1.5} />
-                        <Text style={[styles.itemText, { color: Colors.expense }]}>
-                            Xóa ví
-                        </Text>
-                    </Pressable>
+                        StyleSheet.absoluteFill,
+                        styles.overlay,
+                        { opacity: overlayOpacity },
+                    ]}
+                />
+                <Pressable
+                    style={StyleSheet.absoluteFill}
+                    onPress={() => animateDialogClose(overlayOpacity, menuScale, onClose)}
+                />
+                
+                <Animated.View style={[styles.menuContainer, { transform: [{ scale: menuScale }] }]}>
+                    <LiquidCard 
+                        style={styles.card}
+                        intensity="heavy"
+                        
+                        borderRadius={Radii.xl}
+                    >
+                        {title && (
+                            <View style={styles.header}>
+                                <Text style={styles.title}>{title}</Text>
+                            </View>
+                        )}
+                        
+                        <View style={styles.itemsContainer}>
+                            {items.map((item, index) => {
+                                const isSelected = item.id === selectedId;
+                                const isLast = index === items.length - 1;
+                                
+                                return (
+                                    <View key={item.id}>
+                                        <Pressable
+                                            onPress={() => handleItemPress(item.onPress)}
+                                            style={({ pressed }) => [
+                                                styles.item,
+                                                pressed && styles.itemPressed,
+                                            ]}>
+                                            <View style={styles.itemContent}>
+                                                {item.icon && (
+                                                    <View style={styles.itemIcon}>
+                                                        {item.icon}
+                                                    </View>
+                                                )}
+                                                <Text
+                                                    style={[
+                                                        styles.itemLabel,
+                                                        { color: item.color || '#FFFFFF' },
+                                                        isSelected && styles.itemLabelSelected,
+                                                    ]}>
+                                                    {item.label}
+                                                </Text>
+                                            </View>
+                                            
+                                            {isSelected && (
+                                                <Check size={20} color={Colors.accent} strokeWidth={3} />
+                                            )}
+                                        </Pressable>
+                                        {!isLast && <View style={styles.divider} />}
+                                    </View>
+                                );
+                            })}
+                        </View>
+                    </LiquidCard>
                 </Animated.View>
-            </Pressable>
+            </View>
         </Modal>
     );
 };
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
 const styles = StyleSheet.create({
-    backdrop: {
-        ...StyleSheet.absoluteFillObject,
-        zIndex: 100,
+    root: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
-    container: {
-        position: 'absolute',
-        minWidth: 180,
-        backgroundColor: 'rgba(30, 30, 30, 0.95)',
-        borderRadius: Radii.md,
-        borderWidth: 1,
-        borderColor: Colors.cardBorder,
-        paddingVertical: 6,
-        ...Shadows.menu,
-        zIndex: 101,
+    overlay: {
+        backgroundColor: Colors.overlayHeavy,
+    },
+    menuContainer: {
+        width: '80%',
+        maxWidth: 320,
+        ...Shadows.card,
+    },
+    card: {
+        overflow: 'hidden',
+    },
+    header: {
+        padding: Spacing.md,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: 'rgba(255,255,255,0.1)',
+        backgroundColor: 'rgba(255,255,255,0.03)',
+    },
+    title: {
+        fontSize: FontSizes.md,
+        fontWeight: '600',
+        color: 'rgba(255, 255, 255, 0.7)',
+        textAlign: 'center',
+    },
+    itemsContainer: {
+        paddingVertical: 4,
     },
     item: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        gap: 12,
+        justifyContent: 'space-between',
+        paddingVertical: 14,
+        paddingHorizontal: Spacing.lg,
     },
-    itemText: {
-        fontSize: FontSizes.lg - 2,
+    itemPressed: {
+        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    },
+    itemContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    itemIcon: {
+        marginRight: Spacing.md,
+    },
+    itemLabel: {
+        fontSize: FontSizes.lg - 1,
         fontWeight: '500',
-        color: Colors.text,
+    },
+    itemLabelSelected: {
+        fontWeight: '700',
+        color: Colors.accent,
+    },
+    divider: {
+        height: StyleSheet.hairlineWidth,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        marginLeft: Spacing.lg + 36, // Align with text
     },
 });
 
-export default React.memo(PopupMenu);
+export default PopupMenu;

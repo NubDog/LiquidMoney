@@ -1,7 +1,6 @@
 /**
  * InfoDialog.tsx — Info/success/error dialog component
- * Extracted from SettingsScreen.tsx (lines 53-203).
- * Uses shared animation helpers.
+ * Refactored to Volumetric Liquid Glass
  */
 
 import React, { useCallback, useRef } from 'react';
@@ -15,9 +14,8 @@ import {
 } from 'react-native';
 import { CheckCircle, AlertTriangle } from 'lucide-react-native';
 import { animateDialogOpen, animateDialogClose } from '../common/animations';
-import { Colors, FontSizes, Radii, Shadows, Spacing } from '../common/theme';
-
-// ─── Props ────────────────────────────────────────────────────────────────────
+import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
+import LiquidCard from './LiquidCard';
 
 interface InfoDialogProps {
     visible: boolean;
@@ -26,8 +24,6 @@ interface InfoDialogProps {
     message: string;
     type: 'success' | 'error';
 }
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 const InfoDialog: React.FC<InfoDialogProps> = ({
     visible,
@@ -68,39 +64,38 @@ const InfoDialog: React.FC<InfoDialogProps> = ({
                     style={StyleSheet.absoluteFill}
                     onPress={handleClose}
                 />
-                <Animated.View
-                    style={[
-                        styles.card,
-                        { transform: [{ scale: cardScale }] },
-                    ]}>
-                    {/* Icon */}
-                    <View style={styles.iconContainer}>
-                        {type === 'success' ? (
-                            <CheckCircle size={40} color={Colors.income} strokeWidth={2} />
-                        ) : (
-                            <AlertTriangle size={40} color={Colors.expense} strokeWidth={2} />
-                        )}
-                    </View>
+                <Animated.View style={[styles.cardContainer, { transform: [{ scale: cardScale }] }]}>
+                    <LiquidCard 
+                        style={styles.card}
+                        intensity="heavy"
+                        
+                        borderRadius={Radii.xxl}
+                    >
+                        <View style={styles.iconContainer}>
+                            {type === 'success' ? (
+                                <CheckCircle size={40} color={Colors.income} strokeWidth={2.5} />
+                            ) : (
+                                <AlertTriangle size={40} color={Colors.expense} strokeWidth={2.5} />
+                            )}
+                        </View>
 
-                    <Text style={styles.title}>{title}</Text>
-                    <Text style={styles.message}>{message}</Text>
+                        <Text style={styles.title}>{title}</Text>
+                        <Text style={styles.message}>{message}</Text>
 
-                    {/* OK Button */}
-                    <Pressable
-                        onPress={handleClose}
-                        style={({ pressed }) => [
-                            styles.okBtn,
-                            pressed && { opacity: 0.7 },
-                        ]}>
-                        <Text style={styles.okBtnText}>OK</Text>
-                    </Pressable>
+                        <Pressable
+                            onPress={handleClose}
+                            style={({ pressed }) => [
+                                styles.okBtn,
+                                pressed && { opacity: 0.7 },
+                            ]}>
+                            <Text style={styles.okBtnText}>OK</Text>
+                        </Pressable>
+                    </LiquidCard>
                 </Animated.View>
             </View>
         </Modal>
     );
 };
-
-// ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
     root: {
@@ -111,30 +106,38 @@ const styles = StyleSheet.create({
     overlay: {
         backgroundColor: Colors.overlayHeavy,
     },
-    card: {
+    cardContainer: {
         width: '82%',
         maxWidth: 340,
-        backgroundColor: Colors.dialogBg,
-        borderRadius: Radii.xxl,
-        borderWidth: 1,
-        borderColor: Colors.cardBorder,
+    },
+    card: {
         padding: Spacing.xxl - 4,
         alignItems: 'center',
-        ...Shadows.card,
     },
     iconContainer: {
         marginBottom: Spacing.md,
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.2)',
     },
     title: {
         fontSize: FontSizes.lg + 2,
         fontWeight: '800',
-        color: Colors.text,
+        color: '#FFFFFF',
         marginBottom: Spacing.sm + 2,
         textAlign: 'center',
+        textShadowColor: 'rgba(0,0,0,0.5)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
     },
     message: {
         fontSize: FontSizes.md - 1,
-        color: Colors.textSecondary,
+        color: 'rgba(255, 255, 255, 0.8)',
         textAlign: 'center',
         lineHeight: 20,
         marginBottom: Spacing.xl,
@@ -143,14 +146,14 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         paddingHorizontal: 40,
         borderRadius: Radii.md,
-        backgroundColor: 'rgba(34, 211, 238, 0.2)',
+        backgroundColor: 'rgba(34, 211, 238, 0.25)',
         borderWidth: 1,
-        borderColor: 'rgba(34, 211, 238, 0.35)',
+        borderColor: 'rgba(34, 211, 238, 0.45)',
     },
     okBtnText: {
         fontSize: FontSizes.lg - 2,
         fontWeight: '700',
-        color: Colors.cyan,
+        color: '#FFFFFF',
     },
 });
 

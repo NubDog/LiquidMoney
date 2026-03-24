@@ -1,54 +1,49 @@
 /**
- * TerminalLogModal.tsx
- * Modal hiển thị tiến trình dạng terminal (console logs)
- * Dùng cho các tác vụ Developer Tools (vd: Generate mock data)
+ * TerminalLogModal.tsx — Developer / Error Logs Modal
+ * Extracted with Volumetric Glass Base
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
-    Animated,
     Modal,
     Pressable,
     ScrollView,
     StyleSheet,
     Text,
     View,
+    Animated,
 } from 'react-native';
-import { Terminal } from 'lucide-react-native';
+import { X, Copy } from 'lucide-react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
+import { animateSheetIn, animateSheetOut } from '../common/animations';
+import { Colors, FontSizes, Shadows, Spacing } from '../common/theme';
+import LiquidCard from './LiquidCard';
 
 interface TerminalLogModalProps {
     visible: boolean;
-    logs: string[];
-    isComplete: boolean;
     onClose: () => void;
+    logs: string[];
+    isComplete?: boolean;
 }
 
-const TerminalLogModal: React.FC<TerminalLogModalProps> = ({
-    visible,
-    logs,
-    isComplete,
-    onClose,
-}) => {
-    const fadeAnim = useRef(new Animated.Value(0)).current;
-    const scrollViewRef = useRef<ScrollView>(null);
+const TerminalLogModal: React.FC<TerminalLogModalProps> = ({ visible, onClose, logs, isComplete }) => {
+    const translateY = useRef(new Animated.Value(600)).current;
 
-    useEffect(() => {
+    React.useEffect(() => {
         if (visible) {
-            Animated.timing(fadeAnim, {
-                toValue: 1,
-                duration: 250,
-                useNativeDriver: true,
-            }).start();
-        } else {
-            fadeAnim.setValue(0);
+            animateSheetIn(translateY).start();
         }
-    }, [visible, fadeAnim]);
+    }, [visible, translateY]);
 
-    // Auto scroll to bottom
-    const handleContentSizeChange = () => {
-        if (scrollViewRef.current) {
-            scrollViewRef.current.scrollToEnd({ animated: true });
-        }
+    const handleClose = () => {
+        animateSheetOut(translateY, 600, 250).start(({ finished }) => {
+            if (finished) onClose();
+        });
+    };
+
+    const handleCopyAll = () => {
+        const copyText = logs.join('\n');
+        Clipboard.setString(copyText);
     };
 
     return (
@@ -57,56 +52,55 @@ const TerminalLogModal: React.FC<TerminalLogModalProps> = ({
             transparent
             animationType="none"
             statusBarTranslucent
-            onRequestClose={isComplete ? onClose : undefined}
-        >
+            onRequestClose={handleClose}>
             <View style={styles.root}>
-                {/* Backdrop */}
-                <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]} />
+                <Pressable
+                    style={[StyleSheet.absoluteFill, styles.overlay]}
+                    onPress={handleClose}
+                />
 
-                {/* Modal Container */}
-                <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-                    <View style={styles.header}>
-                        <View style={styles.headerLeft}>
-                            <Terminal size={18} color="#4ade80" />
-                            <Text style={styles.title}>Developer Console</Text>
-                        </View>
-                        {isComplete && (
-                            <Pressable onPress={onClose} style={styles.closeBtn}>
-                                <Text style={styles.closeBtnText}>Xong</Text>
-                            </Pressable>
-                        )}
-                    </View>
-
-                    <ScrollView
-                        ref={scrollViewRef}
-                        style={styles.terminalWindow}
-                        contentContainerStyle={styles.scrollContent}
-                        onContentSizeChange={handleContentSizeChange}
-                        showsVerticalScrollIndicator={true}
-                        indicatorStyle="white"
+                <Animated.View
+                    style={[
+                        styles.modalContainer,
+                        { transform: [{ translateY }] },
+                    ]}>
+                    <LiquidCard 
+                        style={styles.card}
+                        intensity="heavy"
+                        
+                        borderRadius={20}
                     >
-                        {logs.map((log, index) => {
-                            const isError = log.includes('[ERROR]') || log.includes('error');
-                            const isSuccess = log.includes('[SUCCESS]') || log.includes('Done');
-                            const isWarning = log.includes('[WARN]');
+                        <View style={styles.header}>
+                            <Text style={styles.title}>System Logs</Text>
+                            <View style={styles.headerActions}>
+                                <Pressable
+                                    onPress={handleCopyAll}
+                                    style={styles.iconBtn}>
+                                    <Copy size={20} color="rgba(255,255,255,0.7)" />
+                                </Pressable>
+                                <Pressable
+                                    onPress={handleClose}
+                                    style={styles.iconBtn}>
+                                    <X size={20} color="rgba(255,255,255,0.7)" />
+                                </Pressable>
+                            </View>
+                        </View>
 
-                            let color = '#a3a3a3'; // Lighter gray for normal text
-                            if (isError) color = '#f87171'; // Red
-                            else if (isSuccess) color = '#4ade80'; // Green
-                            else if (isWarning) color = '#facc15'; // Yellow
-                            else if (log.startsWith('>')) color = '#e5e5e5'; // White-ish for commands/info
-
-                            return (
-                                <Text key={index} style={[styles.logText, { color }]}>
-                                    {log}
-                                </Text>
-                            );
-                        })}
-                        {/* Fake cursor blinking if not complete */}
-                        {!isComplete && (
-                            <Text style={[styles.logText, styles.cursorAnimation]}>_</Text>
-                        )}
-                    </ScrollView>
+                        <ScrollView
+                            style={styles.scrollContainer}
+                            contentContainerStyle={styles.scrollContent}>
+                            {logs.length === 0 ? (
+                                <Text style={styles.emptyText}>No logs recorded.</Text>
+                            ) : (
+                                logs.map((log, index) => (
+                                    <View key={index.toString()} style={styles.logRow}>
+                                        <Text style={styles.logTime}>[{String(index).padStart(4, '0')}]</Text>
+                                        <Text style={[styles.logMessage, { color: Colors.accent }]}>{log}</Text>
+                                    </View>
+                                ))
+                            )}
+                        </ScrollView>
+                    </LiquidCard>
                 </Animated.View>
             </View>
         </Modal>
@@ -116,75 +110,77 @@ const TerminalLogModal: React.FC<TerminalLogModalProps> = ({
 const styles = StyleSheet.create({
     root: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
+        justifyContent: 'flex-end',
     },
-    backdrop: {
-        ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    overlay: {
+        backgroundColor: Colors.overlayHeavy,
     },
-    container: {
-        width: '90%',
-        height: '75%',
-        backgroundColor: '#0f172a', // Slate 900
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: '#334155', // Slate 700
+    modalContainer: {
+        height: '80%',
+        marginHorizontal: 12,
+        marginBottom: 34, // Safe area bottom
+        ...Shadows.menu,
+    },
+    card: {
+        flex: 1,
         overflow: 'hidden',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.5,
-        shadowRadius: 20,
-        elevation: 10,
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        backgroundColor: '#1e293b', // Slate 800
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: '#334155',
-    },
-    headerLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
+        padding: Spacing.md,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: 'rgba(255,255,255,0.2)',
+        backgroundColor: 'rgba(0,0,0,0.2)', // Terminal header feel
     },
     title: {
-        color: '#f1f5f9',
-        fontSize: 15,
-        fontWeight: '600',
-    },
-    closeBtn: {
-        backgroundColor: '#334155',
-        paddingHorizontal: 16,
-        paddingVertical: 6,
-        borderRadius: 8,
-    },
-    closeBtnText: {
-        color: '#4ade80',
-        fontSize: 14,
+        fontSize: FontSizes.md,
         fontWeight: '700',
+        fontFamily: 'monospace',
+        color: '#FFFFFF',
     },
-    terminalWindow: {
+    headerActions: {
+        flexDirection: 'row',
+        gap: Spacing.sm,
+    },
+    iconBtn: {
+        padding: 4,
+    },
+    scrollContainer: {
         flex: 1,
-        backgroundColor: '#020617', // Slate 950 (Terminal BG)
+        backgroundColor: 'rgba(0,0,0,0.4)', // Darker background for code/terminal
     },
     scrollContent: {
-        padding: 16,
-        paddingBottom: 32,
+        padding: Spacing.md,
     },
-    logText: {
-        fontFamily: 'monospace', // Falls back to system monospace font safely
-        fontSize: 13,
-        lineHeight: 20,
-        marginBottom: 4,
+    emptyText: {
+        color: 'rgba(255,255,255,0.4)',
+        fontFamily: 'monospace',
     },
-    cursorAnimation: {
-        color: '#4ade80',
-        opacity: 0.8,
+    logRow: {
+        flexDirection: 'row',
+        marginBottom: 8,
+        alignItems: 'flex-start',
+    },
+    logTime: {
+        color: 'rgba(255,255,255,0.4)',
+        fontFamily: 'monospace',
+        fontSize: 12,
+        marginRight: 6,
+    },
+    logType: {
+        fontFamily: 'monospace',
+        fontSize: 12,
+        fontWeight: 'bold',
+        marginRight: 6,
+        width: 60,
+    },
+    logMessage: {
+        flex: 1,
+        color: 'rgba(255,255,255,0.85)',
+        fontFamily: 'monospace',
+        fontSize: 12,
     },
 });
 

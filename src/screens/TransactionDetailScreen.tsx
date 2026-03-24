@@ -18,7 +18,7 @@ import {
     View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import GlassCard from '../components/GlassCard';
+import LiquidCard from '../components/LiquidCard';
 import TransactionModal from '../components/TransactionModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { formatVND, formatFullDate } from '../common/formatters';
@@ -124,10 +124,10 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
                 showsVerticalScrollIndicator={false}>
 
                 {/* ── Amount Card ── */}
-                <GlassCard
+                <LiquidCard
                     style={styles.amountCard}
-                    backgroundOpacity={0}
-                    borderOpacity={0}
+                    intensity="heavy"
+                    
                     borderRadius={Radii.xxl}>
                     <View style={[styles.typeBadge, { borderColor: typeColor }]}>
                         {isIn ? (
@@ -142,13 +142,13 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
                     <Text style={[styles.amount, { color: typeColor }]}>
                         {typeSign}{formatVND(transaction.amount)}
                     </Text>
-                </GlassCard>
+                </LiquidCard>
 
                 {/* ── Info Card ── */}
-                <GlassCard
+                <LiquidCard
                     style={styles.infoCard}
-                    backgroundOpacity={0}
-                    borderOpacity={0}
+                    intensity="heavy"
+                    
                     borderRadius={Radii.xl}>
                     {/* Reason */}
                     <View style={styles.infoRow}>
@@ -190,14 +190,14 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
                             <Text style={styles.infoValue}>{walletName}</Text>
                         </View>
                     </View>
-                </GlassCard>
+                </LiquidCard>
 
                 {/* ── Image Card ── */}
                 {transaction.image_uri ? (
-                    <GlassCard
+                    <LiquidCard
                         style={styles.imageCard}
-                        backgroundOpacity={0}
-                        borderOpacity={0}
+                        intensity="heavy"
+                        
                         borderRadius={Radii.xl}>
                         <View style={styles.imageHeader}>
                             <ImageIcon size={18} color="rgba(255,255,255,0.7)" strokeWidth={2} />
@@ -208,7 +208,7 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
                             style={styles.transactionImage}
                             resizeMode="cover"
                         />
-                    </GlassCard>
+                    </LiquidCard>
                 ) : null}
 
                 {/* ── Action Buttons ── */}
@@ -216,23 +216,21 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
                     <Pressable
                         onPress={handleOpenEdit}
                         style={({ pressed }) => [
-                            styles.actionBtn,
-                            styles.editBtn,
-                            pressed && { opacity: 0.7 },
+                            styles.glassActionBtn,
+                            { transform: [{ scale: pressed ? 0.96 : 1 }] },
                         ]}>
-                        <Pencil size={18} color="rgba(255,255,255,0.85)" strokeWidth={2} />
-                        <Text style={styles.editBtnText}>Sửa giao dịch</Text>
+                        <Pencil size={18} color="#FFFFFF" strokeWidth={2.5} />
+                        <Text style={styles.glassActionText}>Sửa giao dịch</Text>
                     </Pressable>
 
                     <Pressable
                         onPress={handleDeletePress}
                         style={({ pressed }) => [
-                            styles.actionBtn,
-                            styles.delBtn,
-                            pressed && { opacity: 0.7 },
+                            styles.glassActionBtn, // Sử dụng chung nền kính mờ trắng đục
+                            { transform: [{ scale: pressed ? 0.96 : 1 }] },
                         ]}>
-                        <Trash2 size={18} color="rgba(255,255,255,0.85)" strokeWidth={2} />
-                        <Text style={styles.delBtnText}>Xóa giao dịch</Text>
+                        <Trash2 size={18} color="#ef4444" strokeWidth={2.5} />
+                        <Text style={[styles.glassActionText, { color: '#ef4444' }]}>Xóa giao dịch</Text>
                     </Pressable>
                 </View>
 
@@ -395,32 +393,22 @@ const styles = StyleSheet.create({
         gap: 12,
         marginTop: Spacing.sm,
     },
-    actionBtn: {
+    glassActionBtn: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 10,
-        paddingVertical: 15,
-        borderRadius: Radii.lg,
+        gap: 8,
+        height: 54,
+        backgroundColor: 'rgba(255, 255, 255, 0.12)', // Kính đục Apple Control Center
+        borderRadius: 24, // Bo cong sâu Squircle
         borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.2)', // Ánh sáng viền hắt
     },
-    editBtn: {
-        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-        borderColor: 'rgba(255, 255, 255, 0.15)',
-    },
-    editBtnText: {
+    glassActionText: {
         fontSize: FontSizes.md,
         fontWeight: '600',
-        color: 'rgba(255, 255, 255, 0.85)',
-    },
-    delBtn: {
-        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-        borderColor: 'rgba(255, 255, 255, 0.15)',
-    },
-    delBtnText: {
-        fontSize: FontSizes.md,
-        fontWeight: '600',
-        color: 'rgba(255, 255, 255, 0.85)',
+        color: '#FFFFFF',
+        letterSpacing: 0.3,
     },
 });
 

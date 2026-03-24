@@ -1,19 +1,13 @@
-/**
- * AnimatedOverlay.tsx — Lớp phủ mờ dần (fade in/out) tái sử dụng
- * Thay thế overlays cứng trong các modal, hỗ trợ cả mở và đóng
- */
-
 import React, { useEffect, useRef } from 'react';
-import { Animated, Pressable, StyleSheet } from 'react-native';
+import { Animated, Pressable, StyleSheet, View } from 'react-native';
+import { BlurView } from '@react-native-community/blur';
 
 interface AnimatedOverlayProps {
     visible: boolean;
     onPress?: () => void;
     children?: React.ReactNode;
-    /** Thời gian animation (ms) */
     duration?: number;
-    /** Màu overlay */
-    color?: string;
+    color?: string; // Kept for API compatibility but overridden by Glass
 }
 
 const AnimatedOverlay: React.FC<AnimatedOverlayProps> = ({
@@ -21,7 +15,6 @@ const AnimatedOverlay: React.FC<AnimatedOverlayProps> = ({
     onPress,
     children,
     duration = 250,
-    color = 'rgba(0, 0, 0, 0.55)',
 }) => {
     const opacity = useRef(new Animated.Value(0)).current;
 
@@ -39,15 +32,25 @@ const AnimatedOverlay: React.FC<AnimatedOverlayProps> = ({
         <Animated.View
             style={[
                 StyleSheet.absoluteFill,
-                { backgroundColor: color, opacity },
+                { opacity },
             ]}
             pointerEvents={visible ? 'auto' : 'none'}>
+            
+            <View style={[StyleSheet.absoluteFill, { zIndex: 0 }]}>
+                <BlurView 
+                    style={StyleSheet.absoluteFill} 
+                    blurType="dark"
+                    blurAmount={25}
+                    overlayColor="rgba(11, 15, 25, 0.65)"
+                />
+            </View>
+
             {onPress ? (
-                <Pressable style={StyleSheet.absoluteFill} onPress={onPress}>
+                <Pressable style={[StyleSheet.absoluteFill, { zIndex: 1 }]} onPress={onPress}>
                     {children}
                 </Pressable>
             ) : (
-                children
+                <View style={{ zIndex: 1, flex: 1 }}>{children}</View>
             )}
         </Animated.View>
     );

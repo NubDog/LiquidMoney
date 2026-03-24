@@ -1,232 +1,157 @@
 /**
- * SegmentedControl.tsx — Tab Switcher với hiệu ứng Liquid Glass
- * Spring animation cho indicator trượt mượt kiểu Apple
- * Scale "bong bóng" khi di chuyển + glow effect
+ * SegmentedControl.tsx — Liquid Glass Tabs wrapper
+ * Uses LiquidCard to wrap tabs with a frosted container
  */
 
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-    Animated,
+    LayoutChangeEvent,
+    Pressable,
     StyleSheet,
     Text,
-    TouchableOpacity,
     View,
-    type LayoutChangeEvent,
+    Animated,
 } from 'react-native';
-
-// ─── Props ────────────────────────────────────────────────────────────────────
+import { Colors, FontSizes, Radii, Shadows } from '../common/theme';
+import LiquidCard from './LiquidCard';
 
 interface SegmentedControlProps {
-    /** Danh sách nhãn cho từng tab */
-    segments: string[];
-    /** Index tab đang chọn */
-    selectedIndex: number;
-    /** Callback khi đổi tab */
-    onChange: (index: number) => void;
+    tabs: string[];
+    activeTab: string;
+    onTabChange: (tab: string) => void;
+    counts?: Record<string, number>;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
 const SegmentedControl: React.FC<SegmentedControlProps> = ({
-    segments,
-    selectedIndex,
-    onChange,
+    tabs,
+    activeTab,
+    onTabChange,
+    counts,
 }) => {
-    const [containerWidth, setContainerWidth] = useState(0);
+    const [tabWidth, setTabWidth] = useState(0);
     const translateX = useRef(new Animated.Value(0)).current;
-    const scaleX = useRef(new Animated.Value(1)).current;
-    const scaleY = useRef(new Animated.Value(1)).current;
-    const glowOpacity = useRef(new Animated.Value(0)).current;
-    const prevIndexRef = useRef(selectedIndex);
 
-    const segmentWidth = containerWidth / segments.length;
+    const activeIndex = tabs.indexOf(activeTab);
 
-    // Đo chiều rộng container khi layout
-    const onLayout = useCallback(
-        (e: LayoutChangeEvent) => {
-            const width = e.nativeEvent.layout.width;
-            setContainerWidth(width);
-            translateX.setValue(selectedIndex * (width / segments.length));
-        },
-        [selectedIndex, segments.length, translateX],
-    );
-
-    // Liquid Glass animation khi đổi tab
-    React.useEffect(() => {
-        if (containerWidth > 0) {
-            const prevIndex = prevIndexRef.current;
-            const distance = Math.abs(selectedIndex - prevIndex);
-            prevIndexRef.current = selectedIndex;
-
-            if (distance === 0) {
-                // Lần đầu mount hoặc cùng tab — không cần animation fancy
-                Animated.spring(translateX, {
-                    toValue: selectedIndex * segmentWidth,
-                    useNativeDriver: true,
-                    friction: 12,
-                    tension: 80,
-                }).start();
-                return;
-            }
-
-            // Liquid Glass: bubble stretch → slide → settle
-            const stretchAmount = 1 + distance * 0.06; // Stretch nhiều hơn khi xa
-            const squishAmount = 1 - distance * 0.04;
-
-            Animated.sequence([
-                // Phase 1: Stretch ra (bong bóng mở rộng)
-                Animated.parallel([
-                    Animated.spring(scaleX, {
-                        toValue: stretchAmount,
-                        useNativeDriver: true,
-                        friction: 8,
-                        tension: 200,
-                    }),
-                    Animated.spring(scaleY, {
-                        toValue: squishAmount,
-                        useNativeDriver: true,
-                        friction: 8,
-                        tension: 200,
-                    }),
-                    Animated.timing(glowOpacity, {
-                        toValue: 1,
-                        duration: 100,
-                        useNativeDriver: true,
-                    }),
-                ]),
-                // Phase 2: Slide + settle
-                Animated.parallel([
-                    Animated.spring(translateX, {
-                        toValue: selectedIndex * segmentWidth,
-                        useNativeDriver: true,
-                        friction: 10,
-                        tension: 60,
-                    }),
-                    Animated.spring(scaleX, {
-                        toValue: 1,
-                        useNativeDriver: true,
-                        friction: 6,
-                        tension: 100,
-                    }),
-                    Animated.spring(scaleY, {
-                        toValue: 1,
-                        useNativeDriver: true,
-                        friction: 6,
-                        tension: 100,
-                    }),
-                    Animated.timing(glowOpacity, {
-                        toValue: 0,
-                        duration: 400,
-                        useNativeDriver: true,
-                    }),
-                ]),
-            ]).start();
+    useEffect(() => {
+        if (tabWidth > 0 && activeIndex !== -1) {
+            Animated.spring(translateX, {
+                toValue: activeIndex * tabWidth,
+                damping: 20,
+                stiffness: 200,
+                mass: 0.5,
+                useNativeDriver: true,
+            }).start();
         }
-    }, [selectedIndex, segmentWidth, containerWidth, translateX, scaleX, scaleY, glowOpacity]);
+    }, [activeIndex, tabWidth, translateX]);
+
+    const handleLayout = (event: LayoutChangeEvent) => {
+        const { width } = event.nativeEvent.layout;
+        setTabWidth(width / tabs.length);
+    };
 
     return (
-        <View style={styles.container} onLayout={onLayout}>
-            {/* Indicator trượt — Liquid Glass */}
-            <Animated.View
-                style={[
-                    styles.indicator,
-                    {
-                        transform: [
-                            { translateX },
-                            { scaleX },
-                            { scaleY },
-                        ],
-                        width: segmentWidth > 0 ? segmentWidth - 4 : 0,
-                    },
-                ]}
-            />
-            {/* Glow effect khi trượt */}
-            <Animated.View
-                style={[
-                    styles.glow,
-                    {
-                        opacity: glowOpacity,
-                        transform: [{ translateX }],
-                        width: segmentWidth > 0 ? segmentWidth - 4 : 0,
-                    },
-                ]}
-            />
+        <LiquidCard 
+            style={styles.container} 
+            intensity="heavy" 
+             
+            borderRadius={Radii.lg}
+        >
+            <View style={styles.innerLayout} onLayout={handleLayout}>
+                {tabWidth > 0 && (
+                    <Animated.View style={[styles.indicator, { width: tabWidth, transform: [{ translateX }] }]} />
+                )}
+                
+                {tabs.map(tab => {
+                    const isActive = activeTab === tab;
+                    const count = counts?.[tab];
 
-            {/* Các segment */}
-            {segments.map((label, index) => {
-                const isSelected = index === selectedIndex;
-
-                return (
-                    <TouchableOpacity
-                        key={label}
-                        activeOpacity={0.7}
-                        onPress={() => onChange(index)}
-                        style={styles.segment}>
-                        <Text
-                            style={[
-                                styles.segmentText,
-                                isSelected && styles.segmentTextActive,
-                            ]}>
-                            {label}
-                        </Text>
-                    </TouchableOpacity>
-                );
-            })}
-        </View>
+                    return (
+                        <Pressable
+                            key={tab}
+                            style={styles.tab}
+                            onPress={() => onTabChange(tab)}
+                            accessible={true}
+                            accessibilityRole="tab"
+                            accessibilityState={{ selected: isActive }}>
+                            <View style={styles.tabContent}>
+                                <Text
+                                    style={[
+                                        styles.tabText,
+                                        isActive && styles.activeTabText,
+                                    ]}>
+                                    {tab}
+                                </Text>
+                                {count !== undefined && count > 0 && (
+                                    <View style={styles.badge}>
+                                        <Text style={styles.badgeText}>{count}</Text>
+                                    </View>
+                                )}
+                            </View>
+                        </Pressable>
+                    );
+                })}
+            </View>
+        </LiquidCard>
     );
 };
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
 const styles = StyleSheet.create({
     container: {
+        marginHorizontal: 16,
+        padding: 4,
+    },
+    innerLayout: {
         flexDirection: 'row',
-        backgroundColor: 'rgba(255, 255, 255, 0.06)',
-        borderRadius: 14,
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.1)',
-        padding: 2,
         position: 'relative',
     },
     indicator: {
         position: 'absolute',
         top: 2,
-        left: 2,
         bottom: 2,
-        backgroundColor: 'rgba(255, 255, 255, 0.15)',
-        borderRadius: 12,
+        left: 0,
+        backgroundColor: 'rgba(255,255,255,0.15)', // Glass selection highlight
+        borderRadius: Radii.md - 2,
         borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.25)',
-        // Glass shadow effect
-        shadowColor: 'rgba(255, 255, 255, 0.3)',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 4,
+        borderColor: 'rgba(255,255,255,0.3)', // Solid edge for selection
     },
-    glow: {
-        position: 'absolute',
-        top: 0,
-        left: 2,
-        bottom: 0,
-        backgroundColor: 'rgba(192, 132, 252, 0.08)',
-        borderRadius: 12,
-    },
-    segment: {
+    tab: {
         flex: 1,
         paddingVertical: 10,
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 1,
     },
-    segmentText: {
-        fontSize: 14,
-        fontWeight: '500',
-        color: 'rgba(255, 255, 255, 0.45)',
+    tabContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
     },
-    segmentTextActive: {
-        color: '#FFFFFF',
+    tabText: {
+        fontSize: FontSizes.sm,
         fontWeight: '600',
+        color: 'rgba(255, 255, 255, 0.5)',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+    },
+    activeTabText: {
+        color: '#FFFFFF',
+        textShadowColor: 'rgba(0,0,0,0.5)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
+    },
+    badge: {
+        backgroundColor: Colors.accent,
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 10,
+        minWidth: 20,
+        alignItems: 'center',
+    },
+    badgeText: {
+        color: "#FFFFFF",
+        fontSize: 10,
+        fontWeight: '800',
     },
 });
 

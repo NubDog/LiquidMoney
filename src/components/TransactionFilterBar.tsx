@@ -1,254 +1,115 @@
 /**
- * TransactionFilterBar.tsx — Liquid Gliding Segmented Control
- * Dark Mode • Frosted Glass • Spring Physics
- *
- * Thư viện:
- *  - react-native-reanimated v3  (useSharedValue, useAnimatedStyle, withSpring, interpolateColor)
- *  - react-native-gesture-handler (Gesture.Tap, GestureDetector)
- *  - @react-native-community/blur (BlurView)
+ * TransactionFilterBar.tsx
+ * Uses Volumetric Liquid Glass UI container for filter options
  */
 
-import React, { useCallback, useState, useRef, useEffect } from 'react';
-import {
-    Animated,
-    Platform,
-    StyleSheet,
-    View,
-    type LayoutChangeEvent,
-    Pressable,
-} from 'react-native';
-import { BlurView } from '@react-native-community/blur';
+import React from 'react';
+import { ScrollView, StyleSheet, Text, Pressable, View } from 'react-native';
+import { Calendar } from 'lucide-react-native';
+import { FontSizes, Spacing, Radii } from '../common/theme';
+import LiquidCard from './LiquidCard';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+export interface FilterOption {
+    id: string;
+    label: string;
+    icon?: React.ReactNode;
+}
 
 interface TransactionFilterBarProps {
-    /** Danh sách nhãn tab, mặc định: ['Tất cả', 'Thu', 'Chi'] */
-    segments?: string[];
-    /** Index tab đang active */
-    selectedIndex: number;
-    /** Callback khi chuyển tab */
-    onChange: (index: number) => void;
+    options: FilterOption[];
+    activeFilterId: string;
+    onSelectFilter: (id: string) => void;
 }
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const DEFAULT_SEGMENTS = ['Tất cả', 'Thu', 'Chi'];
-const CONTAINER_PADDING = 6;
-const INDICATOR_BORDER_RADIUS = 22;
-const CONTAINER_BORDER_RADIUS = 26;
-
-// Spring config — mềm mại, mượt mà, có độ nảy nhẹ
-const SPRING_CONFIG = {
-    damping: 18,
-    stiffness: 160,
-    mass: 0.8,
-    overshootClamping: false,
-    restDisplacementThreshold: 0.01,
-    restSpeedThreshold: 0.01,
-};
-
-// Colors
-const ACTIVE_TEXT_COLOR = '#FFFFFF';
-const INACTIVE_TEXT_COLOR = 'rgba(255, 255, 255, 0.40)';
-const INDICATOR_BG = 'rgba(255, 255, 255, 0.14)';
-const INDICATOR_BORDER = 'rgba(255, 255, 255, 0.22)';
-
-// ─── Animated Tab Label ───────────────────────────────────────────────────────
-
-interface TabLabelProps {
-    label: string;
-    index: number;
-    /** React Native Animated value: current active index */
-    activeProgress: Animated.Value;
-    segmentWidth: number;
-    onTap: (index: number) => void;
-}
-
-const TabLabel: React.FC<TabLabelProps> = React.memo(
-    ({ label, index, activeProgress, segmentWidth, onTap }) => {
-        // Interpolate color directly from activeProgress
-        const color = activeProgress.interpolate({
-            inputRange: [index - 1, index, index + 1],
-            outputRange: [INACTIVE_TEXT_COLOR, ACTIVE_TEXT_COLOR, INACTIVE_TEXT_COLOR],
-            extrapolate: 'clamp',
-        });
-
-        // Interpolate scale directly from activeProgress
-        const scale = activeProgress.interpolate({
-            inputRange: [index - 1, index, index + 1],
-            outputRange: [1, 1.04, 1],
-            extrapolate: 'clamp',
-        });
-
-        return (
-            <Pressable onPress={() => onTap(index)}>
-                <Animated.View
-                    style={[
-                        localStyles.tabHitArea,
-                        { width: segmentWidth },
-                        { transform: [{ scale }] },
-                    ]}>
-                    <Animated.Text
-                        style={[localStyles.tabText, { color }]}
-                        numberOfLines={1}>
-                        {label}
-                    </Animated.Text>
-                </Animated.View>
-            </Pressable>
-        );
-    },
-);
-
-// ─── Main Component ───────────────────────────────────────────────────────────
 
 const TransactionFilterBar: React.FC<TransactionFilterBarProps> = ({
-    segments = DEFAULT_SEGMENTS,
-    selectedIndex,
-    onChange,
+    options,
+    activeFilterId,
+    onSelectFilter,
 }) => {
-    const [containerWidth, setContainerWidth] = useState(0);
-
-    // React Native Animated value biểu thị index đang active
-    const activeIndex = useRef(new Animated.Value(selectedIndex)).current;
-
-    // Cập nhật khi selectedIndex thay đổi từ props
-    useEffect(() => {
-        Animated.spring(activeIndex, {
-            toValue: selectedIndex,
-            damping: SPRING_CONFIG.damping,
-            stiffness: SPRING_CONFIG.stiffness,
-            mass: SPRING_CONFIG.mass,
-            useNativeDriver: false, // Must be false for color interpolation in children
-        }).start();
-    }, [selectedIndex, activeIndex]);
-
-    // Kích thước mỗi tab
-    const segmentWidth =
-        containerWidth > 0
-            ? (containerWidth - CONTAINER_PADDING * 2) / segments.length
-            : 0;
-
-    // Đo container
-    const handleLayout = useCallback((e: LayoutChangeEvent) => {
-        setContainerWidth(e.nativeEvent.layout.width);
-    }, []);
-
-    // Callback khi tap tab
-    const handleTap = useCallback(
-        (index: number) => {
-            onChange(index);
-        },
-        [onChange],
-    );
-
-    // ── Indicator animated style ──
-    const translateX = activeIndex.interpolate({
-        inputRange: [0, Math.max(segments.length - 1, 1)],
-        outputRange: [0, segmentWidth * Math.max(segments.length - 1, 1)],
-    });
-
     return (
-        <View style={localStyles.wrapper} onLayout={handleLayout}>
-            {/* Frosted Glass background — BlurView */}
-            {Platform.OS === 'ios' ? (
-                <BlurView
-                    style={StyleSheet.absoluteFill}
-                    blurType="dark"
-                    blurAmount={24}
-                    reducedTransparencyFallbackColor="rgba(20, 20, 20, 0.85)"
-                />
-            ) : (
-                // Lớp kính mờ thủ công cho Android
-                <View
-                    style={[
-                        StyleSheet.absoluteFill,
-                        { backgroundColor: 'rgba(255, 255, 255, 0.05)' },
-                    ]}
-                />
-            )}
+        <View style={styles.container}>
+            <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.scrollContent}>
+                {options.map((option) => {
+                    const isActive = activeFilterId === option.id;
 
-            {/* Inner container chứa indicator + tabs */}
-            <View style={localStyles.innerContainer}>
-                {/* Indicator — cục pill trượt */}
-                <Animated.View style={[
-                    localStyles.indicator,
-                    {
-                        opacity: segmentWidth > 0 ? 1 : 0,
-                        transform: [{ translateX }],
-                        width: segmentWidth,
-                    }
-                ]}>
-                    <View style={localStyles.indicatorInner} />
-                </Animated.View>
-
-                {/* Tab labels */}
-                {segments.map((label, index) => (
-                    <TabLabel
-                        key={label}
-                        label={label}
-                        index={index}
-                        activeProgress={activeIndex}
-                        segmentWidth={segmentWidth}
-                        onTap={handleTap}
-                    />
-                ))}
-            </View>
+                    return (
+                        <Pressable
+                            key={option.id}
+                            onPress={() => onSelectFilter(option.id)}
+                            style={styles.pillWrapper}>
+                                <LiquidCard
+                                    style={[
+                                        styles.pill,
+                                        isActive && styles.pillActive,
+                                    ]}
+                                    intensity={isActive ? "heavy" : "light"}
+                                    borderRadius={Radii.pill}
+                                >
+                                <View style={styles.pillContent}>
+                                    {option.icon ? (
+                                        <View style={[styles.iconContainer, isActive && styles.iconActive]}>
+                                            {option.icon}
+                                        </View>
+                                    ) : null}
+                                    <Text
+                                        style={[
+                                            styles.pillText,
+                                            isActive && styles.activePillText,
+                                        ]}>
+                                        {option.label}
+                                    </Text>
+                                </View>
+                            </LiquidCard>
+                        </Pressable>
+                    );
+                })}
+            </ScrollView>
         </View>
     );
 };
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
-const localStyles = StyleSheet.create({
-    wrapper: {
-        borderRadius: CONTAINER_BORDER_RADIUS,
-        overflow: 'hidden',
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.15)',
-        backgroundColor: Platform.OS === 'android' ? 'rgba(0,0,0,0.2)' : 'transparent',
+const styles = StyleSheet.create({
+    container: {
+        marginBottom: Spacing.md,
     },
-    innerContainer: {
+    scrollContent: {
+        paddingHorizontal: Spacing.xl,
+        gap: Spacing.sm,
+    },
+    pillWrapper: {
+        // Shadow wrapper handled by LiquidCard
+    },
+    pill: {
+        paddingHorizontal: Spacing.md,
+        paddingVertical: 8,
+    },
+    pillActive: {
+        // Handled via props
+    },
+    pillContent: {
         flexDirection: 'row',
-        padding: CONTAINER_PADDING,
-        position: 'relative',
-    },
-    indicator: {
-        position: 'absolute',
-        top: CONTAINER_PADDING,
-        left: CONTAINER_PADDING,
-        bottom: CONTAINER_PADDING,
-        justifyContent: 'center',
         alignItems: 'center',
+        gap: 6,
     },
-    indicatorInner: {
-        flex: 1,
-        width: '100%',
-        borderRadius: INDICATOR_BORDER_RADIUS,
-        backgroundColor: 'rgba(255, 255, 255, 0.15)',
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.25)',
-        // Subtle glow
-        ...(Platform.OS === 'ios'
-            ? {
-                shadowColor: 'rgba(255, 255, 255, 0.25)',
-                shadowOffset: { width: 0, height: 0 },
-                shadowOpacity: 0.4,
-                shadowRadius: 10,
-            }
-            : {
-                elevation: 0,
-            }),
+    iconContainer: {
+        opacity: 0.6,
     },
-    tabHitArea: {
-        paddingVertical: 12,
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 2,
+    iconActive: {
+        opacity: 1,
     },
-    tabText: {
-        fontSize: 14,
+    pillText: {
+        fontSize: FontSizes.sm,
         fontWeight: '600',
-        letterSpacing: 0.2,
+        color: 'rgba(255, 255, 255, 0.6)',
+    },
+    activePillText: {
+        color: '#FFFFFF',
+        textShadowColor: 'rgba(0,0,0,0.5)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
     },
 });
 

@@ -1,127 +1,136 @@
 /**
- * TransactionRow.tsx — Reusable transaction row component
- * Consolidates near-identical transaction row rendering from
- * StatsScreen (renderRecentItem) and WalletDetailScreen (TransactionItem).
+ * TransactionRow.tsx — Item Row displaying individual transactions
+ * Wrapped entirely in a slim LiquidCard for uniformity
  */
 
-import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { ArrowDownLeft, ArrowUpRight } from 'lucide-react-native';
-import GlassCard from './GlassCard';
-import { formatVND, formatDate } from '../common/formatters';
-import { Colors, FontSizes, Radii } from '../common/theme';
+import React, { useRef } from 'react';
+import { StyleSheet, Text, View, Pressable, Animated } from 'react-native';
+import { ArrowDownRight, ArrowUpRight, Repeat } from 'lucide-react-native';
+import { format } from 'date-fns';
+import { vi } from 'date-fns/locale';
+import { Colors, FontSizes, Shadows, Radii, Spacing } from '../common/theme';
+import LiquidCard from './LiquidCard';
 import type { Transaction } from '../common/types';
-
-// ─── Props ────────────────────────────────────────────────────────────────────
 
 interface TransactionRowProps {
     item: Transaction;
-    /** Called when the row is pressed */
-    onPress?: (item: Transaction) => void;
-    /** 'card' wraps in a GlassCard, 'flat' is a simple row */
+    onPress?: (transaction: Transaction) => void;
     variant?: 'card' | 'flat';
 }
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 const TransactionRow: React.FC<TransactionRowProps> = ({
     item,
     onPress,
     variant = 'card',
 }) => {
-    const isIn = item.type === 'IN';
-    const iconBg = isIn ? Colors.incomeBg : Colors.expenseBg;
-    const amountColor = isIn ? Colors.income : Colors.expense;
+    const isIncome = item.type === 'IN';
+    const isTransfer = false; // Add actual logic if 'transfer' exists in types later
+    const scale = useRef(new Animated.Value(1)).current;
 
-    const content = (
-        <View style={variant === 'card' ? styles.txRowCard : styles.txRowFlat}>
-            <View style={[styles.txIcon, { backgroundColor: iconBg }]}>
-                {isIn ? (
-                    <ArrowDownLeft size={variant === 'card' ? 24 : 15} color={Colors.income} strokeWidth={2.5} />
-                ) : (
-                    <ArrowUpRight size={variant === 'card' ? 24 : 15} color={Colors.expense} strokeWidth={2.5} />
-                )}
-            </View>
+    const handlePressIn = () => {
+        Animated.spring(scale, {
+            toValue: 0.98,
+            useNativeDriver: true,
+        }).start();
+    };
 
-            <View style={styles.txInfo}>
-                <Text style={styles.txReason} numberOfLines={1}>
-                    {item.reason || (isIn ? 'Thu nhập' : 'Chi tiêu')}
-                </Text>
-                <Text style={styles.txDate}>
-                    {formatDate(item.created_at)}
-                </Text>
-            </View>
+    const handlePressOut = () => {
+        Animated.spring(scale, {
+            toValue: 1,
+            useNativeDriver: true,
+        }).start();
+    };
 
-            <Text style={[styles.txAmount, { color: amountColor }]}>
-                {isIn ? '+' : '-'}
-                {formatVND(item.amount)}
-            </Text>
-        </View>
-    );
-
-    if (variant === 'card') {
-        return (
-            <Pressable onPress={onPress ? () => onPress(item) : undefined}>
-                <GlassCard
-                    style={styles.txCard}
-                    backgroundOpacity={0.1}
-                    borderOpacity={0.12}
-                    borderRadius={Radii.lg}>
-                    {content}
-                </GlassCard>
-            </Pressable>
+    const getIcon = () => {
+        if (isTransfer) return <Repeat size={20} color={'#FFFFFF'} />;
+        return isIncome ? (
+            <ArrowDownRight size={20} color={'#FFFFFF'} />
+        ) : (
+            <ArrowUpRight size={20} color={'#FFFFFF'} />
         );
-    }
+    };
 
-    // Flat variant (used in StatsScreen)
     return (
-        <Pressable onPress={onPress ? () => onPress(item) : undefined}>
-            {content}
-        </Pressable>
+        <Animated.View style={[{ transform: [{ scale }] }, variant === 'flat' && { marginBottom: 1 }]}>
+            <Pressable
+                onPress={() => onPress?.(item)}
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+                style={styles.wrapper}>
+                <LiquidCard 
+                    style={styles.card}
+                    intensity="heavy"
+                    
+                    borderRadius={Radii.lg}
+                >
+                    <View style={styles.content}>
+                        <View style={[
+                            styles.iconContainer,
+                            { backgroundColor: isIncome ? 'rgba(16, 185, 129, 0.2)' : isTransfer ? 'rgba(168, 85, 247, 0.2)' : 'rgba(239, 68, 68, 0.2)' }
+                        ]}>
+                            {getIcon()}
+                        </View>
+                        
+                        <View style={styles.info}>
+                            <Text style={styles.description} numberOfLines={1}>
+                                {item.reason || (isIncome ? 'Thu Nhập' : 'Chi Tiêu')}
+                            </Text>
+                            <Text style={styles.date}>
+                                {format(new Date(item.created_at), 'dd MMM yyyy, HH:mm', { locale: vi })}
+                            </Text>
+                        </View>
+                        
+                        <Text style={[
+                            styles.amount,
+                            { color: isIncome ? Colors.income : isTransfer ? '#A855F7' : '#FFFFFF' }
+                        ]}>
+                            {(isIncome ? '+' : '-') + item.amount.toString() + ' ₫'}
+                        </Text>
+                    </View>
+                </LiquidCard>
+            </Pressable>
+        </Animated.View>
     );
 };
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
 const styles = StyleSheet.create({
-    txCard: {
-        marginBottom: 10,
+    wrapper: {
+        marginHorizontal: Spacing.xl,
+        marginBottom: Spacing.sm,
     },
-    txRowCard: {
+    card: {
+        overflow: 'hidden',
+    },
+    content: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 14,
+        padding: Spacing.md,
     },
-    txRowFlat: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.divider,
-    },
-    txIcon: {
+    iconContainer: {
         width: 44,
         height: 44,
-        borderRadius: Radii.md,
+        borderRadius: 22,
         alignItems: 'center',
         justifyContent: 'center',
-        marginRight: 12,
+        marginRight: Spacing.md,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.2)',
     },
-    txInfo: {
+    info: {
         flex: 1,
-        marginRight: 8,
+        marginRight: Spacing.md,
     },
-    txReason: {
+    description: {
         fontSize: FontSizes.md,
         fontWeight: '600',
-        color: Colors.text,
+        color: '#FFFFFF',
+        marginBottom: 2,
     },
-    txDate: {
-        fontSize: FontSizes.xs + 1,
-        color: Colors.textMuted,
-        marginTop: 3,
+    date: {
+        fontSize: FontSizes.sm - 1,
+        color: 'rgba(255, 255, 255, 0.5)',
     },
-    txAmount: {
+    amount: {
         fontSize: FontSizes.lg - 2,
         fontWeight: '700',
     },

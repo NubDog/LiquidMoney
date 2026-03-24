@@ -10,7 +10,7 @@
 export function formatVND(n: number): string {
     return Math.abs(n)
         .toString()
-        .replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' ₫';
+        .replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' VND';
 }
 
 /**
@@ -21,8 +21,8 @@ export function formatVNDShort(n: number): string {
     const abs = Math.abs(n);
     if (abs >= 1_000_000_000) { return (abs / 1_000_000_000).toFixed(1) + 'T'; }
     if (abs >= 1_000_000) { return (abs / 1_000_000).toFixed(1) + 'Tr'; }
-    if (abs >= 1_000) { return Math.round(abs / 1_000) + 'K'; }
-    return abs.toString() + ' ₫';
+    if (abs >= 1_000) { return Math.round(abs / 1_000).toString() + 'K'; }
+    return abs.toString() + ' VND';
 }
 
 /**
@@ -55,8 +55,8 @@ export function formatFullDate(iso: string): string {
 
 /**
  * Format a signed VND amount with prefix.
- * Example: formatVNDSigned(1234567) → "+1.234.567 ₫"
- *          formatVNDSigned(-500000) → "-500.000 ₫"
+ * Example: formatVNDSigned(1234567) → "+1.234.567 VND"
+ *          formatVNDSigned(-500000) → "-500.000 VND"
  */
 export function formatVNDSigned(n: number): string {
     const prefix = n >= 0 ? '+' : '-';
