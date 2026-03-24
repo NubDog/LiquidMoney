@@ -56,7 +56,7 @@ const WalletModal: React.FC<WalletModalProps> = ({
         if (!trimmedName) return;
         const balance = parseInt(balanceStr.replace(/[^0-9]/g, ''), 10);
         if (isNaN(balance)) return;
-        
+
         onSave(trimmedName, balance);
         handleClose();
     };
@@ -78,10 +78,9 @@ const WalletModal: React.FC<WalletModalProps> = ({
                         <LiquidCard
                             style={styles.sheet}
                             intensity="light"
-                            
                             borderRadius={Radii.xxl}
+                            extendBottom={true}
                         >
-                            <View style={styles.handleBar} />
                             <View style={styles.header}>
                                 <Text style={styles.title}>Thêm Ví Mới</Text>
                                 <LiquidIconButton onPress={handleClose} style={styles.closeBtn} size={36}>
@@ -139,20 +138,12 @@ const styles = StyleSheet.create({
         borderBottomWidth: 0,
         paddingBottom: 40,
     },
-    handleBar: {
-        width: 44,
-        height: 5,
-        borderRadius: 2.5,
-        backgroundColor: 'rgba(255,255,255,0.4)',
-        alignSelf: 'center',
-        marginTop: 12,
-        marginBottom: Spacing.md,
-    },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: Spacing.xl,
+        paddingTop: Spacing.xl, // Bù lại khoảng trống của HandleBar cũ
         paddingBottom: Spacing.lg,
     },
     title: {

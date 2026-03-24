@@ -69,10 +69,12 @@ const LiquidButton: React.FC<LiquidButtonProps> = ({
             ]}>
             {isFilled && (
                 <View style={[StyleSheet.absoluteFill, { borderRadius: 9999, overflow: 'hidden' }]}>
+                    {/* @ts-ignore: overlayColor is valid on Android but missing from the generic TS definition */}
                     <BlurView
                         style={StyleSheet.absoluteFill}
                         blurType="light"
                         blurAmount={15}
+                        overlayColor="transparent"
                         reducedTransparencyFallbackColor="transparent"
                     />
                     <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255, 255, 255, 0.05)' }]} />

@@ -7,12 +7,13 @@ interface LiquidCardProps {
     style?: StyleProp<ViewStyle>;
     borderRadius?: number;
     intensity?: 'light' | 'medium' | 'heavy';
+    extendBottom?: boolean;
 }
 
 const INTENSITY_PRESETS = {
-    light: { blurAmount: 15, overlayColor: 'rgba(0, 0, 0, 0.2)' },
-    medium: { blurAmount: 25, overlayColor: 'rgba(0, 0, 0, 0.4)' },
-    heavy: { blurAmount: 40, overlayColor: 'rgba(0, 0, 0, 0.6)' },
+    light: { blurAmount: 10, bgAlpha: 0.05 },
+    medium: { blurAmount: 15, bgAlpha: 0.15 },
+    heavy: { blurAmount: 25, bgAlpha: 0.25 },
 };
 
 const LiquidCard: React.FC<LiquidCardProps> = ({
@@ -20,21 +21,37 @@ const LiquidCard: React.FC<LiquidCardProps> = ({
     style,
     borderRadius = 24,
     intensity = 'medium',
+    extendBottom = false,
 }) => {
     return (
         <View style={[styles.container, { borderRadius }, style]}>
-            <View style={[StyleSheet.absoluteFill, { borderRadius, overflow: 'hidden' }]}>
+            {/* Lớp cha chứa BlurView: Cố tình đặt overflow='hidden' để cắt xén. Khi extendBottom=true, thân kính được nối dài xuống 500px */}
+            <View style={[
+                StyleSheet.absoluteFill, 
+                { borderRadius, overflow: 'hidden' },
+                extendBottom && { bottom: -500, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }
+            ]}>
+                {/* @ts-ignore: overlayColor fixes Android native tinting */}
                 <BlurView
-                    style={StyleSheet.absoluteFill}
-                    blurType="dark"
-                    {...INTENSITY_PRESETS[intensity]}
+                    // Nới rộng BlurView ra khỏi viền container (-25px các cạnh) để triệt tiêu lỗi "vệt sáng/dải sáng trắng" do Android lấy mẫu sai pixel ở biên.
+                    style={[StyleSheet.absoluteFill, { top: -25, left: -25, right: -25, bottom: extendBottom ? -500 : -25 }]}
+                    blurType="light"
+                    blurAmount={INTENSITY_PRESETS[intensity].blurAmount}
+                    overlayColor="transparent"
+                    reducedTransparencyFallbackColor="transparent"
                 />
+                <View style={[
+                    StyleSheet.absoluteFill, 
+                    { backgroundColor: `rgba(0, 0, 0, ${INTENSITY_PRESETS[intensity].bgAlpha})` },
+                    { top: -25, left: -25, right: -25, bottom: extendBottom ? -500 : -25 }
+                ]} />
             </View>
 
             <View
                 style={[
                     styles.volumetricHighlight,
-                    { borderRadius }
+                    { borderRadius },
+                    extendBottom && { bottom: -500 }
                 ]}
                 pointerEvents="none"
             />
@@ -52,8 +69,8 @@ const styles = StyleSheet.create({
     },
     volumetricHighlight: {
         ...StyleSheet.absoluteFillObject,
-        borderWidth: 1.5,
-        borderColor: 'rgba(255, 255, 255, 0.15)',
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: 'rgba(255, 255, 255, 0.3)',
         borderBottomWidth: 0,
         borderRightWidth: 0,
     },
