@@ -53,7 +53,7 @@ const SegmentedControl: React.FC<SegmentedControlProps> = ({
     return (
         <LiquidCard 
             style={styles.container} 
-            intensity="heavy" 
+            intensity="light" 
              
             borderRadius={Radii.lg}
         >

@@ -16,7 +16,14 @@ Nguyên tắc thiết kế Liquid Glass hoàn toàn trong trẻo, tinh khiết n
         reducedTransparencyFallbackColor="transparent"
     />
     ```
+    ```
 *   **Tránh chồng chéo Blur (Blur Stacking):** Nếu một đối tượng Glass được đặt trên một nền đã bị Blur trước đó (ví dụ Button nằm trong Modal), việc dùng BlurView quá mạnh sẽ gây ra lỗi gộp đục. Phải bóp `blurAmount` xuống mức thấp nhất hoặc dùng nền bán trong suốt (translucent solid).
+
+## 2. Quản lý Rìa Khúc Xạ (Refraction Bleed Area)
+*   **Giới hạn Negative Margin:** Khi dùng `StyleSheet.absoluteFill` kèm negative margins (ví dụ: `top: -25`) trên Android để tránh lỗi vỡ rìa, khoảng cách này **PHẢI tỷ lệ thuận với `blurAmount`**, thường là `margin = -(blurAmount * 1.2)`. 
+    * *Ví dụ:* `blurAmount={4}` thì chỉ cần `top: -5, ...`. 
+    * *Nguy cơ:* Nếu margin âm quá lớn so với blur, BlurView sẽ vô tình "chụp" luôn các đoạn text hoặc icon nằm sát bên ngoài component, kéo chúng vào trong mặt kính và tạo thành **chữ bóng ma** cực kỳ xấu.
+*   **Lỗi Ghost Snapshot trên Modal:** Trên Android, `BlurView` sẽ tự nhiên chụp lại toàn bộ cấu trúc View ẩn (kể cả bị đè bởi Modal). Nếu Modal có sử dụng Liquid Glass, **BẮT BUỘC phải unmount** các màn hình phức tạp nằm ngay dưới nó (như dùng `{!isOpen && <ScrollView>}`). Tuyệt đối không chỉ dùng style `display: 'none'` hay che lên trên.
 
 ## 2. Màu sắc và Vùng phủ (Overlay Fill)
 Để quy định kính là kính sáng (light glass) hay kính râm (dark glass), ta KHÔNG dùng cấu hình của BlurView, mà dùng một lớp phủ `<View>` nằm đè ngay trên lớp `BlurView`:

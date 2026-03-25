@@ -16,6 +16,7 @@ import { AlertTriangle } from 'lucide-react-native';
 import { animateDialogOpen, animateDialogClose } from '../common/animations';
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
 import LiquidCard from './LiquidCard';
+import LiquidButton from './LiquidButton';
 import AnimatedOverlay from './AnimatedOverlay';
 
 interface ConfirmDialogProps {
@@ -69,7 +70,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                 <Animated.View style={[styles.dialogContainer, { transform: [{ scale }] }]}>
                     <LiquidCard 
                         style={styles.dialog}
-                        intensity="heavy"
+                        intensity="light"
                         
                         borderRadius={Radii.xxl}
                     >
@@ -82,24 +83,19 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                         <Text style={styles.message}>{message}</Text>
 
                         <View style={styles.actions}>
-                            <Pressable
-                                style={({ pressed }) => [
-                                    styles.cancelBtn,
-                                    pressed && { opacity: 0.7 },
-                                ]}
+                            <LiquidButton
+                                variant="outline"
+                                style={{ flex: 1 }}
                                 onPress={handleCancel}>
                                 <Text style={styles.cancelText}>{cancelText}</Text>
-                            </Pressable>
+                            </LiquidButton>
 
-                            <Pressable
-                                style={({ pressed }) => [
-                                    styles.confirmBtn,
-                                    { backgroundColor: confirmColor },
-                                    pressed && { opacity: 0.7 },
-                                ]}
+                            <LiquidButton
+                                variant="filled"
+                                style={{ flex: 1 }} // Note: LiquidButton doesn't support backgroundColor injection simply without style merging on root container. We just rely on standard glass for consistency.
                                 onPress={handleConfirm}>
-                                <Text style={styles.confirmText}>{confirmText}</Text>
-                            </Pressable>
+                                <Text style={[styles.confirmText, { color: confirmColor }]}>{confirmText}</Text>
+                            </LiquidButton>
                         </View>
                     </LiquidCard>
                 </Animated.View>

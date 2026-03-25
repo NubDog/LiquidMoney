@@ -24,6 +24,7 @@ import TerminalLogModal from '../components/TerminalLogModal';
 import { useStore } from '../store/useStore';
 import { generateRandomTransactions } from '../database/queries';
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
+import ComponentLibraryScreen from './ComponentLibraryScreen';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -38,6 +39,9 @@ const DeveloperScreen: React.FC = () => {
     const [showTerminal, setShowTerminal] = useState(false);
     const [logs, setLogs] = useState<string[]>([]);
     const [isComplete, setIsComplete] = useState(false);
+
+    // Component Library State
+    const [showLibrary, setShowLibrary] = useState(false);
 
     // ─── Actions ────────────────────────────────────────────────────────────
 
@@ -101,11 +105,12 @@ const DeveloperScreen: React.FC = () => {
 
     return (
         <>
-            <ScrollView
-                style={[styles.container, { paddingTop: insets.top + Spacing.md }]}
-                contentContainerStyle={styles.content}
-                showsVerticalScrollIndicator={false}
-                keyboardShouldPersistTaps="handled">
+            {!showLibrary && (
+                <ScrollView
+                    style={[styles.container, { paddingTop: insets.top + Spacing.md }]}
+                    contentContainerStyle={styles.content}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled">
                 {/* Header */}
                 <View style={styles.header}>
                     <Code size={22} color={Colors.warning} strokeWidth={2} />
@@ -115,8 +120,8 @@ const DeveloperScreen: React.FC = () => {
                 {/* Mock Data Generator Card */}
                 <LiquidCard
                     style={styles.card}
-                    intensity="heavy"
-                    
+                    intensity="light"
+
                     borderRadius={Radii.xl}>
                     <View style={styles.cardInner}>
                         <View style={styles.cardHeader}>
@@ -161,11 +166,31 @@ const DeveloperScreen: React.FC = () => {
                     </View>
                 </LiquidCard>
 
+                {/* Component Library Card */}
+                <LiquidCard
+                    style={styles.card}
+                    intensity="light"
+                    borderRadius={Radii.xl}>
+                    <Pressable
+                        style={styles.cardInner}
+                        onPress={() => setShowLibrary(true)}>
+                        <View style={[styles.placeholderRow, { paddingVertical: 4 }]}>
+                            <Code size={20} color={Colors.cyan} strokeWidth={2} />
+                            <Text style={[styles.placeholderText, { color: Colors.text }]}>
+                                Component Library
+                            </Text>
+                            <View style={styles.badgeWrapper}>
+                                <Text style={styles.badgeText}>Ready</Text>
+                            </View>
+                        </View>
+                    </Pressable>
+                </LiquidCard>
+
                 {/* Placeholder Card */}
                 <LiquidCard
                     style={styles.card}
-                    intensity="heavy"
-                    
+                    intensity="light"
+
                     borderRadius={Radii.xl}>
                     <View style={styles.cardInner}>
                         <View style={styles.placeholderRow}>
@@ -188,13 +213,19 @@ const DeveloperScreen: React.FC = () => {
                     Đây là màn hình dành cho nhà phát triển.{'\n'}
                     Thêm công cụ debug vào đây khi cần.
                 </Text>
-            </ScrollView>
+                </ScrollView>
+            )}
 
             <TerminalLogModal
                 visible={showTerminal}
                 logs={logs}
                 isComplete={isComplete}
                 onClose={closeTerminal}
+            />
+
+            <ComponentLibraryScreen
+                visible={showLibrary}
+                onClose={() => setShowLibrary(false)}
             />
         </>
     );
@@ -308,6 +339,17 @@ const styles = StyleSheet.create({
         paddingVertical: 4,
         borderRadius: Spacing.sm,
         overflow: 'hidden',
+    },
+    badgeWrapper: {
+        backgroundColor: 'rgba(34, 211, 238, 0.15)',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: Spacing.sm,
+    },
+    badgeText: {
+        fontSize: FontSizes.xs + 1,
+        fontWeight: '700',
+        color: Colors.cyan,
     },
     divider: {
         height: 1,

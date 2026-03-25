@@ -30,7 +30,10 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Rect, Stop, Text as SvgText } from 'react-native-svg';
+import { BlurView } from '@react-native-community/blur';
 import LiquidCard from '../components/LiquidCard';
+import LiquidButton from '../components/LiquidButton';
+import LiquidSegmentedControl from '../components/LiquidSegmentedControl';
 import TransactionRow from '../components/TransactionRow';
 import EmptyState from '../components/EmptyState';
 import TransactionDetailOverlay from '../components/TransactionDetailOverlay';
@@ -204,102 +207,7 @@ const skStyles = StyleSheet.create({
     txItemLeft: { flex: 1, marginRight: 12 },
 });
 
-// ─── Period Selector — Liquid Glass ───────────────────────────────────────────
-
-const PERIODS: { key: Period; label: string }[] = [
-    { key: 'day', label: 'Hôm nay' },
-    { key: 'week', label: 'Tuần này' },
-];
-
-const PeriodSelector: React.FC<{
-    selected: Period;
-    onChange: (p: Period) => void;
-}> = React.memo(({ selected, onChange }) => {
-    const [containerWidth, setContainerWidth] = useState(0);
-    const translateX = useRef(new Animated.Value(0)).current;
-
-    const gap = 10;
-    const tabWidth = containerWidth > 0 ? (containerWidth - gap) / 2 : 0;
-
-    useEffect(() => {
-        if (tabWidth <= 0) { return; }
-        const idx = PERIODS.findIndex(p => p.key === selected);
-        const toValue = idx === 0 ? 0 : tabWidth + gap;
-        Animated.spring(translateX, {
-            toValue,
-            damping: 20,
-            stiffness: 180,
-            mass: 0.5,
-            useNativeDriver: true,
-        }).start();
-    }, [selected, translateX, tabWidth]);
-
-    return (
-        <View
-            style={ps.container}
-            onLayout={e => setContainerWidth(e.nativeEvent.layout.width)}>
-            {containerWidth > 0 && (
-                <Animated.View
-                    style={[
-                        ps.indicator,
-                        {
-                            width: tabWidth,
-                            transform: [{ translateX }],
-                        },
-                    ]}
-                />
-            )}
-            {PERIODS.map(p => (
-                <Pressable
-                    key={p.key}
-                    style={[ps.tab, { width: tabWidth }]}
-                    onPress={() => onChange(p.key)}>
-                    <Text style={[
-                        ps.text,
-                        selected === p.key && ps.textActive,
-                    ]}>
-                        {p.label}
-                    </Text>
-                </Pressable>
-            ))}
-        </View>
-    );
-});
-
-const ps = StyleSheet.create({
-    container: {
-        flexDirection: 'row',
-        gap: 10,
-        marginBottom: Spacing.lg,
-        position: 'relative',
-    },
-    tab: {
-        paddingVertical: 13,
-        alignItems: 'center',
-        borderRadius: Radii.md,
-        zIndex: 2,
-    },
-    text: {
-        fontSize: FontSizes.md,
-        fontWeight: '600',
-        color: 'rgba(255, 255, 255, 0.35)',
-    },
-    textActive: {
-        color: '#FFFFFF',
-        fontWeight: '700',
-    },
-    indicator: {
-        position: 'absolute',
-        top: 0,
-        bottom: 0,
-        left: 0,
-        backgroundColor: 'rgba(255, 255, 255, 0.06)',
-        borderRadius: Radii.md,
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.12)',
-        zIndex: 1,
-    },
-});
+// (PeriodSelector removed in favor of LiquidSegmentedControl)
 
 // ─── Summary Section ──────────────────────────────────────────────────────────
 
@@ -311,7 +219,7 @@ const SummarySection: React.FC<{
     return (
         <LiquidCard
             style={sumStyles.card}
-            intensity="heavy"
+            intensity="light"
             
             borderRadius={Radii.xl}>
             <View style={sumStyles.inner}>
@@ -429,7 +337,7 @@ const BarChart: React.FC<{
     return (
         <LiquidCard
             style={chStyles.card}
-            intensity="heavy"
+            intensity="light"
             
             borderRadius={Radii.xl}>
             <View style={chStyles.inner}>
@@ -604,42 +512,39 @@ const WalletChips: React.FC<{
     if (wallets.length <= 1) { return null; }
 
     return (
-        <View style={wcStyles.container}>
-            <Pressable
+        <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false} 
+            style={wcStyles.scrollWrapper} 
+            contentContainerStyle={wcStyles.container}
+        >
+            <LiquidButton
+                title="Tất cả"
+                variant={!selectedId ? 'filled' : 'ghost'}
                 onPress={() => onSelect(undefined)}
-                style={[wcStyles.chip, !selectedId && wcStyles.chipActive]}>
-                <Text style={[wcStyles.text, !selectedId && wcStyles.textActive]}>Tất cả</Text>
-            </Pressable>
+                style={wcStyles.chip}
+            />
             {wallets.map(w => (
-                <Pressable
+                <LiquidButton
                     key={w.id}
+                    title={w.name}
+                    variant={selectedId === w.id ? 'filled' : 'ghost'}
                     onPress={() => onSelect(w.id)}
-                    style={[wcStyles.chip, selectedId === w.id && wcStyles.chipActive]}>
-                    <Text style={[wcStyles.text, selectedId === w.id && wcStyles.textActive]}>
-                        {w.name}
-                    </Text>
-                </Pressable>
+                    style={wcStyles.chip}
+                />
             ))}
-        </View>
+        </ScrollView>
     );
 });
 
 const wcStyles = StyleSheet.create({
-    container: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: Spacing.md },
+    scrollWrapper: { flexGrow: 0, marginBottom: Spacing.lg },
+    container: { flexDirection: 'row', gap: 10 },
     chip: {
-        paddingHorizontal: 14,
-        paddingVertical: 7,
-        borderRadius: 20,
-        backgroundColor: 'rgba(255, 255, 255, 0.04)',
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.08)',
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 24,
     },
-    chipActive: {
-        backgroundColor: 'rgba(255, 255, 255, 0.10)',
-        borderColor: 'rgba(255, 255, 255, 0.20)',
-    },
-    text: { fontSize: FontSizes.sm, fontWeight: '600', color: 'rgba(255, 255, 255, 0.35)' },
-    textActive: { color: '#FFFFFF' },
 });
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -663,6 +568,12 @@ const StatsScreen: React.FC = () => {
         totalIn: 0, totalOut: 0, txCount: 0,
     });
     const [recentTxns, setRecentTxns] = useState<Transaction[]>([]);
+    
+    // Pagination states
+    const [txOffset, setTxOffset] = useState(0);
+    const [hasMoreTx, setHasMoreTx] = useState(true);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+
     const [refreshing, setRefreshing] = useState(false);
     const [viewingTx, setViewingTx] = useState<Transaction | null>(null);
 
@@ -681,7 +592,11 @@ const StatsScreen: React.FC = () => {
 
             setWallets(getAllWallets());
             setOverallStats(getOvr(wId));
-            setRecentTxns(getRecentTransactions(20, wId));
+            
+            setTxOffset(0);
+            const newTxns = getRecentTransactions(12, 0, wId);
+            setRecentTxns(newTxns);
+            setHasMoreTx(newTxns.length === 12);
 
             let points: ChartDataPoint[] = [];
 
@@ -765,7 +680,11 @@ const StatsScreen: React.FC = () => {
             isFirstRender.current = false;
             return;
         }
-        loadData(selectedWalletId, period);
+        // Delay loadData by 50ms so user touches and animations (e.g. LiquidButton ripple) process first
+        const t = setTimeout(() => {
+            loadData(selectedWalletId, period);
+        }, 50);
+        return () => clearTimeout(t);
     }, [loadData, selectedWalletId, period]);
 
     const onRefresh = useCallback(() => {
@@ -773,6 +692,46 @@ const StatsScreen: React.FC = () => {
         loadData(selectedWalletId, period);
         setRefreshing(false);
     }, [loadData, selectedWalletId, period]);
+
+    // ── Pagination Handlers ────────────────────────────────────────────────
+    const loadMoreTxns = useCallback(() => {
+        if (!hasMoreTx || isLoadingMore || !isDatabaseAvailable()) return;
+        setIsLoadingMore(true);
+        
+        // Defer load block logic
+        setTimeout(() => {
+            try {
+                const { getRecentTransactions } = require('../database/queries');
+                const nextOffset = txOffset + 12;
+                const newTxns = getRecentTransactions(12, nextOffset, selectedWalletId);
+                
+                if (newTxns.length > 0) {
+                    setRecentTxns(prev => {
+                        const existingIds = new Set(prev.map(t => t.id));
+                        const uniqueNew = newTxns.filter((t: Transaction) => !existingIds.has(t.id));
+                        return [...prev, ...uniqueNew];
+                    });
+                    setTxOffset(nextOffset);
+                }
+                
+                if (newTxns.length < 12) {
+                    setHasMoreTx(false);
+                }
+            } catch (err) {
+                console.warn('[Stats] Failed to load more txns:', err);
+            } finally {
+                setIsLoadingMore(false);
+            }
+        }, 50);
+    }, [hasMoreTx, isLoadingMore, txOffset, selectedWalletId]);
+
+    const handleScroll = useCallback((event: any) => {
+        const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+        const paddingToBottom = 100;
+        if (layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom) {
+            loadMoreTxns();
+        }
+    }, [loadMoreTxns]);
 
     // ── Handlers ───────────────────────────────────────────────────────────
     const handleViewTransaction = useCallback((tx: Transaction) => {
@@ -820,6 +779,8 @@ const StatsScreen: React.FC = () => {
                     <ScrollView
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={s.content}
+                        onScroll={handleScroll}
+                        scrollEventThrottle={16}
                         refreshControl={
                             <RefreshControl
                                 refreshing={refreshing}
@@ -839,7 +800,15 @@ const StatsScreen: React.FC = () => {
                         />
 
                         {/* Period Selector */}
-                        <PeriodSelector selected={period} onChange={setPeriod} />
+                        <LiquidSegmentedControl 
+                            options={[
+                                { key: 'day', label: 'Hôm nay' },
+                                { key: 'week', label: 'Tuần này' },
+                            ]}
+                            selected={period} 
+                            onChange={(key) => setPeriod(key as Period)}
+                            style={{ marginBottom: Spacing.lg }}
+                        />
 
                         {/* Summary */}
                         <SummarySection

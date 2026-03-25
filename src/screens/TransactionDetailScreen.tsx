@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LiquidCard from '../components/LiquidCard';
+import LiquidButton from '../components/LiquidButton';
 import TransactionModal from '../components/TransactionModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { formatVND, formatFullDate } from '../common/formatters';
@@ -126,7 +127,7 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
                 {/* ── Amount Card ── */}
                 <LiquidCard
                     style={styles.amountCard}
-                    intensity="heavy"
+                    intensity="light"
                     
                     borderRadius={Radii.xxl}>
                     <View style={[styles.typeBadge, { borderColor: typeColor }]}>
@@ -147,7 +148,7 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
                 {/* ── Info Card ── */}
                 <LiquidCard
                     style={styles.infoCard}
-                    intensity="heavy"
+                    intensity="light"
                     
                     borderRadius={Radii.xl}>
                     {/* Reason */}
@@ -196,7 +197,7 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
                 {transaction.image_uri ? (
                     <LiquidCard
                         style={styles.imageCard}
-                        intensity="heavy"
+                        intensity="light"
                         
                         borderRadius={Radii.xl}>
                         <View style={styles.imageHeader}>
@@ -213,25 +214,19 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
 
                 {/* ── Action Buttons ── */}
                 <View style={styles.actionsContainer}>
-                    <Pressable
-                        onPress={handleOpenEdit}
-                        style={({ pressed }) => [
-                            styles.glassActionBtn,
-                            { transform: [{ scale: pressed ? 0.96 : 1 }] },
-                        ]}>
-                        <Pencil size={18} color="#FFFFFF" strokeWidth={2.5} />
-                        <Text style={styles.glassActionText}>Sửa giao dịch</Text>
-                    </Pressable>
+                    <LiquidButton onPress={handleOpenEdit}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                            <Pencil size={18} color="#FFFFFF" strokeWidth={2.5} />
+                            <Text style={styles.glassActionText}>Sửa giao dịch</Text>
+                        </View>
+                    </LiquidButton>
 
-                    <Pressable
-                        onPress={handleDeletePress}
-                        style={({ pressed }) => [
-                            styles.glassActionBtn, // Sử dụng chung nền kính mờ trắng đục
-                            { transform: [{ scale: pressed ? 0.96 : 1 }] },
-                        ]}>
-                        <Trash2 size={18} color="#ef4444" strokeWidth={2.5} />
-                        <Text style={[styles.glassActionText, { color: '#ef4444' }]}>Xóa giao dịch</Text>
-                    </Pressable>
+                    <LiquidButton onPress={handleDeletePress}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                            <Trash2 size={18} color="#ef4444" strokeWidth={2.5} />
+                            <Text style={[styles.glassActionText, { color: '#ef4444' }]}>Xóa giao dịch</Text>
+                        </View>
+                    </LiquidButton>
                 </View>
 
                 <View style={{ height: insets.bottom + 40 }} />

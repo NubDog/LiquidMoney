@@ -71,7 +71,7 @@ const TransactionDetailOverlay: React.FC<TransactionDetailOverlayProps> = ({
                 <Animated.View style={[styles.sheetContainer, { transform: [{ translateY }] }]}>
                     <LiquidCard 
                         style={styles.sheet}
-                        intensity="heavy"
+                        intensity="light"
                         
                         borderRadius={Radii.xxl}
                     >

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Colors } from '../common/theme';
 import { StyleSheet, TextInput, View, type TextInputProps, type ViewStyle } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
+import { useLiquidContext } from './LiquidContext';
 
 interface LiquidInputProps extends TextInputProps {
     containerStyle?: ViewStyle;
@@ -9,17 +10,26 @@ interface LiquidInputProps extends TextInputProps {
 }
 
 const LiquidInput: React.FC<LiquidInputProps> = ({ containerStyle, leftIcon, onFocus, onBlur, ...props }) => {
+    const { isInsideGlass } = useLiquidContext();
     const [isFocused, setIsFocused] = useState(false);
 
     return (
         <View style={[styles.container, containerStyle]}>
             <View style={[StyleSheet.absoluteFill, { borderRadius: 16, overflow: 'hidden' }]}>
-                <BlurView 
-                    style={StyleSheet.absoluteFill} 
-                    blurType="light"
-                    blurAmount={15}
-                    overlayColor={isFocused ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.04)'}
-                />
+                {!isInsideGlass ? (
+                    <BlurView 
+                        style={StyleSheet.absoluteFill} 
+                        blurType="light"
+                        blurAmount={15}
+                        overlayColor={isFocused ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.04)'}
+                        reducedTransparencyFallbackColor="transparent"
+                    />
+                ) : (
+                    <View style={[
+                        StyleSheet.absoluteFill, 
+                        { backgroundColor: isFocused ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.08)' }
+                    ]} />
+                )}
             </View>
             
             <View style={[

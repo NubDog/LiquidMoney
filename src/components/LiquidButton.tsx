@@ -9,6 +9,7 @@ import {
     View,
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
+import { useLiquidContext } from './LiquidContext';
 
 interface LiquidButtonProps {
     onPress: () => void;
@@ -35,6 +36,7 @@ const LiquidButton: React.FC<LiquidButtonProps> = ({
     disabled = false,
     variant = 'filled',
 }) => {
+    const { isInsideGlass } = useLiquidContext();
     const scale = useRef(new Animated.Value(1)).current;
     const opacityAnim = useRef(new Animated.Value(1)).current;
 
@@ -57,28 +59,44 @@ const LiquidButton: React.FC<LiquidButtonProps> = ({
 
     return (
         <AnimatedPressable
-            onPress={onPress}
+            onPress={() => {
+                if (!disabled && onPress) {
+                    onPress();
+                }
+            }}
             onPressIn={handlePressIn}
             onPressOut={handlePressOut}
-            disabled={disabled}
             style={[
                 styles.base,
                 disabled && styles.disabled,
                 { transform: [{ scale }], opacity: opacityAnim },
                 style,
             ]}>
-            {isFilled && (
+            {isFilled && !isInsideGlass && (
                 <View style={[StyleSheet.absoluteFill, { borderRadius: 9999, overflow: 'hidden' }]}>
                     {/* @ts-ignore: overlayColor is valid on Android but missing from the generic TS definition */}
                     <BlurView
-                        style={StyleSheet.absoluteFill}
+                        style={[StyleSheet.absoluteFill, { top: -6, bottom: -6, left: -6, right: -6 }]}
                         blurType="light"
-                        blurAmount={15}
+                        blurAmount={4}
                         overlayColor="transparent"
                         reducedTransparencyFallbackColor="transparent"
                     />
-                    <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255, 255, 255, 0.05)' }]} />
+                    <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0, 0, 0, 0.05)' }]} />
                 </View>
+            )}
+
+            {isFilled && isInsideGlass && (
+                <View style={[
+                    StyleSheet.absoluteFill, 
+                    { 
+                        borderRadius: 9999, 
+                        // Simulate frosted thickness without double blurring
+                        backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                        borderWidth: StyleSheet.hairlineWidth,
+                        borderColor: 'rgba(255, 255, 255, 0.2)',
+                    }
+                ]} />
             )}
 
             {(isFilled || isOutline) && (
@@ -88,6 +106,7 @@ const LiquidButton: React.FC<LiquidButtonProps> = ({
                         borderRadius: 9999,
                         borderWidth: StyleSheet.hairlineWidth,
                         borderColor: 'rgba(255, 255, 255, 0.3)',
+                        ...(isFilled ? { borderBottomWidth: 0, borderRightWidth: 0 } : {}),
                     }
                 ]} pointerEvents="none" />
             )}

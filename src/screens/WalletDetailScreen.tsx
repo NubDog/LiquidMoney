@@ -216,7 +216,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
             <View>
                 <LiquidCard
                     style={styles.summaryCard}
-                    intensity="heavy"
+                    intensity="light"
                     
                     borderRadius={Radii.xxl}>
                     <Text style={styles.walletName}>{wallet?.name || 'Ví'}</Text>

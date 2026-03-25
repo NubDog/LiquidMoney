@@ -16,6 +16,7 @@ import { AlertTriangle } from 'lucide-react-native';
 import { animateDialogOpen, animateDialogClose } from '../common/animations';
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
 import LiquidCard from './LiquidCard';
+import LiquidButton from './LiquidButton';
 
 interface ConfirmImportDialogProps {
     visible: boolean;
@@ -66,7 +67,7 @@ const ConfirmImportDialog: React.FC<ConfirmImportDialogProps> = ({
                 <Animated.View style={[styles.cardContainer, { transform: [{ scale: cardScale }] }]}>
                     <LiquidCard 
                         style={styles.card}
-                        intensity="heavy"
+                        intensity="light"
                         
                         borderRadius={Radii.xxl}
                     >
@@ -80,22 +81,20 @@ const ConfirmImportDialog: React.FC<ConfirmImportDialogProps> = ({
                         </Text>
 
                         <View style={styles.actions}>
-                            <Pressable
+                            <LiquidButton 
+                                variant="outline"
                                 onPress={() => animateClose(onCancel)}
-                                style={({ pressed }) => [
-                                    styles.cancelBtn,
-                                    pressed && { opacity: 0.7 },
-                                ]}>
+                                style={{ flex: 1 }}
+                            >
                                 <Text style={styles.cancelText}>Hủy</Text>
-                            </Pressable>
-                            <Pressable
+                            </LiquidButton>
+                            <LiquidButton 
+                                variant="filled"
                                 onPress={() => animateClose(onConfirm)}
-                                style={({ pressed }) => [
-                                    styles.confirmBtn,
-                                    pressed && { opacity: 0.7 },
-                                ]}>
+                                style={{ flex: 1 }}
+                            >
                                 <Text style={styles.confirmText}>Nhập</Text>
-                            </Pressable>
+                            </LiquidButton>
                         </View>
                     </LiquidCard>
                 </Animated.View>

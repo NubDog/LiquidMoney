@@ -66,7 +66,7 @@ const TerminalLogModal: React.FC<TerminalLogModalProps> = ({ visible, onClose, l
                     ]}>
                     <LiquidCard 
                         style={styles.card}
-                        intensity="heavy"
+                        intensity="light"
                         
                         borderRadius={20}
                     >

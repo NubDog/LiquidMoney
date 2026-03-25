@@ -709,18 +709,18 @@ export function getOverallStats(walletId?: string): OverallStat {
  * @param limit - Số giao dịch cần lấy
  * @param walletId - Lọc theo ví (optional)
  */
-export function getRecentTransactions(limit: number = 10, walletId?: string): Transaction[] {
+export function getRecentTransactions(limit: number = 12, offset: number = 0, walletId?: string): Transaction[] {
     const db = getDatabase();
     if (walletId) {
         const result = db.execute(
-            `SELECT * FROM transactions WHERE wallet_id = ? ORDER BY created_at DESC LIMIT ?;`,
-            [walletId, limit],
+            `SELECT * FROM transactions WHERE wallet_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?;`,
+            [walletId, limit, offset],
         );
         return extractRows<Transaction>(result);
     }
     const result = db.execute(
-        `SELECT * FROM transactions ORDER BY created_at DESC LIMIT ?;`,
-        [limit],
+        `SELECT * FROM transactions ORDER BY created_at DESC LIMIT ? OFFSET ?;`,
+        [limit, offset],
     );
     return extractRows<Transaction>(result);
 }

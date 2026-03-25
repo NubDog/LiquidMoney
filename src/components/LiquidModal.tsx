@@ -25,10 +25,12 @@ const LiquidModal: React.FC<LiquidModalProps> = ({ visible, onClose, children, c
                 <View style={[StyleSheet.absoluteFill, { zIndex: 0 }]}>
                     <BlurView 
                         style={StyleSheet.absoluteFill} 
-                        blurType="dark"
+                        blurType="light"
                         blurAmount={20}
-                        overlayColor="rgba(11, 15, 25, 0.6)"
+                        overlayColor="transparent"
+                        reducedTransparencyFallbackColor="transparent"
                     />
+                    <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0, 0, 0, 0.4)' }]} />
                 </View>
 
                 {onClose && (
@@ -36,7 +38,7 @@ const LiquidModal: React.FC<LiquidModalProps> = ({ visible, onClose, children, c
                 )}
 
                 <View style={styles.contentWrapper}>
-                    <LiquidCard style={[styles.card, contentStyle]} intensity="heavy">
+                    <LiquidCard style={[styles.card, contentStyle]} intensity="light">
                         {children}
                     </LiquidCard>
                 </View>

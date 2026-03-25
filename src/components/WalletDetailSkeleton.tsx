@@ -31,7 +31,7 @@ export const WalletDetailSkeleton = () => {
     return (
         <View style={styles.container}>
             {/* Wallet Info Skel */}
-            <LiquidCard style={styles.headerCard} intensity="heavy" borderRadius={Radii.xl}>
+            <LiquidCard style={styles.headerCard} intensity="light" borderRadius={Radii.xl}>
                 <Animated.View style={[styles.shimmerBox, { width: 120, height: 20, opacity: pulseAnim }]} />
                 <Animated.View style={[styles.shimmerBox, { width: 200, height: 40, marginTop: 12, opacity: pulseAnim }]} />
             </LiquidCard>
@@ -44,7 +44,7 @@ export const WalletDetailSkeleton = () => {
             {/* List Skel */}
             <View style={styles.list}>
                 {[1, 2, 3, 4, 5].map((key) => (
-                    <LiquidCard key={key} style={styles.rowCard} intensity="heavy" borderRadius={Radii.lg}>
+                    <LiquidCard key={key} style={styles.rowCard} intensity="light" borderRadius={Radii.lg}>
                         <View style={styles.rowContent}>
                             <Animated.View style={[styles.avatarSkel, { opacity: pulseAnim }]} />
                             <View style={styles.textWrap}>

@@ -8,8 +8,9 @@ import { StyleSheet, Text, View, Pressable, Animated } from 'react-native';
 import { ArrowDownRight, ArrowUpRight, Repeat } from 'lucide-react-native';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import { Colors, FontSizes, Shadows, Radii, Spacing } from '../common/theme';
+import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
 import LiquidCard from './LiquidCard';
+import LiquidIconButton from './LiquidIconButton';
 import type { Transaction } from '../common/types';
 
 interface TransactionRowProps {
@@ -50,44 +51,52 @@ const TransactionRow: React.FC<TransactionRowProps> = ({
         );
     };
 
+    const formatCurrency = (amount: number) => {
+        return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    };
+
+    const renderContent = () => (
+        <View style={[styles.content, variant === 'flat' && { paddingHorizontal: 0, paddingVertical: Spacing.sm }]}>
+            <LiquidIconButton size={44} onPress={() => {}} disabled style={{ marginRight: Spacing.md }}>
+                {getIcon()}
+            </LiquidIconButton>
+            
+            <View style={styles.info}>
+                <Text style={styles.description} numberOfLines={1}>
+                    {item.reason || (isIncome ? 'Thu Nhập' : 'Chi Tiêu')}
+                </Text>
+                <Text style={styles.date}>
+                    {format(new Date(item.created_at), 'dd MMM yyyy, HH:mm', { locale: vi })}
+                </Text>
+            </View>
+            
+            <Text style={[styles.amount, { color: '#FFFFFF' }]}>
+                {(isIncome ? '+' : '-') + formatCurrency(item.amount) + ' ₫'}
+            </Text>
+        </View>
+    );
+
     return (
-        <Animated.View style={[{ transform: [{ scale }] }, variant === 'flat' && { marginBottom: 1 }]}>
+        <Animated.View style={[{ transform: [{ scale }] }]}>
             <Pressable
                 onPress={() => onPress?.(item)}
                 onPressIn={handlePressIn}
                 onPressOut={handlePressOut}
-                style={styles.wrapper}>
-                <LiquidCard 
-                    style={styles.card}
-                    intensity="heavy"
-                    
-                    borderRadius={Radii.lg}
-                >
-                    <View style={styles.content}>
-                        <View style={[
-                            styles.iconContainer,
-                            { backgroundColor: isIncome ? 'rgba(16, 185, 129, 0.2)' : isTransfer ? 'rgba(168, 85, 247, 0.2)' : 'rgba(239, 68, 68, 0.2)' }
-                        ]}>
-                            {getIcon()}
-                        </View>
-                        
-                        <View style={styles.info}>
-                            <Text style={styles.description} numberOfLines={1}>
-                                {item.reason || (isIncome ? 'Thu Nhập' : 'Chi Tiêu')}
-                            </Text>
-                            <Text style={styles.date}>
-                                {format(new Date(item.created_at), 'dd MMM yyyy, HH:mm', { locale: vi })}
-                            </Text>
-                        </View>
-                        
-                        <Text style={[
-                            styles.amount,
-                            { color: isIncome ? Colors.income : isTransfer ? '#A855F7' : '#FFFFFF' }
-                        ]}>
-                            {(isIncome ? '+' : '-') + item.amount.toString() + ' ₫'}
-                        </Text>
+                style={[styles.wrapper, variant === 'flat' && { marginHorizontal: 0, marginBottom: 0 }]}>
+                
+                {variant === 'card' ? (
+                    <LiquidCard 
+                        style={styles.card}
+                        intensity="light"
+                        borderRadius={Radii.lg}
+                    >
+                        {renderContent()}
+                    </LiquidCard>
+                ) : (
+                    <View style={styles.card}>
+                        {renderContent()}
                     </View>
-                </LiquidCard>
+                )}
             </Pressable>
         </Animated.View>
     );
@@ -105,16 +114,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         padding: Spacing.md,
-    },
-    iconContainer: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: Spacing.md,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.2)',
     },
     info: {
         flex: 1,

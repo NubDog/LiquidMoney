@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, type ViewStyle, type StyleProp } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
+import { LiquidContext } from './LiquidContext';
 
 interface LiquidCardProps {
     children: React.ReactNode;
@@ -57,7 +58,9 @@ const LiquidCard: React.FC<LiquidCardProps> = ({
             />
 
             <View style={styles.content}>
-                {children}
+                <LiquidContext.Provider value={{ isInsideGlass: true }}>
+                    {children}
+                </LiquidContext.Provider>
             </View>
         </View>
     );

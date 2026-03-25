@@ -37,12 +37,16 @@ const BackgroundPickerModal: React.FC<BackgroundPickerModalProps> = ({
             statusBarTranslucent={true}
             onRequestClose={onClose}>
             <View style={styles.modalRoot}>
-                <BlurView
-                    style={StyleSheet.absoluteFillObject}
-                    blurType="dark"
-                    blurAmount={30}
-                    reducedTransparencyFallbackColor="#000"
-                />
+                <View style={StyleSheet.absoluteFillObject}>
+                    <BlurView
+                        style={StyleSheet.absoluteFill}
+                        blurType="light"
+                        blurAmount={30}
+                        overlayColor="transparent"
+                        reducedTransparencyFallbackColor="transparent"
+                    />
+                    <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0, 0, 0, 0.4)' }]} />
+                </View>
 
                 <View style={styles.header}>
                     <Text style={styles.title}>Chọn Hình Nền</Text>

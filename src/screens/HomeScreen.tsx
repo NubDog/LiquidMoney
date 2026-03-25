@@ -17,9 +17,11 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store/useStore';
+import { Wallet as WalletIcon, PieChart } from 'lucide-react-native';
+import LiquidCard from '../components/LiquidCard';
 import WalletCard from '../components/WalletCard';
 import WalletModal from '../components/WalletModal';
-import LiquidFAB from '../components/LiquidFAB';
+import AddWalletButton from '../components/AddWalletButton';
 import EmptyState from '../components/EmptyState';
 import { formatVND } from '../common/formatters';
 import { Colors, FontSizes, Spacing, Radii } from '../common/theme';
@@ -122,11 +124,21 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
             <View style={styles.headerSection}>
                 {wallets.length > 0 && (
                     <View style={styles.totalSection}>
-                        <Text style={styles.totalLabel}>Tổng số dư</Text>
-                        <Text style={styles.totalBalance}>{formatVND(totalBalance)}</Text>
-                        <Text style={styles.walletCount}>
-                            {wallets.length} ví
-                        </Text>
+                        <View style={styles.heroHeader}>
+                            <View style={styles.heroIconWrapper}>
+                                <PieChart size={22} color="#FFFFFF" strokeWidth={2.5} />
+                            </View>
+                            <Text style={styles.heroLabel}>TỔNG TÀI SẢN</Text>
+                        </View>
+                        
+                        <Text style={styles.heroBalance} numberOfLines={1} adjustsFontSizeToFit>{formatVND(totalBalance)}</Text>
+                        
+                        <View style={styles.heroFooter}>
+                            <View style={styles.badge}>
+                                <WalletIcon size={16} color="#FFFFFF" strokeWidth={2.5} />
+                                <Text style={styles.badgeText}>{wallets.length} ví hoạt động</Text>
+                            </View>
+                        </View>
                     </View>
                 )}
             </View>
@@ -161,8 +173,21 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
                 }
             />
 
-            {/* FAB — Create new wallet */}
-            <LiquidFAB onPress={openCreateModal} style={{ bottom: 140 }} />
+            {/* Add Wallet Button */}
+            <AddWalletButton 
+                onPress={openCreateModal} 
+                style={{ 
+                    position: 'absolute', 
+                    bottom: 140, 
+                    right: 20, 
+                    zIndex: 9999,
+                    shadowColor: 'rgba(0, 0, 0, 0.6)',
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 1,
+                    shadowRadius: 10,
+                    elevation: 10,
+                }} 
+            />
 
             {/* Create/Edit wallet modal */}
             <WalletModal
@@ -202,28 +227,57 @@ const styles = StyleSheet.create({
         marginBottom: Spacing.lg,
     },
     totalSection: {
-        marginTop: Spacing.sm,
-        paddingHorizontal: Spacing.sm,
+        marginTop: Spacing.xl,
+        marginHorizontal: Spacing.md,
+        alignItems: 'center',
+        paddingBottom: Spacing.xl,
     },
-    totalLabel: {
-        fontSize: FontSizes.md,
-        color: 'rgba(255, 255, 255, 0.45)',
-        fontWeight: '500',
+    heroHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: Spacing.sm,
     },
-    totalBalance: {
-        fontSize: FontSizes.title + 2,
+    heroIconWrapper: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: Spacing.sm,
+    },
+    heroLabel: {
+        fontSize: FontSizes.lg,
+        color: '#FFFFFF',
         fontWeight: '800',
-        color: Colors.text,
-        marginTop: 6,
-        letterSpacing: -1,
-        textShadowColor: 'transparent',
-        textShadowRadius: 0,
+        letterSpacing: 2,
     },
-    walletCount: {
+    heroBalance: {
+        fontSize: 46,
+        fontWeight: '800',
+        color: '#FFFFFF',
+        letterSpacing: -1.5,
+        marginBottom: Spacing.lg,
+        textAlign: 'center',
+        textShadowColor: 'transparent',
+    },
+    heroFooter: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    badge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255, 255, 255, 0.15)',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 9999,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.25)',
+    },
+    badgeText: {
+        marginLeft: 8,
+        color: '#FFFFFF',
         fontSize: FontSizes.md,
-        color: 'rgba(255, 255, 255, 0.5)',
-        marginTop: 10,
-        fontWeight: '600',
+        fontWeight: '700',
     },
     separator: {
         height: 14,

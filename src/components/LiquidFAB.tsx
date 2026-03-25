@@ -45,13 +45,15 @@ const LiquidFAB: React.FC<LiquidFABProps> = ({ onPress, style }) => {
                 onPressOut={handlePressOut}
                 style={styles.button}>
                 
-                <View style={StyleSheet.absoluteFill}>
+                <View style={[StyleSheet.absoluteFill, { borderRadius: FAB_SIZE / 2, overflow: 'hidden' }]}>
                     <BlurView 
                         style={StyleSheet.absoluteFill} 
-                        blurType="dark"
+                        blurType="light"
                         blurAmount={20}
                         overlayColor="transparent"
+                        reducedTransparencyFallbackColor="transparent"
                     />
+                    <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0, 0, 0, 0.4)' }]} />
                 </View>
                 
                 {/* Subtle border instead of volumetric cyan */}

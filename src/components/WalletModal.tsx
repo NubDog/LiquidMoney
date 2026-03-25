@@ -111,9 +111,10 @@ const WalletModal: React.FC<WalletModalProps> = ({
                                 />
 
                                 <LiquidButton
+                                    variant="filled"
                                     title="Tạo Ví"
                                     onPress={handleSave}
-                                    style={{ marginTop: Spacing.lg, marginBottom: 12 }}
+                                    style={{ marginTop: Spacing.lg, marginBottom: 12, backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
                                 />
                             </View>
                         </LiquidCard>

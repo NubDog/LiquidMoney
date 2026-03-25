@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
-import { Wallet, ChevronRight } from 'lucide-react-native';
+import { Wallet } from 'lucide-react-native';
 import { Colors, FontSizes, Shadows, Radii, Spacing } from '../common/theme';
 import LiquidCard from './LiquidCard';
 import { formatVND } from '../common/formatters';
@@ -50,7 +50,6 @@ const WalletCard: React.FC<WalletCardProps> = ({
                         </View>
                         <Text style={styles.name}>{name}</Text>
                     </View>
-                    <ChevronRight size={20} color="rgba(255,255,255,0.4)" />
                 </View>
 
                 <View style={styles.balanceContainer}>
@@ -89,7 +88,6 @@ const styles = StyleSheet.create({
         width: 32,
         height: 32,
         borderRadius: 16,
-        backgroundColor: 'rgba(255,255,255,0.1)',
         alignItems: 'center',
         justifyContent: 'center',
         marginRight: Spacing.sm,

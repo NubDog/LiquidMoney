@@ -28,6 +28,7 @@ import {
     FolderOpen,
 } from 'lucide-react-native';
 import LiquidCard from '../components/LiquidCard';
+import LiquidButton from '../components/LiquidButton';
 import InfoDialog from '../components/InfoDialog';
 import ConfirmImportDialog from '../components/ConfirmImportDialog';
 import BackgroundPickerModal from '../components/BackgroundPickerModal';
@@ -167,7 +168,7 @@ const SettingsScreen: React.FC = () => {
                 {/* ── App Info Card ── */}
                 <LiquidCard
                     style={styles.card}
-                    intensity="heavy"
+                    intensity="light"
                     
                     borderRadius={Radii.xl}>
                     <View style={styles.cardInner}>
@@ -236,7 +237,7 @@ const SettingsScreen: React.FC = () => {
                 {/* ── Appearance Card ── */}
                 <LiquidCard
                     style={styles.card}
-                    intensity="heavy"
+                    intensity="light"
                     borderRadius={Radii.xl}>
                     <View style={styles.cardInner}>
                         <View style={styles.cardHeader}>
@@ -247,17 +248,11 @@ const SettingsScreen: React.FC = () => {
                             Tùy chỉnh hình nền hiển thị trong ứng dụng.
                         </Text>
                         <View style={styles.buttonGroup}>
-                            <Pressable
-                                onPress={() => setBackgroundPickerVisible(true)}
-                                style={({ pressed }) => [
-                                    styles.actionBtn,
-                                    { backgroundColor: 'rgba(255, 255, 255, 0.1)', borderColor: 'rgba(255, 255, 255, 0.2)' },
-                                    pressed && { opacity: 0.7 },
-                                ]}>
+                            <LiquidButton onPress={() => setBackgroundPickerVisible(true)}>
                                 <Text style={[styles.exportBtnText, { color: '#FFF' }]}>
                                     Chọn Hình Nền
                                 </Text>
-                            </Pressable>
+                            </LiquidButton>
                         </View>
                     </View>
                 </LiquidCard>
@@ -265,7 +260,7 @@ const SettingsScreen: React.FC = () => {
                 {/* ── Backup / Restore Card ── */}
                 <LiquidCard
                     style={styles.card}
-                    intensity="heavy"
+                    intensity="light"
                     
                     borderRadius={Radii.xl}>
                     <View style={styles.cardInner}>
@@ -278,35 +273,27 @@ const SettingsScreen: React.FC = () => {
                         </Text>
 
                         <View style={styles.buttonGroup}>
-                            <Pressable
+                            <LiquidButton
                                 onPress={handleExport}
-                                disabled={exporting || !dbAvailable}
-                                style={({ pressed }) => [
-                                    styles.actionBtn,
-                                    styles.exportBtn,
-                                    pressed && { opacity: 0.7 },
-                                    (exporting || !dbAvailable) && styles.disabledBtn,
-                                ]}>
-                                <Upload size={18} color={Colors.cyan} strokeWidth={2} />
-                                <Text style={styles.exportBtnText}>
-                                    {exporting ? 'Đang xuất...' : 'Xuất dữ liệu'}
-                                </Text>
-                            </Pressable>
+                                disabled={exporting || !dbAvailable}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                    <Upload size={18} color={(exporting || !dbAvailable) ? 'rgba(255,255,255,0.4)' : Colors.cyan} strokeWidth={2} />
+                                    <Text style={[styles.exportBtnText, (exporting || !dbAvailable) && { color: 'rgba(255,255,255,0.4)' }]}>
+                                        {exporting ? 'Đang xuất...' : 'Xuất dữ liệu'}
+                                    </Text>
+                                </View>
+                            </LiquidButton>
 
-                            <Pressable
+                            <LiquidButton
                                 onPress={handleImportPress}
-                                disabled={importing || !dbAvailable}
-                                style={({ pressed }) => [
-                                    styles.actionBtn,
-                                    styles.importBtn,
-                                    pressed && { opacity: 0.7 },
-                                    (importing || !dbAvailable) && styles.disabledBtn,
-                                ]}>
-                                <Download size={18} color={Colors.accentLight} strokeWidth={2} />
-                                <Text style={styles.importBtnText}>
-                                    {importing ? 'Đang nhập...' : 'Nhập dữ liệu'}
-                                </Text>
-                            </Pressable>
+                                disabled={importing || !dbAvailable}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                    <Download size={18} color={(importing || !dbAvailable) ? 'rgba(255,255,255,0.4)' : Colors.accentLight} strokeWidth={2} />
+                                    <Text style={[styles.importBtnText, (importing || !dbAvailable) && { color: 'rgba(255,255,255,0.4)' }]}>
+                                        {importing ? 'Đang nhập...' : 'Nhập dữ liệu'}
+                                    </Text>
+                                </View>
+                            </LiquidButton>
                         </View>
                     </View>
                 </LiquidCard>
@@ -314,7 +301,7 @@ const SettingsScreen: React.FC = () => {
                 {/* ── Developer Mode Card ── */}
                 <LiquidCard
                     style={styles.card}
-                    intensity="heavy"
+                    intensity="light"
                     
                     borderRadius={Radii.xl}>
                     <View style={styles.cardInner}>
@@ -343,7 +330,7 @@ const SettingsScreen: React.FC = () => {
                 {/* ── About Card ── */}
                 <LiquidCard
                     style={styles.card}
-                    intensity="heavy"
+                    intensity="light"
                     
                     borderRadius={Radii.xl}>
                     <View style={styles.cardInner}>
