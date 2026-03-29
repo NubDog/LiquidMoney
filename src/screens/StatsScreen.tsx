@@ -211,6 +211,55 @@ const skStyles = StyleSheet.create({
 
 // ─── Summary Section ──────────────────────────────────────────────────────────
 
+const AnimatedSlidingText: React.FC<{
+    text: string;
+    style: any;
+}> = React.memo(({ text, style }) => {
+    const [displayText, setDisplayText] = useState(text);
+    const animX = useRef(new Animated.Value(0)).current;
+    const animOpacity = useRef(new Animated.Value(1)).current;
+
+    useEffect(() => {
+        if (text === displayText) return;
+
+        Animated.parallel([
+            Animated.timing(animX, {
+                toValue: -20,
+                duration: 150,
+                useNativeDriver: true,
+            }),
+            Animated.timing(animOpacity, {
+                toValue: 0,
+                duration: 150,
+                useNativeDriver: true,
+            }),
+        ]).start(() => {
+            setDisplayText(text);
+            animX.setValue(-20);
+            
+            Animated.parallel([
+                Animated.timing(animX, {
+                    toValue: 0,
+                    duration: 300,
+                    easing: Easing.out(Easing.back(1.5)),
+                    useNativeDriver: true,
+                }),
+                Animated.timing(animOpacity, {
+                    toValue: 1,
+                    duration: 300,
+                    useNativeDriver: true,
+                }),
+            ]).start();
+        });
+    }, [text, displayText, animX, animOpacity]);
+
+    return (
+        <Animated.Text style={[style, { opacity: animOpacity, transform: [{ translateX: animX }] }]}>
+            {displayText}
+        </Animated.Text>
+    );
+});
+
 const SummarySection: React.FC<{
     totalIn: number;
     totalOut: number;
@@ -229,9 +278,10 @@ const SummarySection: React.FC<{
                             <View style={[sumStyles.dot, { backgroundColor: Colors.income }]} />
                             <Text style={sumStyles.label}>Thu nhập</Text>
                         </View>
-                        <Text style={[sumStyles.value, { color: Colors.income }]}>
-                            +{formatVND(totalIn)}
-                        </Text>
+                        <AnimatedSlidingText
+                            text={`+${formatVND(totalIn)}`}
+                            style={[sumStyles.value, { color: Colors.income }]}
+                        />
                     </View>
                     <View style={sumStyles.separator} />
                     <View style={[sumStyles.col, { alignItems: 'flex-end' }]}>
@@ -239,19 +289,21 @@ const SummarySection: React.FC<{
                             <View style={[sumStyles.dot, { backgroundColor: Colors.expense }]} />
                             <Text style={sumStyles.label}>Chi tiêu</Text>
                         </View>
-                        <Text style={[sumStyles.value, { color: Colors.expense }]}>
-                            -{formatVND(totalOut)}
-                        </Text>
+                        <AnimatedSlidingText
+                            text={`-${formatVND(totalOut)}`}
+                            style={[sumStyles.value, { color: Colors.expense }]}
+                        />
                     </View>
                 </View>
                 <View style={sumStyles.divider} />
                 <Text style={sumStyles.balanceLabel}>Chênh lệch</Text>
-                <Text style={[
-                    sumStyles.balanceValue,
-                    { color: balance >= 0 ? Colors.income : Colors.expense },
-                ]}>
-                    {balance >= 0 ? '+' : '-'}{formatVND(Math.abs(balance))}
-                </Text>
+                <AnimatedSlidingText
+                    text={`${balance >= 0 ? '+' : '-'}${formatVND(Math.abs(balance))}`}
+                    style={[
+                        sumStyles.balanceValue,
+                        { color: balance >= 0 ? Colors.income : Colors.expense },
+                    ]}
+                />
             </View>
         </LiquidCard>
     );
@@ -292,42 +344,84 @@ const BarChart: React.FC<{
     data: ChartDataPoint[];
     period: Period;
 }> = React.memo(({ data, period }) => {
-    // Fade animation for chart changes
-    const fadeAnim = useRef(new Animated.Value(0)).current;
-    // Scale animation for bars growing from bottom
+    // Hold displayed data to animate old data OUT before swapping to new data IN
+    const [displayData, setDisplayData] = useState(data);
+
+    // Scale animation for bars dropping and growing
     const barScale = useRef(new Animated.Value(0)).current;
+    
+    // Fade animation for X-axis labels to transition smoothly
+    const labelsFade = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
-        fadeAnim.setValue(0);
-        barScale.setValue(0);
-
+        // Run initial mount animation
         Animated.parallel([
-            Animated.timing(fadeAnim, {
-                toValue: 1,
-                duration: 400,
-                easing: Easing.out(Easing.cubic),
-                useNativeDriver: true,
-            }),
             Animated.spring(barScale, {
                 toValue: 1,
                 damping: 14,
-                stiffness: 150,
+                stiffness: 120,
+                useNativeDriver: true,
+            }),
+            Animated.timing(labelsFade, {
+                toValue: 1,
+                duration: 400,
                 useNativeDriver: true,
             })
         ]).start();
-    }, [data, fadeAnim, barScale]);
+    }, []);
+
+    useEffect(() => {
+        if (data === displayData) return;
+
+        // Sequence: Drop down -> Swap -> Grow up
+        Animated.parallel([
+            Animated.timing(barScale, {
+                toValue: 0,
+                duration: 250,
+                easing: Easing.in(Easing.cubic),
+                useNativeDriver: true,
+            }),
+            Animated.timing(labelsFade, {
+                toValue: 0,
+                duration: 250,
+                useNativeDriver: true,
+            })
+        ]).start(() => {
+            // Swap data
+            setDisplayData(data);
+            
+            // Wait a tiny bit to ensure JS paints the swap, then grow up gracefully
+            setTimeout(() => {
+                Animated.parallel([
+                    Animated.spring(barScale, {
+                        toValue: 1,
+                        damping: 14,
+                        stiffness: 110,
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(labelsFade, {
+                        toValue: 1,
+                        duration: 350,
+                        useNativeDriver: true,
+                    })
+                ]).start();
+            }, 50);
+        });
+    }, [data, barScale, labelsFade]);
 
     const maxVal = Math.max(
-        ...data.map(d => Math.max(d.income, d.expense)),
+        ...displayData.map(d => Math.max(d.income, d.expense)),
         1,
     );
 
-    const hasData = data.some(d => d.income > 0 || d.expense > 0);
+    const hasData = displayData.some(d => d.income > 0 || d.expense > 0);
 
-    const groupCount = data.length;
+    const groupCount = displayData.length;
     const groupWidth = CHART_WIDTH / groupCount;
-    const barGap = period === 'day' ? 16 : 4;
-    const maxBarWidth = period === 'day' ? 60 : 18;
+    // Derive period from data length (2 for day, 7 for week)
+    const isDayView = groupCount <= 2;
+    const barGap = isDayView ? 16 : 4;
+    const maxBarWidth = isDayView ? 60 : 18;
     const barWidth = Math.min(
         Math.max(Math.floor((groupWidth - barGap * 3) / 2), 10),
         maxBarWidth,
@@ -338,104 +432,26 @@ const BarChart: React.FC<{
         <LiquidCard
             style={chStyles.card}
             intensity="light"
-            
             borderRadius={Radii.xl}>
             <View style={chStyles.inner}>
                 <Text style={chStyles.title}>Dòng tiền</Text>
 
-                {!hasData ? (
-                    <View style={chStyles.emptyChart}>
-                        <Text style={chStyles.emptyText}>Chưa có dữ liệu</Text>
-                    </View>
-                ) : (
-                    <Animated.View style={{ opacity: fadeAnim }}>
-                        <Animated.View style={{
-                            transform: [{ scaleY: barScale }],
-                            transformOrigin: 'bottom',
-                        }}>
-                            <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
-                                <Defs>
-                                    <LinearGradient id="incG" x1="0" y1="0" x2="0" y2="1">
-                                        <Stop offset="0" stopColor={Colors.income} stopOpacity="1" />
-                                        <Stop offset="1" stopColor={Colors.income} stopOpacity="0.3" />
-                                    </LinearGradient>
-                                    <LinearGradient id="expG" x1="0" y1="0" x2="0" y2="1">
-                                        <Stop offset="0" stopColor={Colors.expense} stopOpacity="1" />
-                                        <Stop offset="1" stopColor={Colors.expense} stopOpacity="0.3" />
-                                    </LinearGradient>
-                                </Defs>
-
-                                {data.map((d, i) => {
-                                    const cx = i * groupWidth + groupWidth / 2;
-                                    const rawInH = (d.income / maxVal) * BAR_AREA_HEIGHT;
-                                    const rawOutH = (d.expense / maxVal) * BAR_AREA_HEIGHT;
-                                    const inH = d.income > 0 ? Math.max(rawInH, 6) : 0;
-                                    const outH = d.expense > 0 ? Math.max(rawOutH, 6) : 0;
-
-                                    // Single-bar group: center the bar under the label
-                                    const isSingleBar = (inH > 0 && outH === 0) || (outH > 0 && inH === 0);
-
-                                    // Position bars: centered for single, paired for dual
-                                    const inBarX = isSingleBar
-                                        ? cx - barWidth / 2
-                                        : cx - barWidth - barGap / 2;
-                                    const outBarX = isSingleBar
-                                        ? cx - barWidth / 2
-                                        : cx + barGap / 2;
-                                    const inBarY = VALUE_LABEL_HEIGHT + BAR_AREA_HEIGHT - inH;
-                                    const outBarY = VALUE_LABEL_HEIGHT + BAR_AREA_HEIGHT - outH;
-
-                                    return (
-                                        <React.Fragment key={i}>
-                                            {/* Income bar + value label */}
-                                            {inH > 0 && (
-                                                <>
-                                                    <SvgText
-                                                        x={inBarX + barWidth / 2}
-                                                        y={inBarY - 6}
-                                                        fontSize={10}
-                                                        fill={Colors.income}
-                                                        fontWeight="700"
-                                                        textAnchor="middle"
-                                                        opacity={0.9}>
-                                                        {formatVNDShort(d.income)}
-                                                    </SvgText>
-                                                    <Rect
-                                                        x={inBarX}
-                                                        y={inBarY}
-                                                        width={barWidth}
-                                                        height={inH}
-                                                        rx={barRadius}
-                                                        fill="url(#incG)"
-                                                    />
-                                                </>
-                                            )}
-                                            {/* Expense bar + value label */}
-                                            {outH > 0 && (
-                                                <>
-                                                    <SvgText
-                                                        x={outBarX + barWidth / 2}
-                                                        y={outBarY - 6}
-                                                        fontSize={10}
-                                                        fill={Colors.expense}
-                                                        fontWeight="700"
-                                                        textAnchor="middle"
-                                                        opacity={0.8}>
-                                                        {formatVNDShort(d.expense)}
-                                                    </SvgText>
-                                                    <Rect
-                                                        x={outBarX}
-                                                        y={outBarY}
-                                                        width={barWidth}
-                                                        height={outH}
-                                                        rx={barRadius}
-                                                        fill="url(#expG)"
-                                                    />
-                                                </>
-                                            )}
-
-                                            {/* X-axis label */}
+                <View style={{ height: CHART_HEIGHT, position: 'relative' }}>
+                    {!hasData ? (
+                        <Animated.View style={[chStyles.emptyChart, { opacity: labelsFade }]}>
+                            <Text style={chStyles.emptyText}>Chưa có dữ liệu</Text>
+                        </Animated.View>
+                    ) : (
+                        <>
+                            {/* BARS STATIC SVG BACKGROUND DEFINITIONS & X-AXIS LABELS */}
+                            <Animated.View style={{ position: 'absolute', top: 0, left: 0, opacity: labelsFade }}>
+                                <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
+                                    {/* Only Render X-Axis Labels Here to Prevent Distortion */}
+                                    {displayData.map((d, i) => {
+                                        const cx = i * groupWidth + groupWidth / 2;
+                                        return (
                                             <SvgText
+                                                key={`lbl-${i}`}
                                                 x={cx}
                                                 y={CHART_HEIGHT - 4}
                                                 fontSize={11}
@@ -444,13 +460,101 @@ const BarChart: React.FC<{
                                                 textAnchor="middle">
                                                 {d.label}
                                             </SvgText>
-                                        </React.Fragment>
-                                    );
-                                })}
-                            </Svg>
-                        </Animated.View>
-                    </Animated.View>
-                )}
+                                        );
+                                    })}
+                                </Svg>
+                            </Animated.View>
+
+                            {/* BARS & VALUE LABELS (SCALING LAYER) */}
+                            <Animated.View style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                transform: [{ scaleY: barScale }],
+                                transformOrigin: 'bottom',
+                            }}>
+                                <Svg width={CHART_WIDTH} height={CHART_HEIGHT - X_LABEL_HEIGHT}>
+                                    <Defs>
+                                        <LinearGradient id="incG" x1="0" y1="0" x2="0" y2="1">
+                                            <Stop offset="0" stopColor={Colors.income} stopOpacity="1" />
+                                            <Stop offset="1" stopColor={Colors.income} stopOpacity="0.3" />
+                                        </LinearGradient>
+                                        <LinearGradient id="expG" x1="0" y1="0" x2="0" y2="1">
+                                            <Stop offset="0" stopColor={Colors.expense} stopOpacity="1" />
+                                            <Stop offset="1" stopColor={Colors.expense} stopOpacity="0.3" />
+                                        </LinearGradient>
+                                    </Defs>
+
+                                    {displayData.map((d, i) => {
+                                        const cx = i * groupWidth + groupWidth / 2;
+                                        const rawInH = (d.income / maxVal) * BAR_AREA_HEIGHT;
+                                        const rawOutH = (d.expense / maxVal) * BAR_AREA_HEIGHT;
+                                        const inH = d.income > 0 ? Math.max(rawInH, 6) : 0;
+                                        const outH = d.expense > 0 ? Math.max(rawOutH, 6) : 0;
+
+                                        const isSingleBar = (inH > 0 && outH === 0) || (outH > 0 && inH === 0);
+
+                                        const inBarX = isSingleBar ? cx - barWidth / 2 : cx - barWidth - barGap / 2;
+                                        const outBarX = isSingleBar ? cx - barWidth / 2 : cx + barGap / 2;
+                                        
+                                        // Ensure labels and bars exist rigidly inside the frame
+                                        const inBarY = VALUE_LABEL_HEIGHT + BAR_AREA_HEIGHT - inH;
+                                        const outBarY = VALUE_LABEL_HEIGHT + BAR_AREA_HEIGHT - outH;
+
+                                        return (
+                                            <React.Fragment key={`bar-${i}`}>
+                                                {inH > 0 && (
+                                                    <>
+                                                        <SvgText
+                                                            x={inBarX + barWidth / 2}
+                                                            y={inBarY - 6}
+                                                            fontSize={10}
+                                                            fill={Colors.income}
+                                                            fontWeight="700"
+                                                            textAnchor="middle"
+                                                            opacity={0.9}>
+                                                            {formatVNDShort(d.income)}
+                                                        </SvgText>
+                                                        <Rect
+                                                            x={inBarX}
+                                                            y={inBarY}
+                                                            width={barWidth}
+                                                            height={inH}
+                                                            rx={barRadius}
+                                                            fill="url(#incG)"
+                                                        />
+                                                    </>
+                                                )}
+                                                {outH > 0 && (
+                                                    <>
+                                                        <SvgText
+                                                            x={outBarX + barWidth / 2}
+                                                            y={outBarY - 6}
+                                                            fontSize={10}
+                                                            fill={Colors.expense}
+                                                            fontWeight="700"
+                                                            textAnchor="middle"
+                                                            opacity={0.8}>
+                                                            {formatVNDShort(d.expense)}
+                                                        </SvgText>
+                                                        <Rect
+                                                            x={outBarX}
+                                                            y={outBarY}
+                                                            width={barWidth}
+                                                            height={outH}
+                                                            rx={barRadius}
+                                                            fill="url(#expG)"
+                                                        />
+                                                    </>
+                                                )}
+                                            </React.Fragment>
+                                        );
+                                    })}
+                                </Svg>
+                            </Animated.View>
+                        </>
+                    )}
+                </View>
 
                 {/* Legend */}
                 <View style={chStyles.legend}>
@@ -478,9 +582,12 @@ const chStyles = StyleSheet.create({
         marginBottom: Spacing.md,
     },
     emptyChart: {
-        height: 120,
+        height: CHART_HEIGHT,
         alignItems: 'center',
         justifyContent: 'center',
+        position: 'absolute',
+        width: '100%',
+        top: 0,
     },
     emptyText: {
         fontSize: FontSizes.sm,
@@ -511,6 +618,33 @@ const WalletChips: React.FC<{
 }> = React.memo(({ wallets, selectedId, onSelect }) => {
     if (wallets.length <= 1) { return null; }
 
+    const activeId = selectedId || 'ALL';
+    const items = useMemo(() => {
+        return [{ id: 'ALL', name: 'Tất cả' }, ...wallets];
+    }, [wallets]);
+
+    const [layouts, setLayouts] = useState<Record<string, { x: number, width: number }>>({});
+    const animX = useRef(new Animated.Value(0)).current;
+    const animW = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        const layout = layouts[activeId];
+        if (layout) {
+            Animated.spring(animX, {
+                toValue: layout.x,
+                useNativeDriver: false,
+                friction: 12,
+                tension: 100,
+            }).start();
+            Animated.spring(animW, {
+                toValue: layout.width,
+                useNativeDriver: false,
+                friction: 12,
+                tension: 100,
+            }).start();
+        }
+    }, [activeId, layouts, animX, animW]);
+
     return (
         <ScrollView 
             horizontal 
@@ -518,28 +652,49 @@ const WalletChips: React.FC<{
             style={wcStyles.scrollWrapper} 
             contentContainerStyle={wcStyles.container}
         >
-            <LiquidButton
-                title="Tất cả"
-                variant={!selectedId ? 'filled' : 'ghost'}
-                onPress={() => onSelect(undefined)}
-                style={wcStyles.chip}
-            />
-            {wallets.map(w => (
-                <LiquidButton
-                    key={w.id}
-                    title={w.name}
-                    variant={selectedId === w.id ? 'filled' : 'ghost'}
-                    onPress={() => onSelect(w.id)}
-                    style={wcStyles.chip}
-                />
-            ))}
+            <View style={{ flexDirection: 'row', position: 'relative', gap: 10 }}>
+                {layouts[activeId] && Object.keys(layouts).length > 0 && (
+                    <Animated.View
+                        style={{
+                            position: 'absolute',
+                            top: 0,
+                            bottom: 0,
+                            left: animX,
+                            width: animW,
+                            zIndex: 0,
+                        }}
+                    >
+                        <LiquidCard intensity="light" borderRadius={24} style={StyleSheet.absoluteFill}>
+                            <View />
+                        </LiquidCard>
+                    </Animated.View>
+                )}
+                
+                {items.map(w => (
+                    <View 
+                        key={w.id} 
+                        style={{ zIndex: 1 }}
+                        onLayout={(e) => {
+                            const { x, width } = e.nativeEvent.layout;
+                            setLayouts(prev => ({ ...prev, [w.id]: { x, width } }));
+                        }}
+                    >
+                         <LiquidButton
+                            title={w.name}
+                            variant="ghost" 
+                            onPress={() => onSelect(w.id === 'ALL' ? undefined : w.id)}
+                            style={wcStyles.chip}
+                         />
+                    </View>
+                ))}
+            </View>
         </ScrollView>
     );
 });
 
 const wcStyles = StyleSheet.create({
     scrollWrapper: { flexGrow: 0, marginBottom: Spacing.lg },
-    container: { flexDirection: 'row', gap: 10 },
+    container: { },
     chip: {
         paddingHorizontal: 16,
         paddingVertical: 10,
@@ -616,7 +771,8 @@ const StatsScreen: React.FC = () => {
                 const monday = new Date(
                     now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday,
                 );
-                const allDays: DailyStat[] = getDailyStats(wId, 7);
+                const sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6);
+                const allDays: DailyStat[] = getDailyStats(wId, 7, sunday);
                 const dayMap = new Map<string, DailyStat>();
                 for (const d of allDays) { dayMap.set(d.date, d); }
 
@@ -758,6 +914,8 @@ const StatsScreen: React.FC = () => {
         },
         [removeTransaction, loadData, selectedWalletId, period],
     );
+    const periodTotalIn = useMemo(() => chartData.reduce((sum, d) => sum + d.income, 0), [chartData]);
+    const periodTotalOut = useMemo(() => chartData.reduce((sum, d) => sum + d.expense, 0), [chartData]);
 
     // ── Render ─────────────────────────────────────────────────────────────
 
@@ -812,8 +970,8 @@ const StatsScreen: React.FC = () => {
 
                         {/* Summary */}
                         <SummarySection
-                            totalIn={overallStats.totalIn}
-                            totalOut={overallStats.totalOut}
+                            totalIn={periodTotalIn}
+                            totalOut={periodTotalOut}
                         />
 
                         {/* Chart */}
@@ -828,9 +986,16 @@ const StatsScreen: React.FC = () => {
                                         {recentTxns.length} giao dịch
                                     </Text>
                                 </View>
-                                {recentTxns.map(tx => (
-                                    <TransactionRow key={tx.id} item={tx} variant="flat" onPress={handleViewTransaction} />
-                                ))}
+                                <View style={{ marginTop: Spacing.xs }}>
+                                    {recentTxns.map((tx) => (
+                                        <TransactionRow
+                                            key={tx.id}
+                                            item={tx}
+                                            variant="card"
+                                            onPress={handleViewTransaction}
+                                        />
+                                    ))}
+                                </View>
                             </>
                         ) : (
                             <EmptyState

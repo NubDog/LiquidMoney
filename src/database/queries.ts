@@ -502,9 +502,10 @@ export function getMonthlyStats(walletId?: string, months: number = 6): MonthlyS
     }
 
     const stats: MonthlyStat[] = monthList.map(month => {
-        const startDate = `${month}-01T00:00:00.000Z`;
         const [y, m] = month.split('-').map(Number);
+        const startMonth = new Date(y, m - 1, 1);
         const nextMonth = new Date(y, m, 1);
+        const startDate = startMonth.toISOString();
         const endDate = nextMonth.toISOString();
 
         let query: string;
@@ -545,14 +546,13 @@ export function getMonthlyStats(walletId?: string, months: number = 6): MonthlyS
  * @param walletId - ID ví cụ thể, hoặc undefined = tất cả ví
  * @param days - Số ngày gần nhất (default: 14)
  */
-export function getDailyStats(walletId?: string, days: number = 14): DailyStat[] {
+export function getDailyStats(walletId?: string, days: number = 14, endRef: Date = new Date()): DailyStat[] {
     const db = getDatabase();
 
-    // Tạo danh sách N ngày gần nhất
+    // Tạo danh sách N ngày gần nhất tính từ endRef
     const dayList: string[] = [];
-    const now = new Date();
     for (let i = days - 1; i >= 0; i--) {
-        const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+        const d = new Date(endRef.getFullYear(), endRef.getMonth(), endRef.getDate() - i);
         const yyyy = d.getFullYear();
         const mm = String(d.getMonth() + 1).padStart(2, '0');
         const dd = String(d.getDate()).padStart(2, '0');
@@ -560,9 +560,10 @@ export function getDailyStats(walletId?: string, days: number = 14): DailyStat[]
     }
 
     const stats: DailyStat[] = dayList.map(date => {
-        const startDate = `${date}T00:00:00.000Z`;
         const [y, m, d] = date.split('-').map(Number);
+        const startDay = new Date(y, m - 1, d);
         const nextDay = new Date(y, m - 1, d + 1);
+        const startDate = startDay.toISOString();
         const endDate = nextDay.toISOString();
 
         let query: string;

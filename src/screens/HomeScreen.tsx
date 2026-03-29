@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     listContent: {
-        paddingHorizontal: Spacing.lg,
+        paddingHorizontal: Spacing.md,
         paddingBottom: 120,
         flexGrow: 1,
     },

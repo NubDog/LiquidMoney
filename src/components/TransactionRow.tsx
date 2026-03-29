@@ -56,8 +56,11 @@ const TransactionRow: React.FC<TransactionRowProps> = ({
     };
 
     const renderContent = () => (
-        <View style={[styles.content, variant === 'flat' && { paddingHorizontal: 0, paddingVertical: Spacing.sm }]}>
-            <LiquidIconButton size={44} onPress={() => {}} disabled style={{ marginRight: Spacing.md }}>
+        <View style={[
+            styles.content, 
+            variant === 'flat' && { paddingVertical: Spacing.md }
+        ]}>
+            <LiquidIconButton size={48} onPress={() => {}} disabled style={{ marginRight: Spacing.md }}>
                 {getIcon()}
             </LiquidIconButton>
             
@@ -104,7 +107,6 @@ const TransactionRow: React.FC<TransactionRowProps> = ({
 
 const styles = StyleSheet.create({
     wrapper: {
-        marginHorizontal: Spacing.xl,
         marginBottom: Spacing.sm,
     },
     card: {
@@ -113,7 +115,8 @@ const styles = StyleSheet.create({
     content: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: Spacing.md,
+        paddingHorizontal: Spacing.md,
+        paddingVertical: Spacing.lg,
     },
     info: {
         flex: 1,

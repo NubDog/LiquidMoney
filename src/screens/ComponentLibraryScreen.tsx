@@ -154,7 +154,7 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                     </Section>
 
                     <Section title="TransactionRow (Grouped Flat / Medium Card)">
-                        <LiquidCard intensity="medium" style={{ paddingVertical: Spacing.sm, paddingHorizontal: Spacing.lg, marginHorizontal: Spacing.xl, borderRadius: Radii.xl }}>
+                        <LiquidCard intensity="medium" style={{ paddingVertical: Spacing.sm, borderRadius: Radii.xl }}>
                             <TransactionRow item={dummyTransaction} variant="flat" onPress={() => {}} />
                             <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(255,255,255,0.1)' }} />
                             <TransactionRow item={{...dummyTransaction, type: 'IN', amount: 1000000, reason: 'Lương'}} variant="flat" onPress={() => {}} />
@@ -216,7 +216,8 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     content: {
-        padding: Spacing.lg,
+        paddingVertical: Spacing.lg,
+        paddingHorizontal: Spacing.md,
     },
     section: {
         marginBottom: Spacing.xxl,

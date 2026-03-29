@@ -25,7 +25,8 @@ import AnimatedOverlay from './AnimatedOverlay';
 import LiquidCard from './LiquidCard';
 import LiquidButton from './LiquidButton';
 import LiquidIconButton from './LiquidIconButton';
-import SegmentedControl from './SegmentedControl';
+import LiquidSegmentedControl from './LiquidSegmentedControl';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, FontSizes, Shadows, Spacing, Radii } from '../common/theme';
 
 interface TransactionModalProps {
@@ -36,11 +37,10 @@ interface TransactionModalProps {
     onDelete?: () => void;
 }
 
-const TABS = ['Chi Tiêu', 'Thu Nhập', 'Chuyển Khoản'];
+const TABS = ['Chi Tiêu', 'Thu Nhập'];
 const TAB_MAP = {
     'Chi Tiêu': 'expense',
     'Thu Nhập': 'income',
-    'Chuyển Khoản': 'transfer',
 } as const;
 
 const TransactionModal: React.FC<TransactionModalProps> = ({
@@ -50,6 +50,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
     editData,
     onDelete,
 }) => {
+    const insets = useSafeAreaInsets();
     const [activeTab, setActiveTab] = useState('Chi Tiêu');
     const [amount, setAmount] = useState('');
     const [description, setDescription] = useState('');
@@ -58,7 +59,18 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
     const [toWalletId, setToWalletId] = useState(''); // Not fully wired, placeholder
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const handleAmountChange = (text: string) => {
+        const numeric = text.replace(/[^0-9]/g, '');
+        if (!numeric) {
+            setAmount('');
+            return;
+        }
+        const formatted = parseInt(numeric, 10).toLocaleString('vi-VN').replace(/,/g, '.');
+        setAmount(formatted);
+    };
+
     const translateY = useRef(new Animated.Value(600)).current;
+    const amountInputRef = useRef<TextInput>(null);
 
     React.useEffect(() => {
         if (visible) {
@@ -110,15 +122,15 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
             <View style={styles.container}>
                 <AnimatedOverlay visible={visible} onPress={handleClose} />
                 <KeyboardAvoidingView
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                     style={styles.keyboardView}
                     pointerEvents="box-none">
                     <Animated.View style={[styles.sheetContainer, { transform: [{ translateY }] }]}>
                         <LiquidCard
                             style={styles.sheet}
                             intensity="light"
-                            
                             borderRadius={Radii.xxl}
+                            extendBottom={true}
                         >
                             <View style={styles.handleBar} />
                             <View style={styles.header}>
@@ -128,28 +140,42 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                                 </LiquidIconButton>
                             </View>
 
-                            <ScrollView style={styles.scroll} keyboardShouldPersistTaps="handled">
+                            <ScrollView
+                                style={styles.scroll}
+                                contentContainerStyle={{ paddingBottom: insets.bottom }}
+                                showsVerticalScrollIndicator={false}
+                                keyboardShouldPersistTaps="handled">
                                 <View style={styles.tabsWrapper}>
-                                    <SegmentedControl
-                                        tabs={TABS}
-                                        activeTab={activeTab}
-                                        onTabChange={setActiveTab}
+                                    <LiquidSegmentedControl
+                                        options={[
+                                            { key: 'Chi Tiêu', label: 'CHI TIÊU' },
+                                            { key: 'Thu Nhập', label: 'THU NHẬP' }
+                                        ]}
+                                        selected={activeTab}
+                                        onChange={(val) => setActiveTab(val as string)}
                                     />
                                 </View>
 
                                 {/* AMOUNT INPUT */}
                                 <Text style={styles.label}>Số tiền (₫)</Text>
-                                <TextInput
-                                    style={[styles.input, styles.amountInput, { 
-                                        color: activeTab === 'Thu Nhập' ? Colors.income : Colors.expense 
-                                    }]}
-                                    value={amount}
-                                    onChangeText={setAmount}
-                                    placeholder="0"
-                                    placeholderTextColor="rgba(255,255,255,0.3)"
-                                    keyboardType="numeric"
-                                    selectionColor={Colors.accent}
-                                />
+                                <Pressable
+                                    style={[styles.input, { alignItems: 'center', justifyContent: 'center' }]}
+                                    onPress={() => amountInputRef.current?.focus()}
+                                >
+                                    <TextInput
+                                        ref={amountInputRef}
+                                        style={[styles.amountInput, {
+                                            color: activeTab === 'Thu Nhập' ? Colors.income : Colors.expense,
+                                            minWidth: 40,
+                                        }]}
+                                        value={amount}
+                                        onChangeText={handleAmountChange}
+                                        placeholder="0"
+                                        placeholderTextColor="rgba(255,255,255,0.3)"
+                                        keyboardType="numeric"
+                                        selectionColor={Colors.accent}
+                                    />
+                                </Pressable>
 
                                 {/* DESCRIPTION INPUT */}
                                 <Text style={styles.label}>Mô tả</Text>
@@ -192,7 +218,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                                     title="Lưu Giao Dịch"
                                     onPress={handleSave}
                                     disabled={isSubmitting}
-                                    style={{ marginTop: Spacing.md, marginBottom: Spacing.xxl }}
+                                    style={{ marginTop: Spacing.md, marginBottom: 2 }}
                                 />
                             </ScrollView>
                         </LiquidCard>
@@ -215,6 +241,7 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 0,
         borderBottomRightRadius: 0,
         borderBottomWidth: 0,
+        paddingBottom: 40,
         maxHeight: '88%',
     },
     handleBar: {
@@ -245,11 +272,9 @@ const styles = StyleSheet.create({
     },
     scroll: {
         paddingHorizontal: Spacing.xl,
-        paddingBottom: 40,
     },
     tabsWrapper: {
         marginBottom: Spacing.xl,
-        marginHorizontal: -16, // Bleed edges
     },
     label: {
         fontSize: FontSizes.md,
@@ -271,7 +296,6 @@ const styles = StyleSheet.create({
         fontSize: FontSizes.xxl,
         fontWeight: '800',
         paddingVertical: Spacing.lg,
-        textAlign: 'center',
     },
     datePickerBtn: {
         flexDirection: 'row',

@@ -15,25 +15,23 @@ import {
     FlatList,
     InteractionManager,
     LayoutAnimation,
-    Pressable,
     StyleSheet,
     Text,
     View,
-    Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronLeft, MoreVertical } from 'lucide-react-native';
 
 // ─── Components ───────────────────────────────────────────────────────────────
 import LiquidCard from '../components/LiquidCard';
-import TransactionFilterBar from '../components/TransactionFilterBar';
+import LiquidSegmentedControl from '../components/LiquidSegmentedControl';
 import TransactionModal from '../components/TransactionModal';
 import TransactionRow from '../components/TransactionRow';
 import TransactionDetailOverlay from '../components/TransactionDetailOverlay';
 import ConfirmDialog from '../components/ConfirmDialog';
 import EditWalletModal from '../components/EditWalletModal';
 import PopupMenu from '../components/PopupMenu';
-import LiquidFAB from '../components/LiquidFAB';
+import AddWalletButton from '../components/AddWalletButton';
 import LiquidBackground from '../components/LiquidBackground';
 import LiquidIconButton from '../components/LiquidIconButton';
 import { WalletDetailSkeleton } from '../components/WalletDetailSkeleton';
@@ -91,8 +89,6 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
 
     // Menu & Edit & Delete state
     const [menuVisible, setMenuVisible] = useState(false);
-    const [menuAnchorY, setMenuAnchorY] = useState(0);
-    const [menuAnchorX, setMenuAnchorX] = useState(16);
     const [editWalletVisible, setEditWalletVisible] = useState(false);
     const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
 
@@ -162,9 +158,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
     // ─── Handlers: Wallet Menu ──────────────────────────────────────────────
     const handleOpenMenu = useCallback(() => {
         if (menuBtnRef.current) {
-            (menuBtnRef.current as any).measureInWindow((_x: number, y: number, _width: number, height: number) => {
-                setMenuAnchorY(y + height);
-                setMenuAnchorX(16);
+            (menuBtnRef.current as any).measureInWindow((_x: number, _y: number, _width: number, _height: number) => {
                 setMenuVisible(true);
             });
         } else {
@@ -243,10 +237,12 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
                 </LiquidCard>
 
                 <View style={styles.filterWrapper}>
-                    <TransactionFilterBar
-                        options={FILTER_SEGMENTS.map((seg, i) => ({ id: i.toString(), label: seg }))}
-                        activeFilterId={filterIndex.toString()}
-                        onSelectFilter={(id) => setFilterIndex(parseInt(id, 10))}
+                    <AddWalletButton onPress={handleOpenCreate} />
+                    <LiquidSegmentedControl
+                        style={{ flex: 1 }}
+                        options={FILTER_SEGMENTS.map((seg, i) => ({ key: i.toString(), label: seg }))}
+                        selected={filterIndex.toString()}
+                        onChange={(key) => setFilterIndex(parseInt(key, 10))}
                     />
                 </View>
 
@@ -255,7 +251,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
                 </Text>
             </View>
         ),
-        [wallet, balanceDiff, diffColor, filterIndex, transactions.length],
+        [wallet, balanceDiff, diffColor, filterIndex, transactions.length, handleOpenCreate],
     );
 
     const listEmpty = useMemo(
@@ -291,9 +287,6 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
             />
-
-            {/* FAB */}
-            <LiquidFAB onPress={handleOpenCreate} style={{ bottom: 140 }} />
 
             {/* Transaction Modal */}
             <TransactionModal
@@ -530,6 +523,9 @@ const styles = StyleSheet.create({
 
     // ── Filter ──
     filterWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
         marginBottom: Spacing.md,
     },
 

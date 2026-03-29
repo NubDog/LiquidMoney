@@ -1,7 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import { Animated, Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
 import { FontSizes, Radii } from '../common/theme';
+import { useWaterDropAnimation } from '../hooks/useWaterDrop';
+import LiquidCard from './LiquidCard';
 
 interface Option {
     key: string;
@@ -21,62 +23,15 @@ const LiquidSegmentedControl: React.FC<LiquidSegmentedControlProps> = React.memo
     onChange,
     style,
 }) => {
-    const [containerWidth, setContainerWidth] = useState(0);
-    const leftAnim = useRef(new Animated.Value(0)).current;
-    const rightAnim = useRef(new Animated.Value(0)).current;
-    const prevIdx = useRef(options.findIndex(o => o.key === selected));
-
-    const gap = 10;
-    const padding = 4;
-    const optionCount = options.length;
-    const tabWidth = containerWidth > 0 ? (containerWidth - (padding * 2) - gap * (optionCount - 1)) / optionCount : 0;
-
-    useEffect(() => {
-        if (containerWidth <= 0 || tabWidth <= 0) { return; }
-        const idx = options.findIndex(o => o.key === selected);
-        
-        const targetLeft = padding + idx * (tabWidth + gap);
-        const targetRight = containerWidth - (targetLeft + tabWidth);
-
-        if (idx === prevIdx.current) {
-            // Initial snap
-            leftAnim.setValue(targetLeft);
-            rightAnim.setValue(targetRight);
-            return;
-        }
-
-        const isMovingRight = idx > prevIdx.current;
-        prevIdx.current = idx;
-
-        // "Slime / Water Drop" Physics
-        // The leading edge (head) springs tight and fast
-        // The trailing edge (tail) lags behind and bounces smoothly
-        const headStiff = 280;
-        const headDamp = 18;
-        const tailStiff = 120;
-        const tailDamp = 14;
-
-        Animated.parallel([
-            Animated.spring(leftAnim, {
-                toValue: targetLeft,
-                damping: isMovingRight ? tailDamp : headDamp,
-                stiffness: isMovingRight ? tailStiff : headStiff,
-                mass: 1,
-                useNativeDriver: false, // Animating layout properties
-            }),
-            Animated.spring(rightAnim, {
-                toValue: targetRight,
-                damping: isMovingRight ? headDamp : tailDamp,
-                stiffness: isMovingRight ? headStiff : tailStiff,
-                mass: 1,
-                useNativeDriver: false,
-            })
-        ]).start();
-    }, [selected, containerWidth, options, tabWidth, gap, leftAnim, rightAnim]);
+    const { leftAnim, rightAnim, containerWidth, setContainerWidth, tabWidth } = useWaterDropAnimation({
+        options,
+        selected,
+        gap: 10,
+        paddingHorizontal: 8,
+    });
 
     return (
-        <View style={[styles.wrapper, style]}>
-            <View style={[StyleSheet.absoluteFill, styles.trackBackground]} />
+        <LiquidCard intensity="heavy" borderRadius={Radii.lg} style={[styles.wrapper, style]}>
             <View
                 style={styles.container}
                 onLayout={e => setContainerWidth(e.nativeEvent.layout.width)}>
@@ -115,25 +70,19 @@ const LiquidSegmentedControl: React.FC<LiquidSegmentedControlProps> = React.memo
                     </Pressable>
                 ))}
             </View>
-        </View>
+        </LiquidCard>
     );
 });
 
 const styles = StyleSheet.create({
     wrapper: {
-        borderRadius: Radii.lg,
         overflow: 'hidden',
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: 'rgba(255, 255, 255, 0.08)',
-        backgroundColor: 'rgba(0, 0, 0, 0.2)', // Track background
-    },
-    trackBackground: {
-        backgroundColor: 'rgba(255, 255, 255, 0.03)',
     },
     container: {
         flexDirection: 'row',
         gap: 10,
-        padding: 4,
+        paddingVertical: 4,
+        paddingHorizontal: 8,
         position: 'relative',
     },
     tab: {
