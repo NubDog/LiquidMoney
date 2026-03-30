@@ -15,9 +15,11 @@ import {
     FlatList,
     InteractionManager,
     LayoutAnimation,
+    Pressable,
     StyleSheet,
     Text,
     View,
+    Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronLeft, MoreVertical } from 'lucide-react-native';
@@ -53,6 +55,7 @@ interface WalletDetailScreenProps {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const FILTER_SEGMENTS = ['Tất cả', 'Thu', 'Chi'];
+const FILTER_OPTIONS = FILTER_SEGMENTS.map((seg, i) => ({ key: i.toString(), label: seg }));
 
 // ─── LAYER 3: HEAVY PAYLOAD ───────────────────────────────────────────────────
 // Only mounted AFTER the navigation transition completes.
@@ -83,12 +86,19 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
 
     // ─── State ──────────────────────────────────────────────────────────────
     const [filterIndex, setFilterIndex] = useState(0);
+    
+    // Stable callback for segmented control to prevent re-renders
+    const handleFilterChange = useCallback((key: string) => {
+        setFilterIndex(parseInt(key, 10));
+    }, []);
     const [modalVisible, setModalVisible] = useState(false);
     const [editingTx, setEditingTx] = useState<Transaction | null>(null);
     const [viewingTx, setViewingTx] = useState<Transaction | null>(null);
 
     // Menu & Edit & Delete state
     const [menuVisible, setMenuVisible] = useState(false);
+    const [menuAnchorY, setMenuAnchorY] = useState(0);
+    const [menuAnchorX, setMenuAnchorX] = useState(16);
     const [editWalletVisible, setEditWalletVisible] = useState(false);
     const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
 
@@ -158,7 +168,9 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
     // ─── Handlers: Wallet Menu ──────────────────────────────────────────────
     const handleOpenMenu = useCallback(() => {
         if (menuBtnRef.current) {
-            (menuBtnRef.current as any).measureInWindow((_x: number, _y: number, _width: number, _height: number) => {
+            (menuBtnRef.current as any).measureInWindow((_x: number, y: number, _width: number, height: number) => {
+                setMenuAnchorY(y + height);
+                setMenuAnchorX(16);
                 setMenuVisible(true);
             });
         } else {
@@ -237,12 +249,10 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
                 </LiquidCard>
 
                 <View style={styles.filterWrapper}>
-                    <AddWalletButton onPress={handleOpenCreate} />
                     <LiquidSegmentedControl
-                        style={{ flex: 1 }}
-                        options={FILTER_SEGMENTS.map((seg, i) => ({ key: i.toString(), label: seg }))}
+                        options={FILTER_OPTIONS}
                         selected={filterIndex.toString()}
-                        onChange={(key) => setFilterIndex(parseInt(key, 10))}
+                        onChange={handleFilterChange}
                     />
                 </View>
 
@@ -251,7 +261,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
                 </Text>
             </View>
         ),
-        [wallet, balanceDiff, diffColor, filterIndex, transactions.length, handleOpenCreate],
+        [wallet, balanceDiff, diffColor, filterIndex, transactions.length],
     );
 
     const listEmpty = useMemo(
@@ -275,6 +285,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
                     { id: 'edit', label: 'Sửa ví', onPress: handleEditWallet },
                     { id: 'delete', label: 'Xóa ví', onPress: handleDeleteWallet, color: '#ef4444' }
                 ]}
+                anchor={{ x: menuAnchorX, y: menuAnchorY }}
             />
 
             {/* Transaction List */}
@@ -287,6 +298,9 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
             />
+
+            {/* FAB */}
+            <AddWalletButton onPress={handleOpenCreate} style={{ position: 'absolute', bottom: 140, right: 20, zIndex: 9999, shadowColor: 'rgba(0, 0, 0, 0.6)', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 1, shadowRadius: 10, elevation: 10 }} />
 
             {/* Transaction Modal */}
             <TransactionModal
@@ -523,9 +537,6 @@ const styles = StyleSheet.create({
 
     // ── Filter ──
     filterWrapper: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
         marginBottom: Spacing.md,
     },
 

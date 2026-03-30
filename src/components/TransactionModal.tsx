@@ -26,6 +26,8 @@ import LiquidCard from './LiquidCard';
 import LiquidButton from './LiquidButton';
 import LiquidIconButton from './LiquidIconButton';
 import LiquidSegmentedControl from './LiquidSegmentedControl';
+import AmountInput from './AmountInput';
+import LiquidInput from './LiquidInput';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, FontSizes, Shadows, Spacing, Radii } from '../common/theme';
 
@@ -58,16 +60,6 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [toWalletId, setToWalletId] = useState(''); // Not fully wired, placeholder
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    const handleAmountChange = (text: string) => {
-        const numeric = text.replace(/[^0-9]/g, '');
-        if (!numeric) {
-            setAmount('');
-            return;
-        }
-        const formatted = parseInt(numeric, 10).toLocaleString('vi-VN').replace(/,/g, '.');
-        setAmount(formatted);
-    };
 
     const translateY = useRef(new Animated.Value(600)).current;
     const amountInputRef = useRef<TextInput>(null);
@@ -157,35 +149,19 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                                 </View>
 
                                 {/* AMOUNT INPUT */}
-                                <Text style={styles.label}>Số tiền (₫)</Text>
-                                <Pressable
-                                    style={[styles.input, { alignItems: 'center', justifyContent: 'center' }]}
-                                    onPress={() => amountInputRef.current?.focus()}
-                                >
-                                    <TextInput
-                                        ref={amountInputRef}
-                                        style={[styles.amountInput, {
-                                            color: activeTab === 'Thu Nhập' ? Colors.income : Colors.expense,
-                                            minWidth: 40,
-                                        }]}
-                                        value={amount}
-                                        onChangeText={handleAmountChange}
-                                        placeholder="0"
-                                        placeholderTextColor="rgba(255,255,255,0.3)"
-                                        keyboardType="numeric"
-                                        selectionColor={Colors.accent}
-                                    />
-                                </Pressable>
+                                <AmountInput
+                                    label="Số tiền (₫)"
+                                    value={amount}
+                                    onChangeText={setAmount}
+                                />
 
                                 {/* DESCRIPTION INPUT */}
                                 <Text style={styles.label}>Mô tả</Text>
-                                <TextInput
-                                    style={styles.input}
+                                <LiquidInput
                                     value={description}
                                     onChangeText={setDescription}
                                     placeholder="VD: Cà phê sáng..."
-                                    placeholderTextColor="rgba(255,255,255,0.3)"
-                                    selectionColor={Colors.accent}
+                                    containerStyle={{ marginBottom: Spacing.lg }}
                                 />
 
                                 {/* DATE PICKER */}
@@ -216,6 +192,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                                 {/* ACTION BUTTON */}
                                 <LiquidButton
                                     title="Lưu Giao Dịch"
+                                    variant="filled"
                                     onPress={handleSave}
                                     disabled={isSubmitting}
                                     style={{ marginTop: Spacing.md, marginBottom: 2 }}
@@ -281,16 +258,6 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: 'rgba(255, 255, 255, 0.7)',
         marginBottom: Spacing.sm,
-    },
-    input: {
-        backgroundColor: 'rgba(255, 255, 255, 0.08)',
-        borderRadius: Radii.md,
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.2)',
-        padding: Spacing.md,
-        fontSize: FontSizes.lg,
-        color: '#FFFFFF',
-        marginBottom: Spacing.lg,
     },
     amountInput: {
         fontSize: FontSizes.xxl,

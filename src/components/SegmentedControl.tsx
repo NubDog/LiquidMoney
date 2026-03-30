@@ -99,7 +99,7 @@ const SegmentedControl: React.FC<SegmentedControlProps> = ({
 const styles = StyleSheet.create({
     container: {
         marginHorizontal: 16,
-        padding: 4,
+        padding: 8,
     },
     innerLayout: {
         flexDirection: 'row',
@@ -107,17 +107,17 @@ const styles = StyleSheet.create({
     },
     indicator: {
         position: 'absolute',
-        top: 2,
-        bottom: 2,
+        top: 0,
+        bottom: 0,
         left: 0,
         backgroundColor: 'rgba(255,255,255,0.15)', // Glass selection highlight
-        borderRadius: Radii.md - 2,
+        borderRadius: Radii.md,
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.3)', // Solid edge for selection
     },
     tab: {
         flex: 1,
-        paddingVertical: 10,
+        paddingVertical: 8,
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 1,

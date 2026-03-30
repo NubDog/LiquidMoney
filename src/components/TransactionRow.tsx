@@ -43,11 +43,11 @@ const TransactionRow: React.FC<TransactionRowProps> = ({
     };
 
     const getIcon = () => {
-        if (isTransfer) return <Repeat size={20} color={'#FFFFFF'} />;
+        if (isTransfer) return <Repeat size={28} color={'#FFFFFF'} />;
         return isIncome ? (
-            <ArrowDownRight size={20} color={'#FFFFFF'} />
+            <ArrowDownRight size={28} color={'#32D74B'} /> // Green for income
         ) : (
-            <ArrowUpRight size={20} color={'#FFFFFF'} />
+            <ArrowUpRight size={28} color={'#FF453A'} /> // Red for expense
         );
     };
 
@@ -60,9 +60,9 @@ const TransactionRow: React.FC<TransactionRowProps> = ({
             styles.content, 
             variant === 'flat' && { paddingVertical: Spacing.md }
         ]}>
-            <LiquidIconButton size={48} onPress={() => {}} disabled style={{ marginRight: Spacing.md }}>
+            <View style={{ width: 40, height: 40, justifyContent: 'center', alignItems: 'center', marginRight: Spacing.md }}>
                 {getIcon()}
-            </LiquidIconButton>
+            </View>
             
             <View style={styles.info}>
                 <Text style={styles.description} numberOfLines={1}>

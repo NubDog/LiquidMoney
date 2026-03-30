@@ -91,10 +91,8 @@ const LiquidButton: React.FC<LiquidButtonProps> = ({
                     StyleSheet.absoluteFill, 
                     { 
                         borderRadius: 9999, 
-                        // Simulate frosted thickness without double blurring
-                        backgroundColor: 'rgba(255, 255, 255, 0.12)',
-                        borderWidth: StyleSheet.hairlineWidth,
-                        borderColor: 'rgba(255, 255, 255, 0.2)',
+                        // Since parent is already blurred, we just delineate the button area with a subtle tint
+                        backgroundColor: 'rgba(255, 255, 255, 0.08)',
                     }
                 ]} />
             )}

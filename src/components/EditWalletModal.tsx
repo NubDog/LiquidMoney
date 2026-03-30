@@ -18,9 +18,11 @@ import {
 } from 'react-native';
 import { animateModalOpen, animateModalClose, SpringConfigs } from '../common/animations';
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
-import LiquidCard from './LiquidCard';
 import AnimatedOverlay from './AnimatedOverlay';
 import LiquidButton from './LiquidButton';
+import AmountInput from './AmountInput';
+import LiquidCard from './LiquidCard';
+import LiquidInput from './LiquidInput';
 
 interface EditWalletModalProps {
     visible: boolean;
@@ -116,29 +118,22 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
                                 <Text style={styles.title}>Chỉnh sửa ví</Text>
 
                                 <Text style={styles.label}>Tên ví</Text>
-                                <TextInput
-                                    style={styles.input}
+                                <LiquidInput
                                     value={name}
                                     onChangeText={setName}
                                     placeholder="Nhập tên ví"
-                                    placeholderTextColor="rgba(255,255,255,0.4)"
-                                    selectionColor={Colors.accent}
+                                    containerStyle={{ marginBottom: Spacing.lg }}
                                 />
 
-                                <Text style={styles.label}>Số dư hiện tại (₫)</Text>
-                                <TextInput
-                                    style={styles.input}
+                                <AmountInput
+                                    label="Số dư hiện tại (₫)"
                                     value={balanceStr}
                                     onChangeText={setBalanceStr}
-                                    placeholder="0"
-                                    placeholderTextColor="rgba(255,255,255,0.4)"
-                                    keyboardType="numeric"
-                                    selectionColor={Colors.accent}
                                 />
 
                                 <View style={styles.actions}>
-                                    <LiquidButton title="Lưu thay đổi" onPress={handleSave} />
-                                    <LiquidButton title="Hủy" onPress={handleClose} variant="outline" />
+                                    <LiquidButton title="Lưu thay đổi" onPress={handleSave} variant="filled" />
+                                    <LiquidButton title="Hủy" onPress={handleClose} variant="filled" />
                                 </View>
                             </Pressable>
                         </LiquidCard>
@@ -185,16 +180,6 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: 'rgba(255, 255, 255, 0.7)',
         marginBottom: Spacing.sm,
-    },
-    input: {
-        backgroundColor: 'rgba(255, 255, 255, 0.08)',
-        borderRadius: Radii.md,
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.2)',
-        padding: Spacing.md,
-        fontSize: 17,
-        color: '#FFFFFF',
-        marginBottom: Spacing.lg,
     },
     actions: {
         gap: 12,

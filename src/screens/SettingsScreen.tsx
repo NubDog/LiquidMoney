@@ -248,7 +248,7 @@ const SettingsScreen: React.FC = () => {
                             Tùy chỉnh hình nền hiển thị trong ứng dụng.
                         </Text>
                         <View style={styles.buttonGroup}>
-                            <LiquidButton onPress={() => setBackgroundPickerVisible(true)}>
+                            <LiquidButton variant="filled" onPress={() => setBackgroundPickerVisible(true)}>
                                 <Text style={[styles.exportBtnText, { color: '#FFF' }]}>
                                     Chọn Hình Nền
                                 </Text>
@@ -274,6 +274,7 @@ const SettingsScreen: React.FC = () => {
 
                         <View style={styles.buttonGroup}>
                             <LiquidButton
+                                variant="filled"
                                 onPress={handleExport}
                                 disabled={exporting || !dbAvailable}>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -285,6 +286,7 @@ const SettingsScreen: React.FC = () => {
                             </LiquidButton>
 
                             <LiquidButton
+                                variant="filled"
                                 onPress={handleImportPress}
                                 disabled={importing || !dbAvailable}>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -341,7 +343,7 @@ const SettingsScreen: React.FC = () => {
 
                         <View style={styles.infoRow}>
                             <Text style={styles.infoLabel}>Phiên bản</Text>
-                            <Text style={styles.infoValue}>20.02.2026.1</Text>
+                            <Text style={styles.infoValue}>20.02.2026.2</Text>
                         </View>
 
                         <View style={styles.divider} />

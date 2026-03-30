@@ -14,8 +14,10 @@ import { X, Pencil, Image as ImageIcon, Wallet } from 'lucide-react-native';
 import { animateSheetIn, animateSheetOut } from '../common/animations';
 import AnimatedOverlay from './AnimatedOverlay';
 import LiquidCard from './LiquidCard';
-import LiquidButton from './LiquidButton';
 import LiquidIconButton from './LiquidIconButton';
+import LiquidButton from './LiquidButton';
+import AmountInput from './AmountInput';
+import LiquidInput from './LiquidInput';
 import { Colors, FontSizes, Shadows, Spacing, Radii } from '../common/theme';
 
 interface WalletModalProps {
@@ -90,24 +92,16 @@ const WalletModal: React.FC<WalletModalProps> = ({
 
                             <View style={styles.content}>
                                 <Text style={styles.label}>Tên ví</Text>
-                                <TextInput
-                                    style={styles.input}
+                                <LiquidInput
                                     value={name}
                                     onChangeText={setName}
                                     placeholder="VD: Tiền mặt, Thẻ tín dụng..."
-                                    placeholderTextColor="rgba(255,255,255,0.3)"
-                                    selectionColor={Colors.accent}
+                                    containerStyle={{ marginBottom: Spacing.lg }}
                                 />
 
-                                <Text style={styles.label}>Số dư ban đầu (₫)</Text>
-                                <TextInput
-                                    style={[styles.input, styles.amountInput]}
+                                <AmountInput
                                     value={balanceStr}
                                     onChangeText={setBalanceStr}
-                                    placeholder="0"
-                                    placeholderTextColor="rgba(255,255,255,0.3)"
-                                    keyboardType="numeric"
-                                    selectionColor={Colors.accent}
                                 />
 
                                 <LiquidButton
@@ -162,16 +156,6 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: 'rgba(255, 255, 255, 0.7)',
         marginBottom: Spacing.sm,
-    },
-    input: {
-        backgroundColor: 'rgba(255, 255, 255, 0.08)',
-        borderRadius: Radii.md,
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.2)',
-        padding: Spacing.md,
-        fontSize: FontSizes.lg,
-        color: '#FFFFFF',
-        marginBottom: Spacing.lg,
     },
     amountInput: {
         fontSize: FontSizes.xl,

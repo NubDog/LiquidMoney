@@ -16,6 +16,7 @@ import { Check } from 'lucide-react-native';
 import { animateDialogOpen, animateDialogClose } from '../common/animations';
 import { Colors, FontSizes, Radii, Shadows, Spacing } from '../common/theme';
 import LiquidCard from './LiquidCard';
+import LiquidButton from './LiquidButton';
 
 interface MenuItem {
     id: string;
@@ -31,6 +32,7 @@ interface PopupMenuProps {
     items: MenuItem[];
     title?: string;
     selectedId?: string;
+    anchor?: { x: number; y: number };
 }
 
 const PopupMenu: React.FC<PopupMenuProps> = ({
@@ -39,12 +41,16 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
     items,
     title,
     selectedId,
+    anchor,
 }) => {
     const overlayOpacity = useRef(new Animated.Value(0)).current;
     const menuScale = useRef(new Animated.Value(0.9)).current;
 
     React.useEffect(() => {
         if (visible) {
+            // Reset to starting values before animating to prevent flicker
+            overlayOpacity.setValue(0);
+            menuScale.setValue(0.9);
             animateDialogOpen(overlayOpacity, menuScale);
         }
     }, [visible, overlayOpacity, menuScale]);
@@ -76,7 +82,15 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
                     onPress={() => animateDialogClose(overlayOpacity, menuScale, onClose)}
                 />
                 
-                <Animated.View style={[styles.menuContainer, { transform: [{ scale: menuScale }] }]}>
+                <Animated.View style={[
+                    styles.menuContainer, 
+                    { transform: [{ scale: menuScale }] },
+                    anchor ? {
+                        position: 'absolute',
+                        top: anchor.y + 8,
+                        right: anchor.x,
+                    } : null
+                ]}>
                     <LiquidCard 
                         style={styles.card}
                         intensity="light"
@@ -95,13 +109,13 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
                                 const isLast = index === items.length - 1;
                                 
                                 return (
-                                    <View key={item.id}>
-                                        <Pressable
+                                    <View key={item.id} style={{ marginBottom: isLast ? 0 : Spacing.md }}>
+                                        <LiquidButton
+                                            variant="ghost"
+                                            title={item.label}
                                             onPress={() => handleItemPress(item.onPress)}
-                                            style={({ pressed }) => [
-                                                styles.item,
-                                                pressed && styles.itemPressed,
-                                            ]}>
+                                            style={[styles.item, { alignItems: 'flex-start' ,  justifyContent: 'flex-start' }]}
+                                        >
                                             <View style={styles.itemContent}>
                                                 {item.icon && (
                                                     <View style={styles.itemIcon}>
@@ -116,13 +130,13 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
                                                     ]}>
                                                     {item.label}
                                                 </Text>
+                                                {isSelected && (
+                                                    <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                                                        <Check size={20} color={Colors.accent} strokeWidth={3} />
+                                                    </View>
+                                                )}
                                             </View>
-                                            
-                                            {isSelected && (
-                                                <Check size={20} color={Colors.accent} strokeWidth={3} />
-                                            )}
-                                        </Pressable>
-                                        {!isLast && <View style={styles.divider} />}
+                                        </LiquidButton>
                                     </View>
                                 );
                             })}
@@ -164,17 +178,13 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     itemsContainer: {
-        paddingVertical: 4,
+        paddingVertical: Spacing.md,
+        paddingHorizontal: Spacing.md,
     },
     item: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: 14,
-        paddingHorizontal: Spacing.lg,
-    },
-    itemPressed: {
-        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+        width: '100%',
+        paddingVertical: 12,
+        paddingHorizontal: Spacing.sm,
     },
     itemContent: {
         flexDirection: 'row',
@@ -190,11 +200,6 @@ const styles = StyleSheet.create({
     itemLabelSelected: {
         fontWeight: '700',
         color: Colors.accent,
-    },
-    divider: {
-        height: StyleSheet.hairlineWidth,
-        backgroundColor: 'rgba(255,255,255,0.1)',
-        marginLeft: Spacing.lg + 36, // Align with text
     },
 });
 

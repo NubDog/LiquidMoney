@@ -55,7 +55,11 @@ const TransactionDetailOverlay: React.FC<TransactionDetailOverlayProps> = ({
 
     if (!transaction) { return null; }
 
-    const isIncome = transaction.type === 'IN'; // Updated based on new type 'IN'
+    const isIncome = transaction.type === 'IN';
+
+    const formatAmount = (amount: number) => {
+        return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    };
 
     return (
         <Modal
@@ -72,8 +76,8 @@ const TransactionDetailOverlay: React.FC<TransactionDetailOverlayProps> = ({
                     <LiquidCard 
                         style={styles.sheet}
                         intensity="light"
-                        
                         borderRadius={Radii.xxl}
+                        extendBottom={true}
                     >
                         <View style={styles.handleBar} />
                         
@@ -92,7 +96,7 @@ const TransactionDetailOverlay: React.FC<TransactionDetailOverlayProps> = ({
                                         { color: isIncome ? Colors.income : Colors.expense },
                                     ]}>
                                     {isIncome ? '+' : '-'}
-                                    {formatCurrency ? formatCurrency(transaction.amount, transaction.type) : `${transaction.amount} ₫`}
+                                    {formatAmount(transaction.amount)} ₫
                                 </Text>
                             </View>
 
@@ -141,7 +145,8 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 0,
         borderBottomRightRadius: 0,
         borderBottomWidth: 0,
-        height: '60%', // Takes up portion of screen
+        paddingBottom: 40,
+        maxHeight: '88%',
         paddingTop: 12,
     },
     handleBar: {
