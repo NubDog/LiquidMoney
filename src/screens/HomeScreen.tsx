@@ -123,15 +123,17 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
         () => (
             <View style={styles.headerSection}>
                 {wallets.length > 0 && (
-                    <View style={styles.totalSection}>
-                        <View style={styles.heroHeader}>
+                    <View collapsable={false} style={styles.totalSection}>
+                        <View collapsable={false} style={styles.heroHeader}>
                             <View style={styles.heroIconWrapper}>
                                 <PieChart size={22} color="#FFFFFF" strokeWidth={2.5} />
                             </View>
                             <Text style={styles.heroLabel}>TỔNG TÀI SẢN</Text>
                         </View>
                         
-                        <Text style={styles.heroBalance} numberOfLines={1} adjustsFontSizeToFit>{formatVND(totalBalance)}</Text>
+                        <View collapsable={false}>
+                            <Text style={styles.heroBalance} numberOfLines={1} adjustsFontSizeToFit>{formatVND(totalBalance)}</Text>
+                        </View>
                         
                         <View style={styles.heroFooter}>
                             <View style={styles.badge}>
@@ -256,7 +258,9 @@ const styles = StyleSheet.create({
         letterSpacing: -1.5,
         marginBottom: Spacing.lg,
         textAlign: 'center',
+        backgroundColor: 'transparent',
         textShadowColor: 'transparent',
+        textShadowRadius: 0,
     },
     heroFooter: {
         flexDirection: 'row',

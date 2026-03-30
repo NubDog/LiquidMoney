@@ -27,12 +27,6 @@ const AddWalletButton: React.FC<AddWalletButtonProps> = ({ onPress, style, disab
           justifyContent: 'center',
           alignItems: 'center',
           backgroundColor: 'rgba(255, 255, 255, 0.15)', // Ensures visibility via tint if BlurView overlap drops
-          // Add extra thick rim light for floating interaction
-          borderWidth: 1.5,
-          borderTopColor: 'rgba(255, 255, 255, 0.8)',
-          borderBottomColor: 'rgba(0, 0, 0, 0.3)',
-          borderLeftColor: 'rgba(255, 255, 255, 0.3)',
-          borderRightColor: 'rgba(255, 255, 255, 0.3)',
         },
         style,
       ]}

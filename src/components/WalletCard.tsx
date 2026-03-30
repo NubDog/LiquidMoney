@@ -32,19 +32,19 @@ const WalletCard: React.FC<WalletCardProps> = ({
     formatCurrency = formatVND,
 }) => {
     return (
-        <Pressable 
-            onPress={onPress} 
-            onLongPress={onLongPress} 
+        <Pressable
+            onPress={onPress}
+            onLongPress={onLongPress}
             style={({ pressed }) => [styles.wrapper, pressed && { opacity: 0.8 }]}
         >
-            <LiquidCard 
+            <LiquidCard
                 style={styles.card}
                 intensity="light"
-                
+
                 borderRadius={Radii.xl}
             >
                 <View style={styles.header}>
-                    <View style={styles.titleRow}>
+                    <View collapsable={false} style={styles.titleRow}>
                         <View style={styles.iconWrapper}>
                             <Wallet size={20} color={'#FFFFFF'} />
                         </View>
@@ -52,9 +52,9 @@ const WalletCard: React.FC<WalletCardProps> = ({
                     </View>
                 </View>
 
-                <View style={styles.balanceContainer}>
+                <View collapsable={false} style={styles.balanceContainer}>
                     <Text style={styles.balanceLabel}>Tổng số dư</Text>
-                    <View style={styles.balanceRow}>
+                    <View collapsable={false} style={styles.balanceRow}>
                         <Text style={styles.balanceLarge}>{formatCurrency(currentBalance)}</Text>
                     </View>
                 </View>
@@ -96,6 +96,7 @@ const styles = StyleSheet.create({
         fontSize: FontSizes.lg,
         fontWeight: '600',
         color: '#FFFFFF',
+        backgroundColor: 'transparent',
     },
     balanceContainer: {
         marginTop: Spacing.sm,
@@ -108,12 +109,12 @@ const styles = StyleSheet.create({
     },
     balanceRow: {
         flexDirection: 'row',
-        alignItems: 'baseline',
     },
     balanceLarge: {
         fontSize: 34,
         fontWeight: '800',
-        color: '#FFFFFF',
+        color: '#ffffffff',
+        backgroundColor: 'transparent',
         textShadowColor: 'transparent',
         textShadowRadius: 0,
     },

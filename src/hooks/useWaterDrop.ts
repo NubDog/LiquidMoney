@@ -18,6 +18,7 @@ export const useWaterDropAnimation = ({
     const leftAnim = useRef(new Animated.Value(0)).current;
     const rightAnim = useRef(new Animated.Value(0)).current;
     const prevIdx = useRef(options.findIndex(o => o.key === selected));
+    const prevWidth = useRef(0);
 
     const optionCount = options.length;
     const tabWidth = containerWidth > 0 
@@ -27,14 +28,21 @@ export const useWaterDropAnimation = ({
     useEffect(() => {
         if (containerWidth <= 0 || tabWidth <= 0) { return; }
         const idx = options.findIndex(o => o.key === selected);
+        if (idx === -1) return;
         
         const targetLeft = paddingHorizontal + idx * (tabWidth + gap);
         const targetRight = containerWidth - (targetLeft + tabWidth);
 
+        const isWidthChanged = prevWidth.current !== containerWidth;
+        prevWidth.current = containerWidth;
+
         if (idx === prevIdx.current) {
-            // Initial snap without animation
-            leftAnim.setValue(targetLeft);
-            rightAnim.setValue(targetRight);
+            if (isWidthChanged) {
+                // Initial layout or resize snap
+                leftAnim.setValue(targetLeft);
+                rightAnim.setValue(targetRight);
+            }
+            // Do NOT snap if it's just a re-render from props to prevent cancelling running animations
             return;
         }
 

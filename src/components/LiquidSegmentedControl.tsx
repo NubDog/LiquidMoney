@@ -44,14 +44,6 @@ const LiquidSegmentedControl: React.FC<LiquidSegmentedControlProps> = React.memo
                                 right: rightAnim,
                             },
                         ]}>
-                        <BlurView 
-                            style={[StyleSheet.absoluteFill, { top: -10, bottom: -10, left: -10, right: -10 }]} 
-                            blurType="light" 
-                            blurAmount={8} 
-                            // @ts-ignore
-                            overlayColor="transparent" 
-                            reducedTransparencyFallbackColor="transparent"
-                        />
                         <View style={[StyleSheet.absoluteFill, styles.indicatorOverlay]} />
                         <View style={[StyleSheet.absoluteFill, styles.indicatorBorder]} />
                     </Animated.View>
@@ -110,14 +102,11 @@ const styles = StyleSheet.create({
         zIndex: 1,
     },
     indicatorOverlay: {
-        backgroundColor: 'rgba(255, 255, 255, 0.02)', // Extremely thin, clear crystal overlay
+        backgroundColor: 'rgba(255, 255, 255, 0.15)', // Perfectly pristine transparent highlight
     },
     indicatorBorder: {
         borderRadius: Radii.md - 2,
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: 'rgba(255, 255, 255, 0.3)', // Edge lighting
-        borderBottomWidth: 0, // Rule: Anti-glowing band
-        borderRightWidth: 0,
+        borderWidth: 0,
     },
 });
 

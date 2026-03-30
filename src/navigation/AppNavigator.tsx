@@ -389,15 +389,6 @@ const styles = StyleSheet.create({
         shadowRadius: 36,
         elevation: 12,
         borderRadius: 36,
-        // Volumetric RIM Lighting for Clear Glass Water Drop
-        borderTopWidth: 1.5,
-        borderBottomWidth: 1,
-        borderLeftWidth: 1,
-        borderRightWidth: 1,
-        borderTopColor: 'rgba(255, 255, 255, 0.5)',
-        borderBottomColor: 'rgba(0, 0, 0, 0.2)', // Create depth underneath
-        borderLeftColor: 'rgba(255, 255, 255, 0.1)',
-        borderRightColor: 'rgba(255, 255, 255, 0.1)',
         overflow: 'hidden',
     },
     blurBackground: {
@@ -415,17 +406,8 @@ const styles = StyleSheet.create({
         left: 6,
         top: 6,
         bottom: 6,
-        backgroundColor: 'rgba(255, 255, 255, 0.2)', // Brightly separate from dark background
+        backgroundColor: 'rgba(255, 255, 255, 0.15)',
         borderRadius: 30,
-        // Volumetric bubble inside that pops OUT
-        borderTopWidth: 1.5,
-        borderBottomWidth: 1,
-        borderLeftWidth: 1,
-        borderRightWidth: 1,
-        borderTopColor: 'rgba(255, 255, 255, 0.8)', // Super bright top reflection
-        borderBottomColor: 'rgba(0, 0, 0, 0.3)', // Deep shadow bottom edge to lift it
-        borderLeftColor: 'rgba(255, 255, 255, 0.15)',
-        borderRightColor: 'rgba(255, 255, 255, 0.15)',
         // Shadow projecting onto the blur behind it
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },

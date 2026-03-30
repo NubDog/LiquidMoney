@@ -79,6 +79,8 @@ const styles = StyleSheet.create({
     },
     content: {
         zIndex: 1,
+        elevation: 1,
+        shadowColor: 'transparent',
     },
 });
 

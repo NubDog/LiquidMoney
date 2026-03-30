@@ -220,33 +220,35 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
     const listHeader = useMemo(
         () => (
             <View>
-                <LiquidCard
-                    style={styles.summaryCard}
-                    intensity="light"
-                    
-                    borderRadius={Radii.xxl}>
-                    <Text style={styles.walletName}>{wallet?.name || 'Ví'}</Text>
-                    <Text style={styles.balanceLabel}>Số dư hiện tại</Text>
-                    <Text style={styles.balanceAmount}>
-                        {formatVND(wallet?.current_balance || 0)}
-                    </Text>
+                <View collapsable={false}>
+                    <LiquidCard
+                        style={styles.summaryCard}
+                        intensity="light"
+                        
+                        borderRadius={Radii.xxl}>
+                        <Text style={styles.walletName}>{wallet?.name || 'Ví'}</Text>
+                        <Text style={styles.balanceLabel}>Số dư hiện tại</Text>
+                        <Text style={styles.balanceAmount}>
+                            {formatVND(wallet?.current_balance || 0)}
+                        </Text>
 
-                    <View style={styles.balanceRow}>
-                        <View style={styles.balanceCol}>
-                            <Text style={styles.smallLabel}>Ban đầu</Text>
-                            <Text style={styles.smallValue}>
-                                {formatVND(wallet?.initial_balance || 0)}
-                            </Text>
+                        <View collapsable={false} style={styles.balanceRow}>
+                            <View style={styles.balanceCol}>
+                                <Text style={styles.smallLabel}>Ban đầu</Text>
+                                <Text style={styles.smallValue}>
+                                    {formatVND(wallet?.initial_balance || 0)}
+                                </Text>
+                            </View>
+                            <View style={styles.balanceCol}>
+                                <Text style={styles.smallLabel}>Chênh lệch</Text>
+                                <Text style={[styles.smallValue, { color: diffColor }]}>
+                                    {balanceDiff >= 0 ? '+' : ''}
+                                    {formatVND(balanceDiff)}
+                                </Text>
+                            </View>
                         </View>
-                        <View style={styles.balanceCol}>
-                            <Text style={styles.smallLabel}>Chênh lệch</Text>
-                            <Text style={[styles.smallValue, { color: diffColor }]}>
-                                {balanceDiff >= 0 ? '+' : ''}
-                                {formatVND(balanceDiff)}
-                            </Text>
-                        </View>
-                    </View>
-                </LiquidCard>
+                    </LiquidCard>
+                </View>
 
                 <View style={styles.filterWrapper}>
                     <LiquidSegmentedControl
@@ -499,6 +501,7 @@ const styles = StyleSheet.create({
         color: Colors.text,
         marginHorizontal: Spacing.lg,
         marginTop: Spacing.md,
+        backgroundColor: 'transparent',
     },
     balanceLabel: {
         fontSize: FontSizes.sm,
@@ -513,6 +516,9 @@ const styles = StyleSheet.create({
         marginHorizontal: Spacing.lg,
         marginTop: 2,
         letterSpacing: -1,
+        backgroundColor: 'transparent',
+        textShadowColor: 'transparent',
+        textShadowRadius: 0,
     },
     balanceRow: {
         flexDirection: 'row',
@@ -533,6 +539,7 @@ const styles = StyleSheet.create({
         fontSize: FontSizes.md,
         fontWeight: '600',
         color: 'rgba(255, 255, 255, 0.85)',
+        backgroundColor: 'transparent',
     },
 
     // ── Filter ──
