@@ -19,7 +19,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LiquidCard from '../components/LiquidCard';
-import LiquidButton from '../components/LiquidButton';
+import LiquidButton2 from '../components/LiquidButton2';
 import TransactionModal from '../components/TransactionModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { formatVND, formatFullDate } from '../common/formatters';
@@ -214,19 +214,17 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
 
                 {/* ── Action Buttons ── */}
                 <View style={styles.actionsContainer}>
-                    <LiquidButton onPress={handleOpenEdit}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                            <Pencil size={18} color="#FFFFFF" strokeWidth={2.5} />
-                            <Text style={styles.glassActionText}>Sửa giao dịch</Text>
-                        </View>
-                    </LiquidButton>
+                    <LiquidButton2 
+                        onPress={handleOpenEdit}
+                        title="Sửa giao dịch"
+                        icon={<Pencil size={18} color="#FFFFFF" strokeWidth={2.5} />}
+                    />
 
-                    <LiquidButton onPress={handleDeletePress}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                            <Trash2 size={18} color="#ef4444" strokeWidth={2.5} />
-                            <Text style={[styles.glassActionText, { color: '#ef4444' }]}>Xóa giao dịch</Text>
-                        </View>
-                    </LiquidButton>
+                    <LiquidButton2 
+                        onPress={handleDeletePress}
+                        title="Xóa giao dịch"
+                        icon={<Trash2 size={18} color="#ef4444" strokeWidth={2.5} />}
+                    />
                 </View>
 
                 <View style={{ height: insets.bottom + 40 }} />
@@ -387,23 +385,6 @@ const styles = StyleSheet.create({
     actionsContainer: {
         gap: 12,
         marginTop: Spacing.sm,
-    },
-    glassActionBtn: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 8,
-        height: 54,
-        backgroundColor: 'rgba(255, 255, 255, 0.12)', // Kính đục Apple Control Center
-        borderRadius: 24, // Bo cong sâu Squircle
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.2)', // Ánh sáng viền hắt
-    },
-    glassActionText: {
-        fontSize: FontSizes.md,
-        fontWeight: '600',
-        color: '#FFFFFF',
-        letterSpacing: 0.3,
     },
 });
 

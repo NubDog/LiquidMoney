@@ -16,7 +16,7 @@ import { AlertTriangle } from 'lucide-react-native';
 import { animateDialogOpen, animateDialogClose } from '../common/animations';
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
 import LiquidCard from './LiquidCard';
-import LiquidButton from './LiquidButton';
+import LiquidButton2 from './LiquidButton2';
 
 interface ConfirmImportDialogProps {
     visible: boolean;
@@ -81,20 +81,18 @@ const ConfirmImportDialog: React.FC<ConfirmImportDialogProps> = ({
                         </Text>
 
                         <View style={styles.actions}>
-                            <LiquidButton 
-                                variant="outline"
-                                onPress={() => animateClose(onCancel)}
-                                style={{ flex: 1 }}
-                            >
-                                <Text style={styles.cancelText}>Hủy</Text>
-                            </LiquidButton>
-                            <LiquidButton 
-                                variant="filled"
-                                onPress={() => animateClose(onConfirm)}
-                                style={{ flex: 1 }}
-                            >
-                                <Text style={styles.confirmText}>Nhập</Text>
-                            </LiquidButton>
+                            <View style={{ flex: 1 }}>
+                                <LiquidButton2 
+                                    title="Hủy"
+                                    onPress={() => animateClose(onCancel)}
+                                />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <LiquidButton2 
+                                    title="Nhập"
+                                    onPress={() => animateClose(onConfirm)}
+                                />
+                            </View>
                         </View>
                     </LiquidCard>
                 </Animated.View>

@@ -23,7 +23,7 @@ import { format } from 'date-fns';
 import { animateSheetIn, animateSheetOut } from '../common/animations';
 import AnimatedOverlay from './AnimatedOverlay';
 import LiquidCard from './LiquidCard';
-import LiquidButton from './LiquidButton';
+import LiquidButton2 from './LiquidButton2';
 import LiquidIconButton from './LiquidIconButton';
 import LiquidSegmentedControl from './LiquidSegmentedControl';
 import AmountInput from './AmountInput';
@@ -190,9 +190,8 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                                 )}
 
                                 {/* ACTION BUTTON */}
-                                <LiquidButton
+                                <LiquidButton2
                                     title="Lưu Giao Dịch"
-                                    variant="filled"
                                     onPress={handleSave}
                                     disabled={isSubmitting}
                                     style={{ marginTop: Spacing.md, marginBottom: 2 }}

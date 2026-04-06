@@ -1,6 +1,6 @@
 import React from 'react';
 import { ViewStyle, StyleProp } from 'react-native';
-import LiquidButton from './LiquidButton';
+import LiquidButton2 from './LiquidButton2';
 
 interface LiquidIconButtonProps {
     onPress: () => void;
@@ -18,7 +18,9 @@ const LiquidIconButton: React.FC<LiquidIconButtonProps> = ({
     disabled = false
 }) => {
     return (
-        <LiquidButton 
+        <LiquidButton2 
+            title=""
+            icon={children}
             onPress={onPress} 
             disabled={disabled}
             style={[
@@ -31,9 +33,7 @@ const LiquidIconButton: React.FC<LiquidIconButtonProps> = ({
                 }, 
                 style
             ]}
-        >
-            {children}
-        </LiquidButton>
+        />
     );
 };
 

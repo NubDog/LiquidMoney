@@ -19,7 +19,7 @@ import {
 import { animateModalOpen, animateModalClose, SpringConfigs } from '../common/animations';
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
 import AnimatedOverlay from './AnimatedOverlay';
-import LiquidButton from './LiquidButton';
+import LiquidButton2 from './LiquidButton2';
 import AmountInput from './AmountInput';
 import LiquidCard from './LiquidCard';
 import LiquidInput from './LiquidInput';
@@ -132,8 +132,8 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
                                 />
 
                                 <View style={styles.actions}>
-                                    <LiquidButton title="Lưu thay đổi" onPress={handleSave} variant="filled" />
-                                    <LiquidButton title="Hủy" onPress={handleClose} variant="filled" />
+                                    <LiquidButton2 title="Lưu thay đổi" onPress={handleSave} />
+                                    <LiquidButton2 title="Hủy" onPress={handleClose} />
                                 </View>
                             </Pressable>
                         </LiquidCard>

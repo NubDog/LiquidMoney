@@ -28,7 +28,7 @@ import {
     FolderOpen,
 } from 'lucide-react-native';
 import LiquidCard from '../components/LiquidCard';
-import LiquidButton from '../components/LiquidButton';
+import LiquidButton2 from '../components/LiquidButton2';
 import InfoDialog from '../components/InfoDialog';
 import ConfirmImportDialog from '../components/ConfirmImportDialog';
 import BackgroundPickerModal from '../components/BackgroundPickerModal';
@@ -248,11 +248,10 @@ const SettingsScreen: React.FC = () => {
                             Tùy chỉnh hình nền hiển thị trong ứng dụng.
                         </Text>
                         <View style={styles.buttonGroup}>
-                            <LiquidButton variant="filled" onPress={() => setBackgroundPickerVisible(true)}>
-                                <Text style={[styles.exportBtnText, { color: '#FFF' }]}>
-                                    Chọn Hình Nền
-                                </Text>
-                            </LiquidButton>
+                            <LiquidButton2 
+                                onPress={() => setBackgroundPickerVisible(true)}
+                                title="Chọn Hình Nền"
+                            />
                         </View>
                     </View>
                 </LiquidCard>
@@ -273,29 +272,19 @@ const SettingsScreen: React.FC = () => {
                         </Text>
 
                         <View style={styles.buttonGroup}>
-                            <LiquidButton
-                                variant="filled"
+                            <LiquidButton2
                                 onPress={handleExport}
-                                disabled={exporting || !dbAvailable}>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                                    <Upload size={18} color={(exporting || !dbAvailable) ? 'rgba(255,255,255,0.4)' : Colors.cyan} strokeWidth={2} />
-                                    <Text style={[styles.exportBtnText, (exporting || !dbAvailable) && { color: 'rgba(255,255,255,0.4)' }]}>
-                                        {exporting ? 'Đang xuất...' : 'Xuất dữ liệu'}
-                                    </Text>
-                                </View>
-                            </LiquidButton>
+                                disabled={exporting || !dbAvailable}
+                                title={exporting ? 'Đang xuất...' : 'Xuất dữ liệu'}
+                                icon={<Upload size={18} color={(exporting || !dbAvailable) ? 'rgba(255,255,255,0.4)' : Colors.cyan} strokeWidth={2} />}
+                            />
 
-                            <LiquidButton
-                                variant="filled"
+                            <LiquidButton2
                                 onPress={handleImportPress}
-                                disabled={importing || !dbAvailable}>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                                    <Download size={18} color={(importing || !dbAvailable) ? 'rgba(255,255,255,0.4)' : Colors.accentLight} strokeWidth={2} />
-                                    <Text style={[styles.importBtnText, (importing || !dbAvailable) && { color: 'rgba(255,255,255,0.4)' }]}>
-                                        {importing ? 'Đang nhập...' : 'Nhập dữ liệu'}
-                                    </Text>
-                                </View>
-                            </LiquidButton>
+                                disabled={importing || !dbAvailable}
+                                title={importing ? 'Đang nhập...' : 'Nhập dữ liệu'}
+                                icon={<Download size={18} color={(importing || !dbAvailable) ? 'rgba(255,255,255,0.4)' : Colors.accentLight} strokeWidth={2} />}
+                            />
                         </View>
                     </View>
                 </LiquidCard>

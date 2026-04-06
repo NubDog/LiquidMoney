@@ -32,7 +32,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Rect, Stop, Text as SvgText } from 'react-native-svg';
 import { BlurView } from '@react-native-community/blur';
 import LiquidCard from '../components/LiquidCard';
-import LiquidButton from '../components/LiquidButton';
+import LiquidButton2 from '../components/LiquidButton2';
 import LiquidSegmentedControl from '../components/LiquidSegmentedControl';
 import TransactionRow from '../components/TransactionRow';
 import EmptyState from '../components/EmptyState';
@@ -679,9 +679,8 @@ const WalletChips: React.FC<{
                             setLayouts(prev => ({ ...prev, [w.id]: { x, width } }));
                         }}
                     >
-                         <LiquidButton
+                         <LiquidButton2
                             title={w.name}
-                            variant="ghost" 
                             onPress={() => onSelect(w.id === 'ALL' ? undefined : w.id)}
                             style={wcStyles.chip}
                          />

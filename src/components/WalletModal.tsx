@@ -15,7 +15,7 @@ import { animateSheetIn, animateSheetOut } from '../common/animations';
 import AnimatedOverlay from './AnimatedOverlay';
 import LiquidCard from './LiquidCard';
 import LiquidIconButton from './LiquidIconButton';
-import LiquidButton from './LiquidButton';
+import LiquidButton2 from './LiquidButton2';
 import AmountInput from './AmountInput';
 import LiquidInput from './LiquidInput';
 import { Colors, FontSizes, Shadows, Spacing, Radii } from '../common/theme';
@@ -104,11 +104,10 @@ const WalletModal: React.FC<WalletModalProps> = ({
                                     onChangeText={setBalanceStr}
                                 />
 
-                                <LiquidButton
-                                    variant="filled"
+                                <LiquidButton2
                                     title="Tạo Ví"
                                     onPress={handleSave}
-                                    style={{ marginTop: Spacing.lg, marginBottom: 12, backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
+                                    style={{ marginTop: Spacing.lg, marginBottom: 12 }}
                                 />
                             </View>
                         </LiquidCard>

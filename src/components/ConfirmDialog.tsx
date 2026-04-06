@@ -16,7 +16,7 @@ import { AlertTriangle } from 'lucide-react-native';
 import { animateDialogOpen, animateDialogClose } from '../common/animations';
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
 import LiquidCard from './LiquidCard';
-import LiquidButton from './LiquidButton';
+import LiquidButton2 from './LiquidButton2';
 import AnimatedOverlay from './AnimatedOverlay';
 
 interface ConfirmDialogProps {
@@ -83,19 +83,18 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                         <Text style={styles.message}>{message}</Text>
 
                         <View style={styles.actions}>
-                            <LiquidButton
-                                variant="outline"
-                                style={{ flex: 1 }}
-                                onPress={handleCancel}>
-                                <Text style={styles.cancelText}>{cancelText}</Text>
-                            </LiquidButton>
-
-                            <LiquidButton
-                                variant="filled"
-                                style={{ flex: 1 }} // Note: LiquidButton doesn't support backgroundColor injection simply without style merging on root container. We just rely on standard glass for consistency.
-                                onPress={handleConfirm}>
-                                <Text style={[styles.confirmText, { color: confirmColor }]}>{confirmText}</Text>
-                            </LiquidButton>
+                            <View style={{ flex: 1 }}>
+                                <LiquidButton2
+                                    onPress={handleCancel}
+                                    title={cancelText}
+                                />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <LiquidButton2
+                                    onPress={handleConfirm}
+                                    title={confirmText}
+                                />
+                            </View>
                         </View>
                     </LiquidCard>
                 </Animated.View>

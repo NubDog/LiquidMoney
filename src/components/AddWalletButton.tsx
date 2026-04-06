@@ -3,7 +3,7 @@
 import React from 'react';
 import { ViewStyle } from 'react-native';
 import { Plus } from 'lucide-react-native';
-import LiquidButton from './LiquidButton';
+import LiquidButton2 from './LiquidButton2';
 
 interface AddWalletButtonProps {
   onPress: () => void;
@@ -13,10 +13,11 @@ interface AddWalletButtonProps {
 
 const AddWalletButton: React.FC<AddWalletButtonProps> = ({ onPress, style, disabled }) => {
   return (
-    <LiquidButton
+    <LiquidButton2
+      title=""
+      icon={<Plus size={28} color="#FFFFFF" strokeWidth={2.5} />}
       onPress={onPress}
       disabled={disabled}
-      variant="filled"
       style={[
         {
           width: 58,
@@ -30,9 +31,7 @@ const AddWalletButton: React.FC<AddWalletButtonProps> = ({ onPress, style, disab
         },
         style,
       ]}
-    >
-      <Plus size={28} color="#FFFFFF" strokeWidth={2.5} />
-    </LiquidButton>
+    />
   );
 };
 

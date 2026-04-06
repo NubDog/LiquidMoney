@@ -16,7 +16,6 @@ import { X, Figma } from 'lucide-react-native';
 
 import LiquidBackground from '../components/LiquidBackground';
 import LiquidCard from '../components/LiquidCard';
-import LiquidButton from '../components/LiquidButton';
 import LiquidButton2 from '../components/LiquidButton2';
 import LiquidIconButton from '../components/LiquidIconButton';
 import LiquidInput from '../components/LiquidInput';
@@ -83,19 +82,11 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                 contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
                 showsVerticalScrollIndicator={false}>
 
-                {/* LIQUID BUTTONS */}
-                <Section title="LiquidButton">
-                    <View style={styles.row}>
-                        <LiquidButton title="Filled" variant="filled" onPress={() => { }} style={styles.flexItem} />
-                        <LiquidButton title="Outline" variant="outline" onPress={() => { }} style={styles.flexItem} />
-                        <LiquidButton title="Ghost" variant="ghost" onPress={() => { }} style={styles.flexItem} />
-                    </View>
-                    <LiquidButton title="Disabled" variant="filled" disabled onPress={() => { }} />
-                </Section>
-
                 {/* APPLE LIQUID GLASS BUTTON */}
                 <Section title="LiquidButton2 (Apple Glass)">
                     <LiquidButton2 title="Main Button" onPress={() => {}} />
+                    <View style={{ height: Spacing.md }} />
+                    <LiquidButton2 title="Disabled Button" disabled onPress={() => {}} />
                 </Section>
 
                 {/* LIQUID ICON BUTTONS */}

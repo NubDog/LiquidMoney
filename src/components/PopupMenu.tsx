@@ -16,7 +16,6 @@ import { Check } from 'lucide-react-native';
 import { animateDialogOpen, animateDialogClose } from '../common/animations';
 import { Colors, FontSizes, Radii, Shadows, Spacing } from '../common/theme';
 import LiquidCard from './LiquidCard';
-import LiquidButton from './LiquidButton';
 
 interface MenuItem {
     id: string;
@@ -110,11 +109,12 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
                                 
                                 return (
                                     <View key={item.id} style={{ marginBottom: isLast ? 0 : Spacing.md }}>
-                                        <LiquidButton
-                                            variant="ghost"
-                                            title={item.label}
+                                        <Pressable
                                             onPress={() => handleItemPress(item.onPress)}
-                                            style={[styles.item, { alignItems: 'flex-start' ,  justifyContent: 'flex-start' }]}
+                                            style={({ pressed }) => [
+                                                styles.item,
+                                                { opacity: pressed ? 0.6 : 1 }
+                                            ]}
                                         >
                                             <View style={styles.itemContent}>
                                                 {item.icon && (
@@ -136,7 +136,7 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
                                                     </View>
                                                 )}
                                             </View>
-                                        </LiquidButton>
+                                        </Pressable>
                                     </View>
                                 );
                             })}
