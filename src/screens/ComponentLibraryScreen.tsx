@@ -12,11 +12,12 @@ import {
     View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X } from 'lucide-react-native';
+import { X, Figma } from 'lucide-react-native';
 
 import LiquidBackground from '../components/LiquidBackground';
 import LiquidCard from '../components/LiquidCard';
 import LiquidButton from '../components/LiquidButton';
+import LiquidButton2 from '../components/LiquidButton2';
 import LiquidIconButton from '../components/LiquidIconButton';
 import LiquidInput from '../components/LiquidInput';
 import LiquidSegmentedControl from '../components/LiquidSegmentedControl';
@@ -90,6 +91,11 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                         <LiquidButton title="Ghost" variant="ghost" onPress={() => { }} style={styles.flexItem} />
                     </View>
                     <LiquidButton title="Disabled" variant="filled" disabled onPress={() => { }} />
+                </Section>
+
+                {/* APPLE LIQUID GLASS BUTTON */}
+                <Section title="LiquidButton2 (Apple Glass)">
+                    <LiquidButton2 title="Main Button" onPress={() => {}} />
                 </Section>
 
                 {/* LIQUID ICON BUTTONS */}
