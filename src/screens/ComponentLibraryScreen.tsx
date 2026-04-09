@@ -24,7 +24,7 @@ import IconButton from '../components/IconButton';
 import AmountInput2 from '../components/AmountInput2';
 import EmptyState from '../components/EmptyState';
 import TransactionRow from '../components/TransactionRow';
-import WalletCard from '../components/WalletCard';
+import WalletCard2 from '../components/WalletCard2';
 
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
 
@@ -136,10 +136,10 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                 </Section>
 
                 {/* WALLET CARD */}
-                <Section title="WalletCard">
-                    <WalletCard
+                <Section title="WalletCard2">
+                    <WalletCard2
                         name={dummyWallet.name}
-                        currentBalance={dummyWallet.balance}
+                        balance={dummyWallet.balance}
                         onPress={() => { }}
                     />
                 </Section>

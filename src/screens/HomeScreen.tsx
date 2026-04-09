@@ -19,8 +19,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store/useStore';
 import { Wallet as WalletIcon, PieChart, Plus } from 'lucide-react-native';
 import LiquidCard from '../components/LiquidCard';
-import WalletCard from '../components/WalletCard';
 import WalletModal from '../components/WalletModal';
+import WalletCard2 from '../components/WalletCard2';
 import IconButton from '../components/IconButton';
 import EmptyState from '../components/EmptyState';
 import { formatVND } from '../common/formatters';
@@ -87,13 +87,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
 
     const renderWalletItem = useCallback(
         ({ item }: { item: Wallet }) => (
-            <WalletCard
+            <WalletCard2
                 name={item.name}
-                currentBalance={item.current_balance}
-                initialBalance={item.initial_balance}
-                imageUri={item.image_uri}
-                icon={item.icon}
-                createdAt={item.created_at}
+                balance={item.current_balance}
                 onPress={() => onNavigateToWallet?.(item.id)}
                 onLongPress={() => openEditModal(item)}
             />
