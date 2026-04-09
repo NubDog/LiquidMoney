@@ -25,7 +25,7 @@ import AnimatedOverlay from './AnimatedOverlay';
 import LiquidCard from './LiquidCard';
 import LiquidButton2 from './LiquidButton2';
 import LiquidIconButton from './LiquidIconButton';
-import LiquidSegmentedControl from './LiquidSegmentedControl';
+import LiquidSegmentedControl2 from './LiquidSegmentedControl2';
 import AmountInput from './AmountInput';
 import LiquidInput from './LiquidInput';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -138,7 +138,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                                 showsVerticalScrollIndicator={false}
                                 keyboardShouldPersistTaps="handled">
                                 <View style={styles.tabsWrapper}>
-                                    <LiquidSegmentedControl
+                                    <LiquidSegmentedControl2
                                         options={[
                                             { key: 'Chi Tiêu', label: 'CHI TIÊU' },
                                             { key: 'Thu Nhập', label: 'THU NHẬP' }

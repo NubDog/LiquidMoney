@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Animated } from 'react-native';
+import { useSharedValue, withSpring } from 'react-native-reanimated';
 
 interface UseWaterDropAnimationProps {
     options: { key: string; label: string }[];
@@ -15,8 +15,8 @@ export const useWaterDropAnimation = ({
     paddingHorizontal = 4,
 }: UseWaterDropAnimationProps) => {
     const [containerWidth, setContainerWidth] = useState(0);
-    const leftAnim = useRef(new Animated.Value(0)).current;
-    const rightAnim = useRef(new Animated.Value(0)).current;
+    const leftAnim = useSharedValue(0);
+    const rightAnim = useSharedValue(0);
     const prevIdx = useRef(options.findIndex(o => o.key === selected));
     const prevWidth = useRef(0);
 
@@ -39,8 +39,8 @@ export const useWaterDropAnimation = ({
         if (idx === prevIdx.current) {
             if (isWidthChanged) {
                 // Initial layout or resize snap
-                leftAnim.setValue(targetLeft);
-                rightAnim.setValue(targetRight);
+                leftAnim.value = targetLeft;
+                rightAnim.value = targetRight;
             }
             // Do NOT snap if it's just a re-render from props to prevent cancelling running animations
             return;
@@ -51,33 +51,23 @@ export const useWaterDropAnimation = ({
         prevIdx.current = idx;
 
         // "Water Drop / Jelly" Physics - Extremely soft, fluid, and bouncy
-        // The leading edge (head) springs tight but gently
-        // The trailing edge (tail) lags heavily behind, creating a drop-like stretch,
-        // then snaps satisfyingly into place.
         const headStiff = 140; // Soft pull forward
         const headDamp = 14;   // Slight elasticity at the destination
         
-        // If leaping across multiple tabs (distance > 1), we increase tail stiffness 
-        // to prevent the drop from unnaturally stretching across the entire container
         const tailStiff = distance > 1 ? 100 : 50;  // Tighter tail if jumping multi tabs
         const tailDamp = distance > 1 ? 14 : 10;
 
-        Animated.parallel([
-            Animated.spring(leftAnim, {
-                toValue: targetLeft,
-                damping: isMovingRight ? tailDamp : headDamp,
-                stiffness: isMovingRight ? tailStiff : headStiff,
-                mass: 1,
-                useNativeDriver: false,
-            }),
-            Animated.spring(rightAnim, {
-                toValue: targetRight,
-                damping: isMovingRight ? headDamp : tailDamp,
-                stiffness: isMovingRight ? headStiff : tailStiff,
-                mass: 1,
-                useNativeDriver: false,
-            })
-        ]).start();
+        leftAnim.value = withSpring(targetLeft, {
+            damping: isMovingRight ? tailDamp : headDamp,
+            stiffness: isMovingRight ? tailStiff : headStiff,
+            mass: 1,
+        });
+        
+        rightAnim.value = withSpring(targetRight, {
+            damping: isMovingRight ? headDamp : tailDamp,
+            stiffness: isMovingRight ? headStiff : tailStiff,
+            mass: 1,
+        });
     }, [selected, containerWidth, options, tabWidth, gap, leftAnim, rightAnim, paddingHorizontal]);
 
     return {

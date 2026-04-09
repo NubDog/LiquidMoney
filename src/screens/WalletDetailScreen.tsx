@@ -26,7 +26,7 @@ import { ChevronLeft, MoreVertical, Plus } from 'lucide-react-native';
 
 // ─── Components ───────────────────────────────────────────────────────────────
 import LiquidCard from '../components/LiquidCard';
-import LiquidSegmentedControl from '../components/LiquidSegmentedControl';
+import LiquidSegmentedControl2 from '../components/LiquidSegmentedControl2';
 import TransactionModal from '../components/TransactionModal';
 import TransactionRow from '../components/TransactionRow';
 import TransactionDetailOverlay from '../components/TransactionDetailOverlay';
@@ -251,7 +251,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
                 </View>
 
                 <View style={styles.filterWrapper}>
-                    <LiquidSegmentedControl
+                    <LiquidSegmentedControl2
                         options={FILTER_OPTIONS}
                         selected={filterIndex.toString()}
                         onChange={handleFilterChange}

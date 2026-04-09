@@ -33,7 +33,7 @@ import Svg, { Defs, LinearGradient, Rect, Stop, Text as SvgText } from 'react-na
 import { BlurView } from '@react-native-community/blur';
 import LiquidCard from '../components/LiquidCard';
 import LiquidButton2 from '../components/LiquidButton2';
-import LiquidSegmentedControl from '../components/LiquidSegmentedControl';
+import LiquidSegmentedControl2 from '../components/LiquidSegmentedControl2';
 import TransactionRow from '../components/TransactionRow';
 import EmptyState from '../components/EmptyState';
 import TransactionDetailOverlay from '../components/TransactionDetailOverlay';
@@ -957,7 +957,7 @@ const StatsScreen: React.FC = () => {
                         />
 
                         {/* Period Selector */}
-                        <LiquidSegmentedControl 
+                        <LiquidSegmentedControl2 
                             options={[
                                 { key: 'day', label: 'Hôm nay' },
                                 { key: 'week', label: 'Tuần này' },

@@ -19,7 +19,7 @@ import LiquidCard from '../components/LiquidCard';
 import LiquidButton2 from '../components/LiquidButton2';
 import LiquidIconButton from '../components/LiquidIconButton';
 import LiquidInput from '../components/LiquidInput';
-import LiquidSegmentedControl from '../components/LiquidSegmentedControl';
+import LiquidSegmentedControl2 from '../components/LiquidSegmentedControl2';
 import IconButton from '../components/IconButton';
 import AmountInput from '../components/AmountInput';
 import EmptyState from '../components/EmptyState';
@@ -97,8 +97,8 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                 </Section>
 
                 {/* SEGMENTED CONTROL */}
-                <Section title="LiquidSegmentedControl">
-                    <LiquidSegmentedControl
+                <Section title="LiquidSegmentedControl2">
+                    <LiquidSegmentedControl2
                         options={[
                             { key: 'a', label: 'Lựa chọn A' },
                             { key: 'b', label: 'B' },
