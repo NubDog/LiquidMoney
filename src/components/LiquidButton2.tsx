@@ -76,7 +76,7 @@ const LiquidButton2: React.FC<LiquidButton2Props> = ({
             ]}
         >
             {/* Bao bọc BlurView bằng thẻ View chuẩn để ép Android Cắt (Clip) viền hình chữ nhật thừa */}
-            <View style={styles.glassWrapper}>
+            <View style={[styles.glassWrapper, disabled && styles.disabledGlass]}>
                 {/* @ts-ignore */}
                 <BlurView
                     blurType="light"
@@ -150,7 +150,10 @@ const styles = StyleSheet.create({
         borderRadius: 9999,
     },
     disabled: {
-        opacity: 0.4,
+        opacity: 0.65,
+    },
+    disabledGlass: {
+        backgroundColor: 'rgba(0, 0, 0, 0.35)', // Làm đậm màu nền
     },
     glassWrapper: {
         width: '100%',
