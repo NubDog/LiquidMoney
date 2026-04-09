@@ -16,7 +16,7 @@ import AnimatedOverlay from './AnimatedOverlay';
 import LiquidCard from './LiquidCard';
 import LiquidIconButton from './LiquidIconButton';
 import LiquidButton2 from './LiquidButton2';
-import AmountInput from './AmountInput';
+import AmountInput2 from './AmountInput2';
 import LiquidInput from './LiquidInput';
 import { Colors, FontSizes, Shadows, Spacing, Radii } from '../common/theme';
 
@@ -99,7 +99,7 @@ const WalletModal: React.FC<WalletModalProps> = ({
                                     containerStyle={{ marginBottom: Spacing.lg }}
                                 />
 
-                                <AmountInput
+                                <AmountInput2
                                     value={balanceStr}
                                     onChangeText={setBalanceStr}
                                 />

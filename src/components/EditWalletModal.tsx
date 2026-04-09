@@ -20,7 +20,7 @@ import { animateModalOpen, animateModalClose, SpringConfigs } from '../common/an
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
 import AnimatedOverlay from './AnimatedOverlay';
 import LiquidButton2 from './LiquidButton2';
-import AmountInput from './AmountInput';
+import AmountInput2 from './AmountInput2';
 import LiquidCard from './LiquidCard';
 import LiquidInput from './LiquidInput';
 
@@ -125,7 +125,7 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
                                     containerStyle={{ marginBottom: Spacing.lg }}
                                 />
 
-                                <AmountInput
+                                <AmountInput2
                                     label="Số dư hiện tại (₫)"
                                     value={balanceStr}
                                     onChangeText={setBalanceStr}

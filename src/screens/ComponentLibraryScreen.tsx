@@ -21,7 +21,7 @@ import LiquidIconButton from '../components/LiquidIconButton';
 import LiquidInput from '../components/LiquidInput';
 import LiquidSegmentedControl2 from '../components/LiquidSegmentedControl2';
 import IconButton from '../components/IconButton';
-import AmountInput from '../components/AmountInput';
+import AmountInput2 from '../components/AmountInput2';
 import EmptyState from '../components/EmptyState';
 import TransactionRow from '../components/TransactionRow';
 import WalletCard from '../components/WalletCard';
@@ -116,7 +116,7 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                         placeholder="Nhập nội dung tĩnh..."
                     />
                     <View style={{ height: Spacing.md }} />
-                    <AmountInput
+                    <AmountInput2
                         value={inputValue}
                         onChangeText={setInputValue}
                     />

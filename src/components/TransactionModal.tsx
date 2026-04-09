@@ -26,7 +26,7 @@ import LiquidCard from './LiquidCard';
 import LiquidButton2 from './LiquidButton2';
 import LiquidIconButton from './LiquidIconButton';
 import LiquidSegmentedControl2 from './LiquidSegmentedControl2';
-import AmountInput from './AmountInput';
+import AmountInput2 from './AmountInput2';
 import LiquidInput from './LiquidInput';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, FontSizes, Shadows, Spacing, Radii } from '../common/theme';
@@ -149,7 +149,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                                 </View>
 
                                 {/* AMOUNT INPUT */}
-                                <AmountInput
+                                <AmountInput2
                                     label="Số tiền (₫)"
                                     value={amount}
                                     onChangeText={setAmount}
