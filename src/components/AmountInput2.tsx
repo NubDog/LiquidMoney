@@ -118,28 +118,27 @@ const AmountInput2: React.FC<AmountInput2Props> = ({
                                 <Rect x="0.5" y="0.5" width={Math.max(0, dimensions.width - 1)} height={Math.max(0, dimensions.height - 1)} fill="none" stroke="url(#brGlow)" strokeWidth={coreThickness} opacity="1.0" rx={Math.max(0, pillRadius - 0.5)} />
                             </Svg>
                         )}
+                        <TextInput
+                            style={[styles.input, { fontSize: dynamicFontSize }]}
+                            placeholder="0"
+                            placeholderTextColor="rgba(255,255,255,0.2)"
+                            keyboardType="numeric"
+                            cursorColor="#FFFFFF"
+                            selectionColor="rgba(255, 255, 255, 0.3)"
+                            value={displayValue}
+                            onChangeText={handleChangeText}
+                            onFocus={(e) => {
+                                setIsFocused(true);
+                                props.onFocus?.(e);
+                            }}
+                            onBlur={(e) => {
+                                setIsFocused(false);
+                                props.onBlur?.(e);
+                            }}
+                            {...props}
+                        />
                     </BlurView>
                 </View>
-                
-                <TextInput
-                    style={[styles.input, { fontSize: dynamicFontSize }]}
-                    placeholder="0"
-                    placeholderTextColor="rgba(255,255,255,0.2)"
-                    keyboardType="numeric"
-                    cursorColor="#FFFFFF"
-                    selectionColor="rgba(255, 255, 255, 0.3)"
-                    value={displayValue}
-                    onChangeText={handleChangeText}
-                    onFocus={(e) => {
-                        setIsFocused(true);
-                        props.onFocus?.(e);
-                    }}
-                    onBlur={(e) => {
-                        setIsFocused(false);
-                        props.onBlur?.(e);
-                    }}
-                    {...props}
-                />
             </View>
         </View>
     );
