@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useSharedValue, withSpring } from 'react-native-reanimated';
+import { Animated } from 'react-native';
 
 interface UseWaterDropAnimationProps {
     options: { key: string; label: string }[];
@@ -15,8 +15,11 @@ export const useWaterDropAnimation = ({
     paddingHorizontal = 4,
 }: UseWaterDropAnimationProps) => {
     const [containerWidth, setContainerWidth] = useState(0);
-    const leftAnim = useSharedValue(0);
-    const rightAnim = useSharedValue(0);
+    const translateXAnim = useRef(new Animated.Value(0)).current;
+    
+    // We can also animate scaleX for a bouncy width effect
+    const scaleXAnim = useRef(new Animated.Value(1)).current;
+    
     const prevIdx = useRef(options.findIndex(o => o.key === selected));
     const prevWidth = useRef(0);
 
@@ -30,49 +33,59 @@ export const useWaterDropAnimation = ({
         const idx = options.findIndex(o => o.key === selected);
         if (idx === -1) return;
         
-        const targetLeft = paddingHorizontal + idx * (tabWidth + gap);
-        const targetRight = containerWidth - (targetLeft + tabWidth);
+        // Exact horizontal position
+        const targetX = paddingHorizontal + idx * (tabWidth + gap);
 
         const isWidthChanged = prevWidth.current !== containerWidth;
         prevWidth.current = containerWidth;
 
         if (idx === prevIdx.current) {
             if (isWidthChanged) {
-                // Initial layout or resize snap
-                leftAnim.value = targetLeft;
-                rightAnim.value = targetRight;
+                // Initial snap
+                translateXAnim.setValue(targetX);
+                scaleXAnim.setValue(1);
             }
-            // Do NOT snap if it's just a re-render from props to prevent cancelling running animations
             return;
         }
 
-        const isMovingRight = idx > prevIdx.current;
         const distance = Math.abs(idx - prevIdx.current);
         prevIdx.current = idx;
 
-        // "Water Drop / Jelly" Physics - Extremely soft, fluid, and bouncy
-        const headStiff = 140; // Soft pull forward
-        const headDamp = 14;   // Slight elasticity at the destination
-        
-        const tailStiff = distance > 1 ? 100 : 50;  // Tighter tail if jumping multi tabs
-        const tailDamp = distance > 1 ? 14 : 10;
+        // "Water Drop" stretching effect via scaleX
+        // Since transform-origin is center by default, we stretch it momentarily
+        // The scale factor should stretch it to cover the distance
+        const stretchScale = 1 + (distance * 0.5);
 
-        leftAnim.value = withSpring(targetLeft, {
-            damping: isMovingRight ? tailDamp : headDamp,
-            stiffness: isMovingRight ? tailStiff : headStiff,
-            mass: 1,
-        });
-        
-        rightAnim.value = withSpring(targetRight, {
-            damping: isMovingRight ? headDamp : tailDamp,
-            stiffness: isMovingRight ? headStiff : tailStiff,
-            mass: 1,
-        });
-    }, [selected, containerWidth, options, tabWidth, gap, leftAnim, rightAnim, paddingHorizontal]);
+        Animated.sequence([
+            // Stretch simultaneously while moving
+            Animated.parallel([
+                Animated.spring(translateXAnim, {
+                    toValue: targetX,
+                    bounciness: 8,
+                    speed: 12,
+                    useNativeDriver: true,
+                }),
+                Animated.sequence([
+                    Animated.timing(scaleXAnim, {
+                        toValue: stretchScale,
+                        duration: 100,
+                        useNativeDriver: true,
+                    }),
+                    Animated.spring(scaleXAnim, {
+                        toValue: 1,
+                        bounciness: 12,
+                        speed: 16,
+                        useNativeDriver: true,
+                    })
+                ])
+            ])
+        ]).start();
+
+    }, [selected, containerWidth, options, tabWidth, gap, paddingHorizontal, translateXAnim, scaleXAnim]);
 
     return {
-        leftAnim,
-        rightAnim,
+        translateXAnim,
+        scaleXAnim,
         tabWidth,
         containerWidth,
         setContainerWidth,

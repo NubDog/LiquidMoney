@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { 
+    Animated,
     Pressable, 
     StyleSheet, 
     Text, 
@@ -33,7 +33,7 @@ const LiquidSegmentedControl2: React.FC<LiquidSegmentedControl2Props> = React.me
     style,
 }) => {
     // We limit it to min 2, max 4 by logic but UI visually supports whatever array is passed.
-    const { leftAnim, rightAnim, containerWidth, setContainerWidth, tabWidth } = useWaterDropAnimation({
+    const { translateXAnim, scaleXAnim, containerWidth, setContainerWidth, tabWidth } = useWaterDropAnimation({
         options,
         selected,
         gap: 8,
@@ -54,13 +54,6 @@ const LiquidSegmentedControl2: React.FC<LiquidSegmentedControl2Props> = React.me
     const pillRadius = hasDimensions ? dimensions.height / 2 : 100;
     const coreThickness = hasDimensions ? Math.max(1, dimensions.height * 0.02) : 1;
     const bloomThickness = hasDimensions ? Math.max(3, dimensions.height * 0.08) : 3;
-
-    const animatedIndicatorStyle = useAnimatedStyle(() => {
-        return {
-            left: leftAnim.value,
-            right: rightAnim.value,
-        };
-    });
 
     return (
         <View style={[styles.wrapper, style]} onLayout={onLayout}>
@@ -119,7 +112,13 @@ const LiquidSegmentedControl2: React.FC<LiquidSegmentedControl2Props> = React.me
                         <Animated.View
                             style={[
                                 styles.indicatorWrapper,
-                                animatedIndicatorStyle,
+                                {
+                                    width: tabWidth,
+                                    transform: [
+                                        { translateX: translateXAnim },
+                                        { scaleX: scaleXAnim }
+                                    ]
+                                }
                             ]}
                         >
                             <View style={[StyleSheet.absoluteFill, styles.indicatorOverlay]} />
@@ -178,6 +177,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 6,
         bottom: 6,
+        left: 0,
         borderRadius: 9999,
         overflow: 'visible', // allows shadow outside the indicator natively
         zIndex: 1,

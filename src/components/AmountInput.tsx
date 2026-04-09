@@ -32,7 +32,8 @@ const AmountInput: React.FC<AmountInputProps> = ({ label = 'Số dư ban đầu 
                 placeholder="0"
                 placeholderTextColor="rgba(255,255,255,0.3)"
                 keyboardType="numeric"
-                selectionColor={Colors.accent}
+                cursorColor="#FFFFFF"
+                selectionColor="rgba(255, 255, 255, 0.3)"
                 value={displayValue}
                 onChangeText={handleChangeText}
                 {...props}
@@ -50,7 +51,7 @@ const styles = StyleSheet.create({
     },
     input: {
         backgroundColor: 'rgba(255, 255, 255, 0.08)',
-        borderRadius: Radii.md,
+        borderRadius: 24,
         borderWidth: 1,
         borderColor: 'rgba(255, 255, 255, 0.2)',
         padding: Spacing.md,

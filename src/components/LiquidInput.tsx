@@ -15,7 +15,7 @@ const LiquidInput: React.FC<LiquidInputProps> = ({ containerStyle, leftIcon, onF
 
     return (
         <View style={[styles.container, containerStyle]}>
-            <View style={[StyleSheet.absoluteFill, { borderRadius: 16, overflow: 'hidden' }]}>
+            <View style={[StyleSheet.absoluteFill, { borderRadius: 24, overflow: 'hidden' }]}>
                 {!isInsideGlass ? (
                     <BlurView 
                         style={StyleSheet.absoluteFill} 
@@ -35,7 +35,6 @@ const LiquidInput: React.FC<LiquidInputProps> = ({ containerStyle, leftIcon, onF
             <View style={[
                 StyleSheet.absoluteFill,
                 styles.borderHighlight,
-                isFocused && styles.borderFocused
             ]} pointerEvents="none" />
 
             {leftIcon && <View style={styles.iconContainer}>{leftIcon}</View>}
@@ -43,6 +42,8 @@ const LiquidInput: React.FC<LiquidInputProps> = ({ containerStyle, leftIcon, onF
             <TextInput
                 style={[styles.input, leftIcon ? { paddingLeft: 44 } : undefined]}
                 placeholderTextColor={Colors.textMuted}
+                cursorColor="#FFFFFF"
+                selectionColor="rgba(255, 255, 255, 0.3)"
                 onFocus={(e) => {
                     setIsFocused(true);
                     onFocus?.(e);
@@ -60,23 +61,17 @@ const LiquidInput: React.FC<LiquidInputProps> = ({ containerStyle, leftIcon, onF
 const styles = StyleSheet.create({
     container: {
         height: 54,
-        borderRadius: 16,
+        borderRadius: 24,
         flexDirection: 'row',
         alignItems: 'center',
         position: 'relative',
     },
     borderHighlight: {
-        borderRadius: 16,
+        borderRadius: 24,
         borderWidth: 1,
         borderBottomWidth: 0,
         borderRightWidth: 0,
         borderColor: 'rgba(255, 255, 255, 0.15)',
-    },
-    borderFocused: {
-        borderColor: 'rgba(34, 211, 238, 0.5)',
-        borderBottomWidth: 1,
-        borderRightWidth: 1,
-        borderWidth: 1,
     },
     iconContainer: {
         position: 'absolute',
