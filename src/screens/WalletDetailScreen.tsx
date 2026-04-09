@@ -22,7 +22,7 @@ import {
     Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronLeft, MoreVertical } from 'lucide-react-native';
+import { ChevronLeft, MoreVertical, Plus } from 'lucide-react-native';
 
 // ─── Components ───────────────────────────────────────────────────────────────
 import LiquidCard from '../components/LiquidCard';
@@ -33,7 +33,7 @@ import TransactionDetailOverlay from '../components/TransactionDetailOverlay';
 import ConfirmDialog from '../components/ConfirmDialog';
 import EditWalletModal from '../components/EditWalletModal';
 import PopupMenu from '../components/PopupMenu';
-import AddWalletButton from '../components/AddWalletButton';
+import IconButton from '../components/IconButton';
 import LiquidBackground from '../components/LiquidBackground';
 import LiquidIconButton from '../components/LiquidIconButton';
 import { WalletDetailSkeleton } from '../components/WalletDetailSkeleton';
@@ -302,7 +302,12 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
             />
 
             {/* FAB */}
-            <AddWalletButton onPress={handleOpenCreate} style={{ position: 'absolute', bottom: 140, right: 20, zIndex: 9999, shadowColor: 'rgba(0, 0, 0, 0.6)', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 1, shadowRadius: 10, elevation: 10 }} />
+            <IconButton 
+                icon={<Plus strokeWidth={1.5} color="#FFF" size={32} />}
+                size={60}
+                onPress={handleOpenCreate} 
+                style={{ position: 'absolute', bottom: 140, right: 20, zIndex: 9999, shadowColor: 'rgba(0, 0, 0, 0.6)', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 1, shadowRadius: 10, elevation: 10 }} 
+            />
 
             {/* Transaction Modal */}
             <TransactionModal

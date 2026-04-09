@@ -17,11 +17,11 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store/useStore';
-import { Wallet as WalletIcon, PieChart } from 'lucide-react-native';
+import { Wallet as WalletIcon, PieChart, Plus } from 'lucide-react-native';
 import LiquidCard from '../components/LiquidCard';
 import WalletCard from '../components/WalletCard';
 import WalletModal from '../components/WalletModal';
-import AddWalletButton from '../components/AddWalletButton';
+import IconButton from '../components/IconButton';
 import EmptyState from '../components/EmptyState';
 import { formatVND } from '../common/formatters';
 import { Colors, FontSizes, Spacing, Radii } from '../common/theme';
@@ -176,7 +176,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
             />
 
             {/* Add Wallet Button */}
-            <AddWalletButton 
+            <IconButton 
+                icon={<Plus strokeWidth={1.5} color="#FFF" size={32} />}
+                size={60}
                 onPress={openCreateModal} 
                 style={{ 
                     position: 'absolute', 

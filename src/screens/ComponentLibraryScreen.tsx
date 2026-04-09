@@ -12,7 +12,7 @@ import {
     View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, Figma } from 'lucide-react-native';
+import { X, Figma, Plus } from 'lucide-react-native';
 
 import LiquidBackground from '../components/LiquidBackground';
 import LiquidCard from '../components/LiquidCard';
@@ -20,7 +20,7 @@ import LiquidButton2 from '../components/LiquidButton2';
 import LiquidIconButton from '../components/LiquidIconButton';
 import LiquidInput from '../components/LiquidInput';
 import LiquidSegmentedControl from '../components/LiquidSegmentedControl';
-import AddWalletButton from '../components/AddWalletButton';
+import IconButton from '../components/IconButton';
 import AmountInput from '../components/AmountInput';
 import EmptyState from '../components/EmptyState';
 import TransactionRow from '../components/TransactionRow';
@@ -89,16 +89,10 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                     <LiquidButton2 title="Disabled Button" disabled onPress={() => {}} />
                 </Section>
 
-                {/* LIQUID ICON BUTTONS */}
-                <Section title="LiquidIconButton / AddWalletButton">
+                {/* ICON BUTTON */}
+                <Section title="IconButton">
                     <View style={styles.row}>
-                        <LiquidIconButton onPress={() => { }} size={48}>
-                            <Text style={{ color: '#FFF' }}>A</Text>
-                        </LiquidIconButton>
-                        <LiquidIconButton onPress={() => { }} size={48} disabled>
-                            <Text style={{ color: '#FFF' }}>B</Text>
-                        </LiquidIconButton>
-                        <AddWalletButton onPress={() => { }} />
+                        <IconButton icon={<Plus strokeWidth={1.5} color="#FFF" size={32} />} size={60} onPress={() => { }} />
                     </View>
                 </Section>
 
