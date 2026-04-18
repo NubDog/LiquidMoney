@@ -22,7 +22,7 @@ import LiquidInput from '../components/LiquidInput';
 import LiquidSegmentedControl2 from '../components/LiquidSegmentedControl2';
 import IconButton from '../components/IconButton';
 import AmountInput2 from '../components/AmountInput2';
-import EmptyState from '../components/EmptyState';
+import EmptyState2 from '../components/EmptyState2';
 import TransactionRow2 from '../components/TransactionRow2';
 import WalletCard2 from '../components/WalletCard2';
 
@@ -145,28 +145,19 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                 </Section>
 
                 {/* TRANSACTION ROW */}
-                <Section title="TransactionRow (Card Variant)">
-                    <TransactionRow2 item={dummyTransaction} variant="card" onPress={() => { }} />
-                    <TransactionRow2 item={{ ...dummyTransaction, type: 'IN', amount: 1000000, reason: 'Lương' }} variant="card" onPress={() => { }} />
+                <Section title="TransactionRow">
+                    <TransactionRow2 item={dummyTransaction} onPress={() => { }} />
+                    <TransactionRow2 item={{ ...dummyTransaction, type: 'IN', amount: 1000000, reason: 'Lương' }} onPress={() => { }} />
                 </Section>
 
-                <Section title="TransactionRow (Grouped Flat / Medium Card)">
-                    <LiquidCard intensity="medium" style={{ paddingVertical: Spacing.sm, borderRadius: Radii.xl }}>
-                        <TransactionRow2 item={dummyTransaction} variant="flat" onPress={() => { }} />
-                        <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(255,255,255,0.1)' }} />
-                        <TransactionRow2 item={{ ...dummyTransaction, type: 'IN', amount: 1000000, reason: 'Lương' }} variant="flat" onPress={() => { }} />
-                    </LiquidCard>
-                </Section>
 
                 {/* EMPTY STATE */}
-                <Section title="EmptyState">
-                    <LiquidCard intensity="light" style={{ paddingVertical: Spacing.xl }}>
-                        <EmptyState
-                            animation="nodata"
-                            title="Data Not Found"
-                            subtitle="This is an empty state component."
-                        />
-                    </LiquidCard>
+                <Section title="EmptyState2">
+                    <EmptyState2
+                        animation="nodata"
+                        title="Data Not Found"
+                        subtitle="This is an empty state component."
+                    />
                 </Section>
 
             </ScrollView>

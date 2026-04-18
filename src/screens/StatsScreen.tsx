@@ -35,7 +35,7 @@ import LiquidCard from '../components/LiquidCard';
 import LiquidButton2 from '../components/LiquidButton2';
 import LiquidSegmentedControl2 from '../components/LiquidSegmentedControl2';
 import TransactionRow2 from '../components/TransactionRow2';
-import EmptyState from '../components/EmptyState';
+import EmptyState2 from '../components/EmptyState2';
 import TransactionDetailOverlay from '../components/TransactionDetailOverlay';
 import { useStore } from '../store/useStore';
 import { isDatabaseAvailable } from '../database/db';
@@ -990,14 +990,13 @@ const StatsScreen: React.FC = () => {
                                         <TransactionRow2
                                             key={tx.id}
                                             item={tx}
-                                            variant="card"
                                             onPress={handleViewTransaction}
                                         />
                                     ))}
                                 </View>
                             </>
                         ) : (
-                            <EmptyState
+                            <EmptyState2
                                 animation="nodata"
                                 title="Chưa có giao dịch"
                                 subtitle="Tạo giao dịch trong mục Ví tiền để xem thống kê"

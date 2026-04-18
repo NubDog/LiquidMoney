@@ -37,7 +37,7 @@ import IconButton from '../components/IconButton';
 import LiquidBackground from '../components/LiquidBackground';
 import LiquidIconButton from '../components/LiquidIconButton';
 import { WalletDetailSkeleton } from '../components/WalletDetailSkeleton';
-import EmptyState from '../components/EmptyState';
+import EmptyState2 from '../components/EmptyState2';
 
 // ─── Shared ───────────────────────────────────────────────────────────────────
 import { useStore } from '../store/useStore';
@@ -212,7 +212,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
     // ─── Render ─────────────────────────────────────────────────────────────
     const renderItem = useCallback(
         ({ item }: { item: Transaction }) => (
-            <TransactionRow2 item={item} onPress={handleViewTransaction} variant="card" />
+            <TransactionRow2 item={item} onPress={handleViewTransaction} />
         ),
         [handleViewTransaction],
     );
@@ -268,7 +268,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
 
     const listEmpty = useMemo(
         () => (
-            <EmptyState
+            <EmptyState2
                 animation="noresult"
                 title="Chưa có giao dịch"
                 subtitle="Nhấn nút + để tạo giao dịch đầu tiên"

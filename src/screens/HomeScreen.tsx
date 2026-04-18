@@ -22,7 +22,7 @@ import LiquidCard from '../components/LiquidCard';
 import WalletModal from '../components/WalletModal';
 import WalletCard2 from '../components/WalletCard2';
 import IconButton from '../components/IconButton';
-import EmptyState from '../components/EmptyState';
+import EmptyState2 from '../components/EmptyState2';
 import { formatVND } from '../common/formatters';
 import { Colors, FontSizes, Spacing, Radii } from '../common/theme';
 import type { Wallet } from '../common/types';
@@ -103,7 +103,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
 
     const emptyState = useMemo(
         () => (
-            <EmptyState
+            <EmptyState2
                 animation="nodata"
                 title="Chưa có ví nào"
                 subtitle="Nhấn nút + bên dưới để tạo ví đầu tiên"

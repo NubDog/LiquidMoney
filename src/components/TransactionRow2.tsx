@@ -16,13 +16,11 @@ import type { Transaction } from '../common/types';
 interface TransactionRowProps {
     item: Transaction;
     onPress?: (transaction: Transaction) => void;
-    variant?: 'card' | 'flat';
 }
 
 const TransactionRow2: React.FC<TransactionRowProps> = ({
     item,
     onPress,
-    variant = 'card',
 }) => {
     const isIncome = item.type === 'IN';
     const isTransfer = false; // Placeholder for Future 'transfer' tag
@@ -91,9 +89,7 @@ const TransactionRow2: React.FC<TransactionRowProps> = ({
         setDimensions({ width, height });
     };
 
-    const isCard = variant === 'card';
-    const borderRadius = isCard ? 24 : 0; // Tăng bo góc cho giống Card xịn
-    
+    const borderRadius = 24; // Tăng bo góc cho giống Card xịn
     const BLUR_STEPS = [
         { w: 40, o: "0.02" },
         { w: 32, o: "0.02" },
@@ -108,24 +104,24 @@ const TransactionRow2: React.FC<TransactionRowProps> = ({
     ];
 
     return (
-        <Animated.View style={[{ transform: [{ scale }], marginBottom: isCard ? Spacing.sm : 0 }]}>
+        <Animated.View style={[{ transform: [{ scale }], marginBottom: Spacing.sm }]}>
             <Pressable
                 onPress={() => onPress?.(item)}
                 onPressIn={handlePressIn}
                 onPressOut={handlePressOut}
                 style={[
                     styles.container,
-                    isCard ? { aspectRatio: 4.236 } : undefined
+                    { aspectRatio: 4.236 }
                 ]}
             >
-                <View style={[styles.glassWrapper, { borderRadius: borderRadius }, isCard && { height: '100%' }]} onLayout={onLayoutContainer}>
+                <View style={[styles.glassWrapper, { borderRadius: borderRadius, height: '100%' }]} onLayout={onLayoutContainer}>
                     {/* @ts-ignore */}
                     <BlurView
                         blurType="light"
                         blurAmount={10}
                         overlayColor="transparent"
                         reducedTransparencyFallbackColor="transparent"
-                        style={isCard ? { height: '100%' } : {}}
+                        style={{ height: '100%' }}
                     >
                         {hasDimensions && (
                             <Svg width={dimensions.width} height={dimensions.height} style={StyleSheet.absoluteFill}>
@@ -168,8 +164,8 @@ const TransactionRow2: React.FC<TransactionRowProps> = ({
                                 <Rect x="0" y="0" width={dimensions.width} height={dimensions.height} fill="url(#glassBodyBR)" rx={borderRadius} />
                                 <Rect x="0" y="0" width={dimensions.width} height={dimensions.height} fill="url(#shine)" rx={borderRadius} />
 
-                                {/* 10 Layers Alpha Smooth Gaussian Blur (chỉ áp dụng cho thẻ độc lập) */}
-                                {isCard && BLUR_STEPS.map((step, idx) => (
+                                {/* 10 Layers Alpha Smooth Gaussian Blur */}
+                                {BLUR_STEPS.map((step, idx) => (
                                     <React.Fragment key={idx}>
                                         <Rect x="0" y="0" width={dimensions.width} height={dimensions.height} fill="none" stroke="url(#tlGlow)" strokeWidth={step.w} opacity={step.o} rx={borderRadius} />
                                         <Rect x="0" y="0" width={dimensions.width} height={dimensions.height} fill="none" stroke="url(#brGlow)" strokeWidth={step.w} opacity={step.o} rx={borderRadius} />
@@ -178,7 +174,7 @@ const TransactionRow2: React.FC<TransactionRowProps> = ({
                             </Svg>
                         )}
 
-                        <View style={[styles.contentContainer, isCard ? { height: '100%' } : styles.flatContainer]} collapsable={false}>
+                        <View style={[styles.contentContainer, { height: '100%' }]} collapsable={false}>
                             {renderContentBody()}
                         </View>
                     </BlurView>
@@ -200,9 +196,6 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         width: '100%',
-    },
-    flatContainer: {
-        paddingVertical: Spacing.md,
     },
     textContent: {
         flex: 1,

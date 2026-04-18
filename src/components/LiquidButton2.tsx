@@ -80,7 +80,7 @@ const LiquidButton2: React.FC<LiquidButton2Props> = ({
                 {/* @ts-ignore */}
                 <BlurView
                     blurType="light"
-                    blurAmount={8}
+                    blurAmount={12}
                     overlayColor="transparent"
                     reducedTransparencyFallbackColor="transparent"
                 >
@@ -89,12 +89,12 @@ const LiquidButton2: React.FC<LiquidButton2Props> = ({
                             <Defs>
                                 {/* Inner ambient glass body */}
                                 <RadialGradient id="glassBodyTL" cx="0%" cy="0%" rx="100%" ry="100%">
-                                    <Stop offset="0" stopColor="#FFFFFF" stopOpacity="0.15" />
-                                    <Stop offset="1" stopColor="#FFFFFF" stopOpacity="0.0" />
+                                    <Stop offset="0" stopColor="#FFFFFF" stopOpacity="0.25" />
+                                    <Stop offset="1" stopColor="#FFFFFF" stopOpacity="0.05" />
                                 </RadialGradient>
                                 <RadialGradient id="glassBodyBR" cx="100%" cy="100%" rx="100%" ry="100%">
-                                    <Stop offset="0" stopColor="#FFFFFF" stopOpacity="0.08" />
-                                    <Stop offset="1" stopColor="#FFFFFF" stopOpacity="0.0" />
+                                    <Stop offset="0" stopColor="#FFFFFF" stopOpacity="0.15" />
+                                    <Stop offset="1" stopColor="#FFFFFF" stopOpacity="0.02" />
                                 </RadialGradient>
 
                                 {/* --- TL BORDER GLOW (Golden Ratio 61.8%) --- */}
@@ -135,7 +135,7 @@ const LiquidButton2: React.FC<LiquidButton2Props> = ({
                     {/* Content bọc trong BlurView để lõi Android BlurView ẩn nó đi trước khi chụp màn hình nền */}
                     <View style={styles.content} collapsable={false}>
                         {icon && <View style={styles.iconContainer}>{icon}</View>}
-                        <Text key="text-clean" style={styles.text}>{title}</Text>
+                        <Text key="text-clean" style={[styles.text, disabled && styles.disabledText]}>{title}</Text>
                     </View>
                 </BlurView>
             </View>
@@ -150,10 +150,13 @@ const styles = StyleSheet.create({
         borderRadius: 9999,
     },
     disabled: {
-        opacity: 0.65,
+        opacity: 0.5,
     },
     disabledGlass: {
-        backgroundColor: 'rgba(0, 0, 0, 0.35)', // Làm đậm màu nền
+        backgroundColor: 'rgba(0, 0, 0, 0.45)', // Làm đậm màu nền
+    },
+    disabledText: {
+        color: 'rgba(255, 255, 255, 0.6)',
     },
     glassWrapper: {
         width: '100%',
