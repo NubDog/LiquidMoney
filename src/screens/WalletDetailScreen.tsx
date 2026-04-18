@@ -28,7 +28,7 @@ import { ChevronLeft, MoreVertical, Plus } from 'lucide-react-native';
 import LiquidCard from '../components/LiquidCard';
 import LiquidSegmentedControl2 from '../components/LiquidSegmentedControl2';
 import TransactionModal from '../components/TransactionModal';
-import TransactionRow from '../components/TransactionRow';
+import TransactionRow2 from '../components/TransactionRow2';
 import TransactionDetailOverlay from '../components/TransactionDetailOverlay';
 import ConfirmDialog from '../components/ConfirmDialog';
 import EditWalletModal from '../components/EditWalletModal';
@@ -212,7 +212,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
     // ─── Render ─────────────────────────────────────────────────────────────
     const renderItem = useCallback(
         ({ item }: { item: Transaction }) => (
-            <TransactionRow item={item} onPress={handleViewTransaction} variant="card" />
+            <TransactionRow2 item={item} onPress={handleViewTransaction} variant="card" />
         ),
         [handleViewTransaction],
     );

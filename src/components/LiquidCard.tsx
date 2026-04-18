@@ -57,7 +57,7 @@ const LiquidCard: React.FC<LiquidCardProps> = ({
                 pointerEvents="none"
             />
 
-            <View style={styles.content}>
+            <View style={[styles.content, { borderRadius, overflow: 'hidden' }]}>
                 <LiquidContext.Provider value={{ isInsideGlass: true }}>
                     {children}
                 </LiquidContext.Provider>

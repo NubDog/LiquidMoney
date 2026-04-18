@@ -23,7 +23,7 @@ import LiquidSegmentedControl2 from '../components/LiquidSegmentedControl2';
 import IconButton from '../components/IconButton';
 import AmountInput2 from '../components/AmountInput2';
 import EmptyState from '../components/EmptyState';
-import TransactionRow from '../components/TransactionRow';
+import TransactionRow2 from '../components/TransactionRow2';
 import WalletCard2 from '../components/WalletCard2';
 
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
@@ -146,15 +146,15 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
 
                 {/* TRANSACTION ROW */}
                 <Section title="TransactionRow (Card Variant)">
-                    <TransactionRow item={dummyTransaction} variant="card" onPress={() => { }} />
-                    <TransactionRow item={{ ...dummyTransaction, type: 'IN', amount: 1000000, reason: 'Lương' }} variant="card" onPress={() => { }} />
+                    <TransactionRow2 item={dummyTransaction} variant="card" onPress={() => { }} />
+                    <TransactionRow2 item={{ ...dummyTransaction, type: 'IN', amount: 1000000, reason: 'Lương' }} variant="card" onPress={() => { }} />
                 </Section>
 
                 <Section title="TransactionRow (Grouped Flat / Medium Card)">
                     <LiquidCard intensity="medium" style={{ paddingVertical: Spacing.sm, borderRadius: Radii.xl }}>
-                        <TransactionRow item={dummyTransaction} variant="flat" onPress={() => { }} />
+                        <TransactionRow2 item={dummyTransaction} variant="flat" onPress={() => { }} />
                         <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(255,255,255,0.1)' }} />
-                        <TransactionRow item={{ ...dummyTransaction, type: 'IN', amount: 1000000, reason: 'Lương' }} variant="flat" onPress={() => { }} />
+                        <TransactionRow2 item={{ ...dummyTransaction, type: 'IN', amount: 1000000, reason: 'Lương' }} variant="flat" onPress={() => { }} />
                     </LiquidCard>
                 </Section>
 

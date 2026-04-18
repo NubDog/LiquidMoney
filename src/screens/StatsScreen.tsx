@@ -34,7 +34,7 @@ import { BlurView } from '@react-native-community/blur';
 import LiquidCard from '../components/LiquidCard';
 import LiquidButton2 from '../components/LiquidButton2';
 import LiquidSegmentedControl2 from '../components/LiquidSegmentedControl2';
-import TransactionRow from '../components/TransactionRow';
+import TransactionRow2 from '../components/TransactionRow2';
 import EmptyState from '../components/EmptyState';
 import TransactionDetailOverlay from '../components/TransactionDetailOverlay';
 import { useStore } from '../store/useStore';
@@ -987,7 +987,7 @@ const StatsScreen: React.FC = () => {
                                 </View>
                                 <View style={{ marginTop: Spacing.xs }}>
                                     {recentTxns.map((tx) => (
-                                        <TransactionRow
+                                        <TransactionRow2
                                             key={tx.id}
                                             item={tx}
                                             variant="card"
