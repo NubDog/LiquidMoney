@@ -23,6 +23,7 @@ import LiquidSegmentedControl2 from '../components/LiquidSegmentedControl2';
 import IconButton from '../components/IconButton';
 import AmountInput2 from '../components/AmountInput2';
 import EmptyState2 from '../components/EmptyState2';
+import BackgroundLiquidGlass from '../components/BackgroundLiquidGlass';
 import TransactionRow2 from '../components/TransactionRow2';
 import WalletCard2 from '../components/WalletCard2';
 
@@ -81,6 +82,27 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                 style={styles.scrollView}
                 contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
                 showsVerticalScrollIndicator={false}>
+
+                {/* BACKGROUND LIQUID GLASS */}
+                <Section title="BackgroundLiquidGlass (VIP Pro Max)">
+                    <BackgroundLiquidGlass>
+                        <Text style={{ color: '#fff', textAlign: 'center', padding: 16 }}>
+                            Default Background Wrapper
+                        </Text>
+                    </BackgroundLiquidGlass>
+                    <View style={{ height: 16 }} />
+                    <BackgroundLiquidGlass onPress={() => {}}>
+                        <Text style={{ color: '#fff', textAlign: 'center', padding: 16, fontWeight: 'bold' }}>
+                            Interactive Wrapper (Press Me)
+                        </Text>
+                    </BackgroundLiquidGlass>
+                    <View style={{ height: 16 }} />
+                    <BackgroundLiquidGlass disabled onPress={() => {}}>
+                        <Text style={{ color: '#fff', textAlign: 'center', padding: 16, opacity: 0.6 }}>
+                            Disabled Background Wrapper
+                        </Text>
+                    </BackgroundLiquidGlass>
+                </Section>
 
                 {/* APPLE LIQUID GLASS BUTTON */}
                 <Section title="LiquidButton2 (Apple Glass)">
