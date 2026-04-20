@@ -30,7 +30,7 @@ import WalletCard2 from '../components/WalletCard2';
 // --- newly imported components ---
 import AnimatedOverlay from '../components/AnimatedOverlay';
 import BackgroundPickerModal from '../components/BackgroundPickerModal';
-import ConfirmDialog from '../components/ConfirmDialog';
+import ConfirmDialog2 from '../components/ConfirmDialog2';
 import ConfirmImportDialog from '../components/ConfirmImportDialog';
 import EditWalletModal from '../components/EditWalletModal';
 import InfoDialog from '../components/InfoDialog';
@@ -217,7 +217,7 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                 <Section title="Modals & Dialogs">
                     <View style={{ gap: Spacing.md }}>
                         <LiquidButton2 title="Open BackgroundPickerModal" onPress={() => setActiveModal('BackgroundPickerModal')} />
-                        <LiquidButton2 title="Open ConfirmDialog" onPress={() => setActiveModal('ConfirmDialog')} />
+                        <LiquidButton2 title="Open ConfirmDialog2" onPress={() => setActiveModal('ConfirmDialog2')} />
                         <LiquidButton2 title="Open ConfirmImportDialog" onPress={() => setActiveModal('ConfirmImportDialog')} />
                         <LiquidButton2 title="Open EditWalletModal" onPress={() => setActiveModal('EditWalletModal')} />
                         <LiquidButton2 title="Open InfoDialog" onPress={() => setActiveModal('InfoDialog')} />
@@ -239,8 +239,8 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                 onClose={() => setActiveModal(null)}
             />
 
-            <ConfirmDialog
-                visible={activeModal === 'ConfirmDialog'}
+            <ConfirmDialog2
+                visible={activeModal === 'ConfirmDialog2'}
                 title="Xác nhận"
                 message="Bạn có chắc chắn muốn thực hiện hành động này?"
                 onCancel={() => setActiveModal(null)}

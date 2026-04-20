@@ -30,7 +30,7 @@ import LiquidSegmentedControl2 from '../components/LiquidSegmentedControl2';
 import TransactionModal from '../components/TransactionModal';
 import TransactionRow2 from '../components/TransactionRow2';
 import TransactionDetailOverlay from '../components/TransactionDetailOverlay';
-import ConfirmDialog from '../components/ConfirmDialog';
+import ConfirmDialog2 from '../components/ConfirmDialog2';
 import EditWalletModal from '../components/EditWalletModal';
 import PopupMenu from '../components/PopupMenu';
 import IconButton from '../components/IconButton';
@@ -350,13 +350,13 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
             />
 
             {/* Delete Confirm Dialog */}
-            <ConfirmDialog
+            <ConfirmDialog2
                 visible={deleteDialogVisible}
                 title="Xóa ví"
                 message={`Bạn có chắc muốn xóa ví "${wallet?.name || ''}"?\nToàn bộ giao dịch sẽ bị xóa vĩnh viễn.`}
                 cancelText="Hủy"
                 confirmText="Xóa"
-                confirmColor="#ef4444"
+                isDestructive
                 onCancel={() => setDeleteDialogVisible(false)}
                 onConfirm={handleConfirmDelete}
             />

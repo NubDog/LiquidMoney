@@ -29,6 +29,7 @@ interface BackgroundLiquidGlassProps {
     fillContainer?: boolean;
     onPress?: () => void;
     onLongPress?: () => void;
+    disableBlur?: boolean;
 }
 
 /**
@@ -47,6 +48,7 @@ const BackgroundLiquidGlass: React.FC<BackgroundLiquidGlassProps> = ({
     fillContainer = false,
     onPress,
     onLongPress,
+    disableBlur = false,
 }) => {
     const scale = useRef(new Animated.Value(1)).current;
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -86,14 +88,73 @@ const BackgroundLiquidGlass: React.FC<BackgroundLiquidGlassProps> = ({
         ]
         : [];
 
+    const blurContent = (
+        <>
+            {hasDimensions && (
+                <Svg width={dimensions.width} height={dimensions.height} style={StyleSheet.absoluteFill}>
+                    <Defs>
+                        {/* Inner ambient glass body */}
+                        <RadialGradient id="glassBodyTL" cx="0%" cy="0%" rx="100%" ry="100%">
+                            <Stop offset="0" stopColor="#FFFFFF" stopOpacity="0.25" />
+                            <Stop offset="1" stopColor="#FFFFFF" stopOpacity="0.05" />
+                        </RadialGradient>
+                        <RadialGradient id="glassBodyBR" cx="100%" cy="100%" rx="100%" ry="100%">
+                            <Stop offset="0" stopColor="#FFFFFF" stopOpacity="0.15" />
+                            <Stop offset="1" stopColor="#FFFFFF" stopOpacity="0.02" />
+                        </RadialGradient>
+
+                        {/* --- TL BORDER GLOW (Golden Ratio 61.8%) --- */}
+                        <RadialGradient id="tlGlow" cx="0%" cy="0%" rx="61.8%" ry="38.2%">
+                            <Stop offset="0" stopColor="#FFFFFF" stopOpacity="1.0" />
+                            <Stop offset="0.08" stopColor="#FFFFFF" stopOpacity="0.8" />
+                            <Stop offset="0.25" stopColor="#FFFFFF" stopOpacity="0.35" />
+                            <Stop offset="0.618" stopColor="#FFFFFF" stopOpacity="0.1" />
+                            <Stop offset="1" stopColor="#FFFFFF" stopOpacity="0.0" />
+                        </RadialGradient>
+
+                        {/* --- BR BORDER GLOW (Golden Ratio 61.8%) --- */}
+                        <RadialGradient id="brGlow" cx="100%" cy="100%" rx="61.8%" ry="38.2%">
+                            <Stop offset="0" stopColor="#FFFFFF" stopOpacity="0.8" />
+                            <Stop offset="0.1" stopColor="#FFFFFF" stopOpacity="0.6" />
+                            <Stop offset="0.25" stopColor="#FFFFFF" stopOpacity="0.2" />
+                            <Stop offset="0.618" stopColor="#FFFFFF" stopOpacity="0.05" />
+                            <Stop offset="1" stopColor="#FFFFFF" stopOpacity="0.0" />
+                        </RadialGradient>
+                    </Defs>
+
+                    {/* Ambient body fill */}
+                    <Rect x="0" y="0" width={dimensions.width} height={dimensions.height} fill="url(#glassBodyTL)" rx={effectiveRadius} />
+                    <Rect x="0" y="0" width={dimensions.width} height={dimensions.height} fill="url(#glassBodyBR)" rx={effectiveRadius} />
+
+                    {/* --- BORDER GLOW (Dynamic 10-step Deep Inward Glow) --- */}
+                    {glowSteps.map((step, idx) => {
+                        const sw = Math.max(1, dimensions.height * step.c);
+                        return (
+                            <React.Fragment key={idx}>
+                                <Rect x="0.5" y="0.5" width={Math.max(0, dimensions.width - 1)} height={Math.max(0, dimensions.height - 1)} fill="none" stroke="url(#tlGlow)" strokeWidth={sw} opacity={step.o} rx={Math.max(0, effectiveRadius - 0.5)} />
+                                <Rect x="0.5" y="0.5" width={Math.max(0, dimensions.width - 1)} height={Math.max(0, dimensions.height - 1)} fill="none" stroke="url(#brGlow)" strokeWidth={sw} opacity={step.o} rx={Math.max(0, effectiveRadius - 0.5)} />
+                            </React.Fragment>
+                        );
+                    })}
+                </Svg>
+            )}
+
+            <View style={[styles.content, fillContainer && styles.fillContainer, contentContainerStyle]} collapsable={false}>
+                {children}
+            </View>
+        </>
+    );
+
     const innerContent = (
         <View style={[
             styles.glassWrapper, 
             fillContainer && styles.fillContainer,
             { borderRadius },
-            disabled && styles.disabledGlass
+            disabled && styles.disabledGlass,
+            disableBlur && { backgroundColor: 'rgba(255, 255, 255, 0.05)' }
         ]}>
-                {/* @ts-ignore */}
+            {disableBlur ? blurContent : (
+                /* @ts-ignore */
                 <BlurView
                     blurType="light"
                     blurAmount={12}
@@ -101,59 +162,9 @@ const BackgroundLiquidGlass: React.FC<BackgroundLiquidGlassProps> = ({
                     reducedTransparencyFallbackColor="transparent"
                     style={fillContainer ? styles.fillContainer : undefined}
                 >
-                    {hasDimensions && (
-                        <Svg width={dimensions.width} height={dimensions.height} style={StyleSheet.absoluteFill}>
-                            <Defs>
-                                {/* Inner ambient glass body */}
-                                <RadialGradient id="glassBodyTL" cx="0%" cy="0%" rx="100%" ry="100%">
-                                    <Stop offset="0" stopColor="#FFFFFF" stopOpacity="0.25" />
-                                    <Stop offset="1" stopColor="#FFFFFF" stopOpacity="0.05" />
-                                </RadialGradient>
-                                <RadialGradient id="glassBodyBR" cx="100%" cy="100%" rx="100%" ry="100%">
-                                    <Stop offset="0" stopColor="#FFFFFF" stopOpacity="0.15" />
-                                    <Stop offset="1" stopColor="#FFFFFF" stopOpacity="0.02" />
-                                </RadialGradient>
-
-                                {/* --- TL BORDER GLOW (Golden Ratio 61.8%) --- */}
-                                <RadialGradient id="tlGlow" cx="0%" cy="0%" rx="61.8%" ry="38.2%">
-                                    <Stop offset="0" stopColor="#FFFFFF" stopOpacity="1.0" />
-                                    <Stop offset="0.08" stopColor="#FFFFFF" stopOpacity="0.8" />
-                                    <Stop offset="0.25" stopColor="#FFFFFF" stopOpacity="0.35" />
-                                    <Stop offset="0.618" stopColor="#FFFFFF" stopOpacity="0.1" />
-                                    <Stop offset="1" stopColor="#FFFFFF" stopOpacity="0.0" />
-                                </RadialGradient>
-
-                                {/* --- BR BORDER GLOW (Golden Ratio 61.8%) --- */}
-                                <RadialGradient id="brGlow" cx="100%" cy="100%" rx="61.8%" ry="38.2%">
-                                    <Stop offset="0" stopColor="#FFFFFF" stopOpacity="0.8" />
-                                    <Stop offset="0.1" stopColor="#FFFFFF" stopOpacity="0.6" />
-                                    <Stop offset="0.25" stopColor="#FFFFFF" stopOpacity="0.2" />
-                                    <Stop offset="0.618" stopColor="#FFFFFF" stopOpacity="0.05" />
-                                    <Stop offset="1" stopColor="#FFFFFF" stopOpacity="0.0" />
-                                </RadialGradient>
-                            </Defs>
-
-                            {/* Ambient body fill */}
-                            <Rect x="0" y="0" width={dimensions.width} height={dimensions.height} fill="url(#glassBodyTL)" rx={effectiveRadius} />
-                            <Rect x="0" y="0" width={dimensions.width} height={dimensions.height} fill="url(#glassBodyBR)" rx={effectiveRadius} />
-
-                            {/* --- BORDER GLOW (Dynamic 10-step Deep Inward Glow) --- */}
-                            {glowSteps.map((step, idx) => {
-                                const sw = Math.max(1, dimensions.height * step.c);
-                                return (
-                                    <React.Fragment key={idx}>
-                                        <Rect x="0.5" y="0.5" width={Math.max(0, dimensions.width - 1)} height={Math.max(0, dimensions.height - 1)} fill="none" stroke="url(#tlGlow)" strokeWidth={sw} opacity={step.o} rx={Math.max(0, effectiveRadius - 0.5)} />
-                                        <Rect x="0.5" y="0.5" width={Math.max(0, dimensions.width - 1)} height={Math.max(0, dimensions.height - 1)} fill="none" stroke="url(#brGlow)" strokeWidth={sw} opacity={step.o} rx={Math.max(0, effectiveRadius - 0.5)} />
-                                    </React.Fragment>
-                                );
-                            })}
-                        </Svg>
-                    )}
-
-                    <View style={[styles.content, fillContainer && styles.fillContainer, contentContainerStyle]} collapsable={false}>
-                        {children}
-                    </View>
+                    {blurContent}
                 </BlurView>
+            )}
         </View>
     );
 

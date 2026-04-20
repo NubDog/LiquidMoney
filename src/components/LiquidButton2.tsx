@@ -8,6 +8,7 @@ interface LiquidButton2Props {
     icon?: React.ReactNode;
     style?: StyleProp<ViewStyle>;
     disabled?: boolean;
+    disableBlur?: boolean;
 }
 
 const LiquidButton2: React.FC<LiquidButton2Props> = ({
@@ -16,11 +17,13 @@ const LiquidButton2: React.FC<LiquidButton2Props> = ({
     icon,
     style,
     disabled = false,
+    disableBlur = false,
 }) => {
     return (
         <BackgroundLiquidGlass
             onPress={onPress}
             disabled={disabled}
+            disableBlur={disableBlur}
             style={style}
             borderRadius={9999}
             contentContainerStyle={styles.contentContainer}
