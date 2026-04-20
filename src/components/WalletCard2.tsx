@@ -47,6 +47,7 @@ const WalletCard2: React.FC<WalletCard2Props> = ({
                 onLongPress={onLongPress}
                 disabled={!onPress && !onLongPress}
                 borderRadius={cardRadius}
+                fillContainer={true}
                 style={styles.container}
                 contentContainerStyle={styles.content}
             >

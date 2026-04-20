@@ -26,6 +26,7 @@ interface BackgroundLiquidGlassProps {
     contentContainerStyle?: StyleProp<ViewStyle>;
     disabled?: boolean;
     borderRadius?: number;
+    fillContainer?: boolean;
     onPress?: () => void;
     onLongPress?: () => void;
 }
@@ -43,6 +44,7 @@ const BackgroundLiquidGlass: React.FC<BackgroundLiquidGlassProps> = ({
     contentContainerStyle,
     disabled = false,
     borderRadius = Radii.xl,
+    fillContainer = false,
     onPress,
     onLongPress,
 }) => {
@@ -69,13 +71,25 @@ const BackgroundLiquidGlass: React.FC<BackgroundLiquidGlassProps> = ({
     // Tính toán border radius thực tế cho SVG (chặn việc rx quá lớn gây lỗi ellipse)
     const effectiveRadius = hasDimensions ? Math.min(borderRadius, dimensions.width / 2, dimensions.height / 2) : borderRadius;
 
-    // Golden Ratio Optics (tỉ lệ thuận theo chiều cao để tính toán độ bung sáng)
-    const bloomThickness = hasDimensions ? Math.max(3, dimensions.height * 0.08) : 3;
-    const coreThickness = hasDimensions ? Math.max(1, dimensions.height * 0.02) : 1;
+    const glowSteps = hasDimensions 
+        ? [
+            { c: 0.19,  o: "0.02" },
+            { c: 0.15,  o: "0.02" },
+            { c: 0.12,  o: "0.03" },
+            { c: 0.095, o: "0.04" },
+            { c: 0.07,  o: "0.06" },
+            { c: 0.05,  o: "0.08" },
+            { c: 0.038, o: "0.12" },
+            { c: 0.024, o: "0.18" },
+            { c: 0.014, o: "0.25" },
+            { c: 0.005, o: "0.80" },
+        ]
+        : [];
 
     const innerContent = (
         <View style={[
             styles.glassWrapper, 
+            fillContainer && styles.fillContainer,
             { borderRadius },
             disabled && styles.disabledGlass
         ]}>
@@ -85,6 +99,7 @@ const BackgroundLiquidGlass: React.FC<BackgroundLiquidGlassProps> = ({
                     blurAmount={12}
                     overlayColor="transparent"
                     reducedTransparencyFallbackColor="transparent"
+                    style={fillContainer ? styles.fillContainer : undefined}
                 >
                     {hasDimensions && (
                         <Svg width={dimensions.width} height={dimensions.height} style={StyleSheet.absoluteFill}>
@@ -122,17 +137,20 @@ const BackgroundLiquidGlass: React.FC<BackgroundLiquidGlassProps> = ({
                             <Rect x="0" y="0" width={dimensions.width} height={dimensions.height} fill="url(#glassBodyTL)" rx={effectiveRadius} />
                             <Rect x="0" y="0" width={dimensions.width} height={dimensions.height} fill="url(#glassBodyBR)" rx={effectiveRadius} />
 
-                            {/* --- TOP LEFT HIGHLIGHT --- */}
-                            <Rect x="0.5" y="0.5" width={Math.max(0, dimensions.width - 1)} height={Math.max(0, dimensions.height - 1)} fill="none" stroke="url(#tlGlow)" strokeWidth={bloomThickness} opacity="0.35" rx={Math.max(0, effectiveRadius - 0.5)} />
-                            <Rect x="0.5" y="0.5" width={Math.max(0, dimensions.width - 1)} height={Math.max(0, dimensions.height - 1)} fill="none" stroke="url(#tlGlow)" strokeWidth={coreThickness} opacity="1.0" rx={Math.max(0, effectiveRadius - 0.5)} />
-
-                            {/* --- BOTTOM RIGHT HIGHLIGHT --- */}
-                            <Rect x="0.5" y="0.5" width={Math.max(0, dimensions.width - 1)} height={Math.max(0, dimensions.height - 1)} fill="none" stroke="url(#brGlow)" strokeWidth={bloomThickness} opacity="0.35" rx={Math.max(0, effectiveRadius - 0.5)} />
-                            <Rect x="0.5" y="0.5" width={Math.max(0, dimensions.width - 1)} height={Math.max(0, dimensions.height - 1)} fill="none" stroke="url(#brGlow)" strokeWidth={coreThickness} opacity="1.0" rx={Math.max(0, effectiveRadius - 0.5)} />
+                            {/* --- BORDER GLOW (Dynamic 10-step Deep Inward Glow) --- */}
+                            {glowSteps.map((step, idx) => {
+                                const sw = Math.max(1, dimensions.height * step.c);
+                                return (
+                                    <React.Fragment key={idx}>
+                                        <Rect x="0.5" y="0.5" width={Math.max(0, dimensions.width - 1)} height={Math.max(0, dimensions.height - 1)} fill="none" stroke="url(#tlGlow)" strokeWidth={sw} opacity={step.o} rx={Math.max(0, effectiveRadius - 0.5)} />
+                                        <Rect x="0.5" y="0.5" width={Math.max(0, dimensions.width - 1)} height={Math.max(0, dimensions.height - 1)} fill="none" stroke="url(#brGlow)" strokeWidth={sw} opacity={step.o} rx={Math.max(0, effectiveRadius - 0.5)} />
+                                    </React.Fragment>
+                                );
+                            })}
                         </Svg>
                     )}
 
-                    <View style={[styles.content, contentContainerStyle]} collapsable={false}>
+                    <View style={[styles.content, fillContainer && styles.fillContainer, contentContainerStyle]} collapsable={false}>
                         {children}
                     </View>
                 </BlurView>
@@ -180,6 +198,9 @@ const styles = StyleSheet.create({
     container: {
         width: '100%',
         justifyContent: 'center',
+    },
+    fillContainer: {
+        height: '100%',
     },
     disabled: {
         opacity: 0.5,
