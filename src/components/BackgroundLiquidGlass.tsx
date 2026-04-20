@@ -27,6 +27,7 @@ interface BackgroundLiquidGlassProps {
     disabled?: boolean;
     borderRadius?: number;
     onPress?: () => void;
+    onLongPress?: () => void;
 }
 
 /**
@@ -43,17 +44,18 @@ const BackgroundLiquidGlass: React.FC<BackgroundLiquidGlassProps> = ({
     disabled = false,
     borderRadius = Radii.xl,
     onPress,
+    onLongPress,
 }) => {
     const scale = useRef(new Animated.Value(1)).current;
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
     const handlePressIn = () => {
-        if (!onPress) return;
+        if (!onPress && !onLongPress) return;
         Animated.spring(scale, { ...SPRING_CONFIG, toValue: 0.94 }).start();
     };
 
     const handlePressOut = () => {
-        if (!onPress) return;
+        if (!onPress && !onLongPress) return;
         Animated.spring(scale, { ...SPRING_CONFIG, toValue: 1 }).start();
     };
 
@@ -137,11 +139,12 @@ const BackgroundLiquidGlass: React.FC<BackgroundLiquidGlassProps> = ({
         </View>
     );
 
-    if (onPress) {
+    if (onPress || onLongPress) {
         return (
             <AnimatedPressable
                 disabled={disabled}
                 onPress={onPress}
+                onLongPress={onLongPress}
                 onPressIn={handlePressIn}
                 onPressOut={handlePressOut}
                 onLayout={onLayout}

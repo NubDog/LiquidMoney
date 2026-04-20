@@ -5,14 +5,12 @@ import {
     View,
     Text,
     LayoutChangeEvent,
-    Platform,
     StyleProp,
     ViewStyle,
     TextInputProps
 } from 'react-native';
-import { BlurView } from '@react-native-community/blur';
-import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
-import { Colors, FontSizes, Spacing } from '../common/theme';
+import { FontSizes, Spacing } from '../common/theme';
+import BackgroundLiquidGlass from './BackgroundLiquidGlass';
 
 interface AmountInput2Props extends Omit<TextInputProps, 'style'> {
     label?: string;
@@ -35,12 +33,7 @@ const AmountInput2: React.FC<AmountInput2Props> = ({
     };
 
     const hasDimensions = dimensions.width > 0 && dimensions.height > 0;
-    const pillRadius = hasDimensions ? dimensions.height / 2 : 100;
     
-    // Golden ratio math from LiquidButton2
-    const bloomThickness = hasDimensions ? Math.max(3, dimensions.height * 0.08) : 3;
-    const coreThickness = hasDimensions ? Math.max(1, dimensions.height * 0.02) : 1;
-
     // Tự động tính toán font size theo height (Golden Ratio xấp xỉ)
     // Capped to max 36px font for aesthetic balance
     const dynamicFontSize = hasDimensions ? Math.min(dimensions.height * 0.45, 36) : FontSizes.xl;
@@ -70,75 +63,34 @@ const AmountInput2: React.FC<AmountInput2Props> = ({
                 style={[styles.container, style]} 
                 onLayout={onLayout}
             >
-                <View style={styles.glassWrapper}>
-                    {/* @ts-ignore */}
-                    <BlurView
-                        blurType="light"
-                        blurAmount={isFocused ? 12 : 8}
-                        overlayColor="transparent"
-                        reducedTransparencyFallbackColor="transparent"
-                        style={StyleSheet.absoluteFill}
-                    >
-                        {hasDimensions && (
-                            <Svg width={dimensions.width} height={dimensions.height} style={StyleSheet.absoluteFill}>
-                                <Defs>
-                                    <RadialGradient id="glassBodyTL" cx="0%" cy="0%" rx="100%" ry="100%">
-                                        <Stop offset="0" stopColor="#FFFFFF" stopOpacity={isFocused ? "0.2" : "0.15"} />
-                                        <Stop offset="1" stopColor="#FFFFFF" stopOpacity="0.0" />
-                                    </RadialGradient>
-                                    <RadialGradient id="glassBodyBR" cx="100%" cy="100%" rx="100%" ry="100%">
-                                        <Stop offset="0" stopColor="#FFFFFF" stopOpacity="0.08" />
-                                        <Stop offset="1" stopColor="#FFFFFF" stopOpacity="0.0" />
-                                    </RadialGradient>
-
-                                    <RadialGradient id="tlGlow" cx="0%" cy="0%" rx="61.8%" ry="38.2%">
-                                        <Stop offset="0" stopColor="#FFFFFF" stopOpacity="1.0" />
-                                        <Stop offset="0.08" stopColor="#FFFFFF" stopOpacity="0.8" />
-                                        <Stop offset="0.25" stopColor="#FFFFFF" stopOpacity="0.35" />
-                                        <Stop offset="0.618" stopColor="#FFFFFF" stopOpacity="0.1" />
-                                        <Stop offset="1" stopColor="#FFFFFF" stopOpacity="0.0" />
-                                    </RadialGradient>
-
-                                    <RadialGradient id="brGlow" cx="100%" cy="100%" rx="61.8%" ry="38.2%">
-                                        <Stop offset="0" stopColor="#FFFFFF" stopOpacity="0.8" />
-                                        <Stop offset="0.1" stopColor="#FFFFFF" stopOpacity="0.6" />
-                                        <Stop offset="0.25" stopColor="#FFFFFF" stopOpacity="0.2" />
-                                        <Stop offset="0.618" stopColor="#FFFFFF" stopOpacity="0.05" />
-                                        <Stop offset="1" stopColor="#FFFFFF" stopOpacity="0.0" />
-                                    </RadialGradient>
-                                </Defs>
-
-                                <Rect x="0" y="0" width={dimensions.width} height={dimensions.height} fill="url(#glassBodyTL)" rx={pillRadius} />
-                                <Rect x="0" y="0" width={dimensions.width} height={dimensions.height} fill="url(#glassBodyBR)" rx={pillRadius} />
-
-                                <Rect x="0.5" y="0.5" width={Math.max(0, dimensions.width - 1)} height={Math.max(0, dimensions.height - 1)} fill="none" stroke="url(#tlGlow)" strokeWidth={bloomThickness} opacity="0.35" rx={Math.max(0, pillRadius - 0.5)} />
-                                <Rect x="0.5" y="0.5" width={Math.max(0, dimensions.width - 1)} height={Math.max(0, dimensions.height - 1)} fill="none" stroke="url(#tlGlow)" strokeWidth={coreThickness} opacity="1.0" rx={Math.max(0, pillRadius - 0.5)} />
-
-                                <Rect x="0.5" y="0.5" width={Math.max(0, dimensions.width - 1)} height={Math.max(0, dimensions.height - 1)} fill="none" stroke="url(#brGlow)" strokeWidth={bloomThickness} opacity="0.35" rx={Math.max(0, pillRadius - 0.5)} />
-                                <Rect x="0.5" y="0.5" width={Math.max(0, dimensions.width - 1)} height={Math.max(0, dimensions.height - 1)} fill="none" stroke="url(#brGlow)" strokeWidth={coreThickness} opacity="1.0" rx={Math.max(0, pillRadius - 0.5)} />
-                            </Svg>
-                        )}
-                        <TextInput
-                            style={[styles.input, { fontSize: dynamicFontSize }]}
-                            placeholder="0"
-                            placeholderTextColor="rgba(255,255,255,0.2)"
-                            keyboardType="numeric"
-                            cursorColor="#FFFFFF"
-                            selectionColor="rgba(255, 255, 255, 0.3)"
-                            value={displayValue}
-                            onChangeText={handleChangeText}
-                            onFocus={(e) => {
-                                setIsFocused(true);
-                                props.onFocus?.(e);
-                            }}
-                            onBlur={(e) => {
-                                setIsFocused(false);
-                                props.onBlur?.(e);
-                            }}
-                            {...props}
-                        />
-                    </BlurView>
-                </View>
+                <BackgroundLiquidGlass
+                    borderRadius={9999}
+                    style={StyleSheet.absoluteFill}
+                    contentContainerStyle={[
+                        styles.glassContent,
+                        { height: hasDimensions ? dimensions.height : 56, minHeight: hasDimensions ? dimensions.height : 56 }
+                    ]}
+                >
+                    <TextInput
+                        style={[styles.input, { fontSize: dynamicFontSize }]}
+                        placeholder="0"
+                        placeholderTextColor="rgba(255,255,255,0.2)"
+                        keyboardType="numeric"
+                        cursorColor="#FFFFFF"
+                        selectionColor="rgba(255, 255, 255, 0.3)"
+                        value={displayValue}
+                        onChangeText={handleChangeText}
+                        onFocus={(e) => {
+                            setIsFocused(true);
+                            props.onFocus?.(e);
+                        }}
+                        onBlur={(e) => {
+                            setIsFocused(false);
+                            props.onBlur?.(e);
+                        }}
+                        {...props}
+                    />
+                </BackgroundLiquidGlass>
             </View>
         </View>
     );
@@ -163,11 +115,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         position: 'relative',
     },
-    glassWrapper: {
-        ...StyleSheet.absoluteFillObject,
-        borderRadius: 9999,
-        overflow: 'hidden',
-        backgroundColor: 'transparent',
+    glassContent: {
+        width: '100%',
     },
     input: {
         width: '100%',
@@ -175,8 +124,6 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontWeight: '700',
         textAlign: 'center',
-        alignItems: 'center',
-        justifyContent: 'center',
         paddingHorizontal: Spacing.md,
     },
 });
