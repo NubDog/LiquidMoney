@@ -6,7 +6,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { Spacing, Radii } from '../common/theme';
-import LiquidCard from './LiquidCard';
+import BackgroundLiquidGlass from './BackgroundLiquidGlass';
 
 export const WalletDetailSkeleton = () => {
     const pulseAnim = useRef(new Animated.Value(0.3)).current;
@@ -31,20 +31,20 @@ export const WalletDetailSkeleton = () => {
     return (
         <View style={styles.container}>
             {/* Wallet Info Skel */}
-            <LiquidCard style={styles.headerCard} intensity="light" borderRadius={Radii.xl}>
+            <BackgroundLiquidGlass style={styles.headerCard} contentContainerStyle={styles.headerCardContent} borderRadius={Radii.xl}>
                 <Animated.View style={[styles.shimmerBox, { width: 120, height: 20, opacity: pulseAnim }]} />
                 <Animated.View style={[styles.shimmerBox, { width: 200, height: 40, marginTop: 12, opacity: pulseAnim }]} />
-            </LiquidCard>
+            </BackgroundLiquidGlass>
 
             {/* Title Skel */}
-            <View style={{ paddingHorizontal: Spacing.xl, marginTop: Spacing.xxl }}>
+            <View style={{ marginTop: Spacing.xxl }}>
                 <Animated.View style={[styles.shimmerBox, { width: 140, height: 24, opacity: pulseAnim }]} />
             </View>
 
             {/* List Skel */}
             <View style={styles.list}>
                 {[1, 2, 3, 4, 5].map((key) => (
-                    <LiquidCard key={key} style={styles.rowCard} intensity="light" borderRadius={Radii.lg}>
+                    <BackgroundLiquidGlass key={key} style={styles.rowCard} contentContainerStyle={styles.rowCardContent} borderRadius={Radii.lg}>
                         <View style={styles.rowContent}>
                             <Animated.View style={[styles.avatarSkel, { opacity: pulseAnim }]} />
                             <View style={styles.textWrap}>
@@ -53,7 +53,7 @@ export const WalletDetailSkeleton = () => {
                             </View>
                             <Animated.View style={[styles.shimmerBox, { width: 60, height: 20, opacity: pulseAnim }]} />
                         </View>
-                    </LiquidCard>
+                    </BackgroundLiquidGlass>
                 ))}
             </View>
         </View>
@@ -64,9 +64,11 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         paddingTop: Spacing.xl,
+        paddingHorizontal: Spacing.xl,
     },
     headerCard: {
-        marginHorizontal: Spacing.xl,
+    },
+    headerCardContent: {
         padding: Spacing.xl,
         alignItems: 'center',
     },
@@ -78,8 +80,9 @@ const styles = StyleSheet.create({
         marginTop: Spacing.md,
     },
     rowCard: {
-        marginHorizontal: Spacing.xl,
         marginBottom: Spacing.sm,
+    },
+    rowCardContent: {
         padding: Spacing.md,
     },
     rowContent: {

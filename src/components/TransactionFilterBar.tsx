@@ -7,7 +7,7 @@ import React from 'react';
 import { ScrollView, StyleSheet, Text, Pressable, View } from 'react-native';
 import { Calendar } from 'lucide-react-native';
 import { FontSizes, Spacing, Radii } from '../common/theme';
-import LiquidCard from './LiquidCard';
+import BackgroundLiquidGlass from './BackgroundLiquidGlass';
 
 export interface FilterOption {
     id: string;
@@ -36,34 +36,32 @@ const TransactionFilterBar: React.FC<TransactionFilterBarProps> = ({
                     const isActive = activeFilterId === option.id;
 
                     return (
-                        <Pressable
+                        <BackgroundLiquidGlass
                             key={option.id}
                             onPress={() => onSelectFilter(option.id)}
-                            style={styles.pillWrapper}>
-                                <LiquidCard
+                            style={[
+                                styles.pillWrapper,
+                                isActive && styles.pillActive,
+                            ]}
+                            contentContainerStyle={styles.pill}
+                            borderRadius={Radii.pill}
+                        >
+                            <View style={styles.pillContent}>
+                                {option.icon ? (
+                                    <View style={[styles.iconContainer, isActive && styles.iconActive]}>
+                                        {option.icon}
+                                    </View>
+                                ) : null}
+                                <Text
                                     style={[
-                                        styles.pill,
-                                        isActive && styles.pillActive,
-                                    ]}
-                                    intensity={isActive ? "heavy" : "light"}
-                                    borderRadius={Radii.pill}
-                                >
-                                <View style={styles.pillContent}>
-                                    {option.icon ? (
-                                        <View style={[styles.iconContainer, isActive && styles.iconActive]}>
-                                            {option.icon}
-                                        </View>
-                                    ) : null}
-                                    <Text
-                                        style={[
-                                            styles.pillText,
-                                            isActive && styles.activePillText,
-                                        ]}>
-                                        {option.label}
-                                    </Text>
-                                </View>
-                            </LiquidCard>
-                        </Pressable>
+                                        styles.pillText,
+                                        isActive && styles.activePillText,
+                                        isActive && styles.activeGlowText,
+                                    ]}>
+                                    {option.label}
+                                </Text>
+                            </View>
+                        </BackgroundLiquidGlass>
                     );
                 })}
             </ScrollView>
@@ -80,9 +78,10 @@ const styles = StyleSheet.create({
         gap: Spacing.sm,
     },
     pillWrapper: {
-        // Shadow wrapper handled by LiquidCard
+        width: 'auto' as any,
     },
     pill: {
+        width: 'auto' as any,
         paddingHorizontal: Spacing.md,
         paddingVertical: 8,
     },
@@ -107,9 +106,11 @@ const styles = StyleSheet.create({
     },
     activePillText: {
         color: '#FFFFFF',
-        textShadowColor: 'rgba(0,0,0,0.5)',
-        textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 2,
+    },
+    activeGlowText: {
+        textShadowColor: 'rgba(255,255,255,0.3)',
+        textShadowOffset: { width: 0, height: 0 },
+        textShadowRadius: 6,
     },
 });
 

@@ -27,6 +27,22 @@ import BackgroundLiquidGlass from '../components/BackgroundLiquidGlass';
 import TransactionRow2 from '../components/TransactionRow2';
 import WalletCard2 from '../components/WalletCard2';
 
+// --- newly imported components ---
+import AnimatedOverlay from '../components/AnimatedOverlay';
+import BackgroundPickerModal from '../components/BackgroundPickerModal';
+import ConfirmDialog from '../components/ConfirmDialog';
+import ConfirmImportDialog from '../components/ConfirmImportDialog';
+import EditWalletModal from '../components/EditWalletModal';
+import InfoDialog from '../components/InfoDialog';
+import LiquidModal from '../components/LiquidModal';
+import PopupMenu from '../components/PopupMenu';
+import TerminalLogModal from '../components/TerminalLogModal';
+import TransactionDetailOverlay from '../components/TransactionDetailOverlay';
+import TransactionFilterBar from '../components/TransactionFilterBar';
+import TransactionModal from '../components/TransactionModal';
+import { WalletDetailSkeleton } from '../components/WalletDetailSkeleton';
+import WalletModal from '../components/WalletModal';
+
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
 
 interface ComponentLibraryScreenProps {
@@ -41,6 +57,10 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
     const insets = useSafeAreaInsets();
     const [segment, setSegment] = useState<'a' | 'b'>('a');
     const [inputValue, setInputValue] = useState('');
+    
+    // --- Modals State ---
+    const [activeModal, setActiveModal] = useState<string | null>(null);
+    const [filterId, setFilterId] = useState('all');
 
     if (!visible) return null;
 
@@ -66,6 +86,12 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
         created_at: Date.now(),
     };
 
+    const dummyFilterOptions = [
+        { id: 'all', label: 'Tất cả' },
+        { id: 'in', label: 'Thu nhập' },
+        { id: 'out', label: 'Chi tiêu' }
+    ];
+
     return (
         <View style={[StyleSheet.absoluteFill, styles.container]}>
             <LiquidBackground />
@@ -83,7 +109,7 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                 contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
                 showsVerticalScrollIndicator={false}>
 
-                {/* BACKGROUND LIQUID GLASS */}
+                {/* --- EXISTING SECTIONS --- */}
                 <Section title="BackgroundLiquidGlass (VIP Pro Max)">
                     <BackgroundLiquidGlass>
                         <Text style={{ color: '#fff', textAlign: 'center', padding: 16 }}>
@@ -104,21 +130,18 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                     </BackgroundLiquidGlass>
                 </Section>
 
-                {/* APPLE LIQUID GLASS BUTTON */}
                 <Section title="LiquidButton2 (Apple Glass)">
                     <LiquidButton2 title="Main Button" onPress={() => {}} />
                     <View style={{ height: Spacing.md }} />
                     <LiquidButton2 title="Disabled Button" disabled onPress={() => {}} />
                 </Section>
 
-                {/* ICON BUTTON */}
                 <Section title="IconButton">
                     <View style={styles.row}>
                         <IconButton icon={<Plus strokeWidth={1.5} color="#FFF" size={32} />} size={60} onPress={() => { }} />
                     </View>
                 </Section>
 
-                {/* SEGMENTED CONTROL */}
                 <Section title="LiquidSegmentedControl2">
                     <LiquidSegmentedControl2
                         options={[
@@ -130,7 +153,6 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                     />
                 </Section>
 
-                {/* LIQUID INPUT */}
                 <Section title="LiquidInput & AmountInput">
                     <LiquidInput
                         value={inputValue}
@@ -144,7 +166,6 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                     />
                 </Section>
 
-                {/* LIQUID CARD */}
                 <Section title="LiquidCard (Intensities)">
                     <LiquidCard intensity="light" style={styles.cardItem}>
                         <Text style={styles.cardText}>Light Intensity</Text>
@@ -157,7 +178,6 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                     </LiquidCard>
                 </Section>
 
-                {/* WALLET CARD */}
                 <Section title="WalletCard2">
                     <WalletCard2
                         name={dummyWallet.name}
@@ -166,14 +186,11 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                     />
                 </Section>
 
-                {/* TRANSACTION ROW */}
                 <Section title="TransactionRow">
                     <TransactionRow2 item={dummyTransaction} onPress={() => { }} />
                     <TransactionRow2 item={{ ...dummyTransaction, type: 'IN', amount: 1000000, reason: 'Lương' }} onPress={() => { }} />
                 </Section>
 
-
-                {/* EMPTY STATE */}
                 <Section title="EmptyState2">
                     <EmptyState2
                         animation="nodata"
@@ -182,7 +199,121 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                     />
                 </Section>
 
+
+
+                <Section title="TransactionFilterBar">
+                    <TransactionFilterBar 
+                        options={dummyFilterOptions}
+                        activeFilterId={filterId}
+                        onSelectFilter={setFilterId}
+                    />
+                </Section>
+
+                <Section title="WalletDetailSkeleton">
+                    <WalletDetailSkeleton />
+                </Section>
+
+                {/* Modals Triggers */}
+                <Section title="Modals & Dialogs">
+                    <View style={{ gap: Spacing.md }}>
+                        <LiquidButton2 title="Open BackgroundPickerModal" onPress={() => setActiveModal('BackgroundPickerModal')} />
+                        <LiquidButton2 title="Open ConfirmDialog" onPress={() => setActiveModal('ConfirmDialog')} />
+                        <LiquidButton2 title="Open ConfirmImportDialog" onPress={() => setActiveModal('ConfirmImportDialog')} />
+                        <LiquidButton2 title="Open EditWalletModal" onPress={() => setActiveModal('EditWalletModal')} />
+                        <LiquidButton2 title="Open InfoDialog" onPress={() => setActiveModal('InfoDialog')} />
+                        <LiquidButton2 title="Open LiquidModal" onPress={() => setActiveModal('LiquidModal')} />
+                        <LiquidButton2 title="Open PopupMenu" onPress={() => setActiveModal('PopupMenu')} />
+                        <LiquidButton2 title="Open TerminalLogModal" onPress={() => setActiveModal('TerminalLogModal')} />
+                        <LiquidButton2 title="Open TransactionDetailOverlay" onPress={() => setActiveModal('TransactionDetailOverlay')} />
+                        <LiquidButton2 title="Open TransactionModal" onPress={() => setActiveModal('TransactionModal')} />
+                        <LiquidButton2 title="Open WalletModal" onPress={() => setActiveModal('WalletModal')} />
+                    </View>
+                </Section>
+
             </ScrollView>
+
+            {/* --- MODAL DECLARATIONS --- */}
+            
+            <BackgroundPickerModal
+                visible={activeModal === 'BackgroundPickerModal'}
+                onClose={() => setActiveModal(null)}
+            />
+
+            <ConfirmDialog
+                visible={activeModal === 'ConfirmDialog'}
+                title="Xác nhận"
+                message="Bạn có chắc chắn muốn thực hiện hành động này?"
+                onCancel={() => setActiveModal(null)}
+                onConfirm={() => setActiveModal(null)}
+            />
+
+            <ConfirmImportDialog
+                visible={activeModal === 'ConfirmImportDialog'}
+                onCancel={() => setActiveModal(null)}
+                onConfirm={() => setActiveModal(null)}
+            />
+
+            <EditWalletModal
+                visible={activeModal === 'EditWalletModal'}
+                onClose={() => setActiveModal(null)}
+                onSave={(n, b) => setActiveModal(null)}
+                walletName="Ví Cá Nhân"
+                walletBalance={5000000}
+            />
+
+            <InfoDialog
+                visible={activeModal === 'InfoDialog'}
+                onClose={() => setActiveModal(null)}
+                title="Thông báo"
+                message="Dữ liệu đã được lưu thành công."
+                type="success"
+            />
+
+            <LiquidModal
+                visible={activeModal === 'LiquidModal'}
+                onClose={() => setActiveModal(null)}
+            >
+                <View style={{ padding: 20 }}>
+                    <Text style={{ color: '#fff', textAlign: 'center' }}>Nội dung Liquid Modal Tùy Chỉnh</Text>
+                </View>
+            </LiquidModal>
+
+            <PopupMenu
+                visible={activeModal === 'PopupMenu'}
+                onClose={() => setActiveModal(null)}
+                items={[{ id: '1', label: 'Option 1', icon: <Plus size={20} color="#fff" />, onPress: () => setActiveModal(null) }]}
+                anchor={{ x: 100, y: 100 }}
+            />
+
+            <TerminalLogModal
+                visible={activeModal === 'TerminalLogModal'}
+                onClose={() => setActiveModal(null)}
+                logs={['System initializing...', 'Connecting to database...', 'Done.']}
+            />
+
+            <TransactionDetailOverlay
+                visible={activeModal === 'TransactionDetailOverlay'}
+                onClose={() => setActiveModal(null)}
+                transaction={dummyTransaction}
+            />
+
+            <TransactionModal
+                visible={activeModal === 'TransactionModal'}
+                onClose={() => setActiveModal(null)}
+                onSave={() => {}}
+            />
+
+            <WalletModal
+                visible={activeModal === 'WalletModal'}
+                onClose={() => setActiveModal(null)}
+                onSave={() => {}}
+            />
+
+            <AnimatedOverlay 
+                visible={false} 
+                onPress={() => {}}
+            />
+
         </View>
     );
 };
