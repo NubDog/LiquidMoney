@@ -1,5 +1,5 @@
-import React from 'react';
-import { Modal, StyleSheet, View, Text, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Modal, StyleSheet, View, Text, Pressable, KeyboardAvoidingView, Platform, Animated, Easing } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
 import { X } from 'lucide-react-native';
 
@@ -29,24 +29,57 @@ const ConfirmDialog2: React.FC<ConfirmDialog2Props> = ({
     confirmText = 'Xác nhận',
     isDestructive = false,
 }) => {
+    const [isRendered, setIsRendered] = useState(visible);
+    const animValue = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        if (visible) {
+            setIsRendered(true);
+            Animated.timing(animValue, {
+                toValue: 1,
+                duration: 250,
+                easing: Easing.out(Easing.cubic),
+                useNativeDriver: true,
+            }).start();
+        } else {
+            Animated.timing(animValue, {
+                toValue: 0,
+                duration: 200,
+                easing: Easing.in(Easing.cubic),
+                useNativeDriver: true,
+            }).start(() => {
+                setIsRendered(false);
+                animValue.setValue(0); // reset for next open
+            });
+        }
+    }, [visible, animValue]);
+
+    const opacity = animValue;
+    const scale = animValue.interpolate({
+        inputRange: [0, 1],
+        outputRange: [1.15, 1],
+    });
+
+    if (!isRendered && !visible) return null;
+
     return (
         <Modal
-            visible={visible}
+            visible={isRendered}
             transparent
-            animationType="fade"
+            animationType="none"
             onRequestClose={onCancel}>
             <KeyboardAvoidingView 
                 style={styles.container} 
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
                 {/* Backdrop Layer */}
-                <View style={[StyleSheet.absoluteFill, { zIndex: 0, backgroundColor: 'rgba(0, 0, 0, 0.75)' }]} />
+                <Animated.View style={[StyleSheet.absoluteFill, { zIndex: 0, backgroundColor: 'rgba(0, 0, 0, 0.75)', opacity }]} />
 
                 {/* Pressable Backdrop to dismiss the dialog */}
                 <Pressable style={styles.backdropPressable} onPress={onCancel} />
 
                 {/* Main Dialog UI */}
-                <View style={styles.contentWrapper}>
+                <Animated.View style={[styles.contentWrapper, { opacity, transform: [{ scale }] }]}>
                     <BackgroundLiquidGlass borderRadius={Radii.xxl} contentContainerStyle={styles.card}>
                         
                         {/* Header Row */}
@@ -80,7 +113,7 @@ const ConfirmDialog2: React.FC<ConfirmDialog2Props> = ({
                         </View>
 
                     </BackgroundLiquidGlass>
-                </View>
+                </Animated.View>
             </KeyboardAvoidingView>
         </Modal>
     );
