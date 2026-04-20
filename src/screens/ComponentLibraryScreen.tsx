@@ -31,7 +31,7 @@ import WalletCard2 from '../components/WalletCard2';
 import AnimatedOverlay from '../components/AnimatedOverlay';
 import BackgroundPickerModal from '../components/BackgroundPickerModal';
 import ConfirmDialog2 from '../components/ConfirmDialog2';
-import ConfirmImportDialog from '../components/ConfirmImportDialog';
+import ConfirmImportDialog2 from '../components/ConfirmImportDialog2';
 import EditWalletModal from '../components/EditWalletModal';
 import InfoDialog from '../components/InfoDialog';
 import LiquidModal from '../components/LiquidModal';
@@ -218,7 +218,7 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                     <View style={{ gap: Spacing.md }}>
                         <LiquidButton2 title="Open BackgroundPickerModal" onPress={() => setActiveModal('BackgroundPickerModal')} />
                         <LiquidButton2 title="Open ConfirmDialog2" onPress={() => setActiveModal('ConfirmDialog2')} />
-                        <LiquidButton2 title="Open ConfirmImportDialog" onPress={() => setActiveModal('ConfirmImportDialog')} />
+                        <LiquidButton2 title="Open ConfirmImportDialog2" onPress={() => setActiveModal('ConfirmImportDialog2')} />
                         <LiquidButton2 title="Open EditWalletModal" onPress={() => setActiveModal('EditWalletModal')} />
                         <LiquidButton2 title="Open InfoDialog" onPress={() => setActiveModal('InfoDialog')} />
                         <LiquidButton2 title="Open LiquidModal" onPress={() => setActiveModal('LiquidModal')} />
@@ -247,8 +247,8 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                 onConfirm={() => setActiveModal(null)}
             />
 
-            <ConfirmImportDialog
-                visible={activeModal === 'ConfirmImportDialog'}
+            <ConfirmImportDialog2
+                visible={activeModal === 'ConfirmImportDialog2'}
                 onCancel={() => setActiveModal(null)}
                 onConfirm={() => setActiveModal(null)}
             />

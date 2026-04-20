@@ -30,7 +30,7 @@ import {
 import LiquidCard from '../components/LiquidCard';
 import LiquidButton2 from '../components/LiquidButton2';
 import InfoDialog from '../components/InfoDialog';
-import ConfirmImportDialog from '../components/ConfirmImportDialog';
+import ConfirmImportDialog2 from '../components/ConfirmImportDialog2';
 import BackgroundPickerModal from '../components/BackgroundPickerModal';
 import { useStore } from '../store/useStore';
 import { isDatabaseAvailable } from '../database/db';
@@ -356,7 +356,7 @@ const SettingsScreen: React.FC = () => {
                 type={infoDialog.type}
             />
 
-            <ConfirmImportDialog
+            <ConfirmImportDialog2
                 visible={confirmImport}
                 onCancel={() => setConfirmImport(false)}
                 onConfirm={handleImportConfirm}
