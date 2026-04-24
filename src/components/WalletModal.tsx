@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 
 import { Easing } from 'react-native';
+import BackgroundLiquidGlass from './BackgroundLiquidGlass';
 
 interface WalletModalProps {
     visible: boolean;
@@ -107,7 +108,7 @@ const WalletModal: React.FC<WalletModalProps> = ({
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                     style={styles.keyboardView}
                     pointerEvents="box-none">
-                    <Animated.View style={[styles.sheet, { 
+                    <Animated.View style={[styles.contentWrapper, { 
                         opacity: animValue, 
                         transform: [{ 
                             scale: animValue.interpolate({
@@ -116,6 +117,7 @@ const WalletModal: React.FC<WalletModalProps> = ({
                             }) 
                         }] 
                     }]}>
+                        <BackgroundLiquidGlass variant="dense" borderRadius={24} contentContainerStyle={styles.card}>
                         {/* Header */}
                         <View style={styles.header}>
                             <Text style={styles.title}>Thêm Ví Mới</Text>
@@ -158,6 +160,7 @@ const WalletModal: React.FC<WalletModalProps> = ({
                                 </Text>
                             </TouchableOpacity>
                         </View>
+                        </BackgroundLiquidGlass>
                     </Animated.View>
                 </KeyboardAvoidingView>
             </View>
@@ -183,10 +186,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         width: '100%',
     },
-    sheet: {
-        backgroundColor: '#1C1C1E',
-        borderRadius: 24,
-        paddingBottom: 24,
+    contentWrapper: {
         width: '85%',
         maxWidth: 360,
         shadowColor: '#000',
@@ -194,6 +194,9 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 20,
         elevation: 10,
+    },
+    card: {
+        paddingBottom: 24,
     },
     header: {
         flexDirection: 'row',

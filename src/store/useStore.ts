@@ -138,7 +138,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [currentWallet, setCurrentWallet] = useState<Wallet | null>(null);
     const [loading, setLoading] = useState(false);
-    const [isDeveloperMode, setIsDeveloperMode] = useState(false);
+    const [isDeveloperMode, setIsDeveloperMode] = useState(true);
     const [selectedBackgroundId, setSelectedBackgroundIdState] = useState<string | null>(null);
 
     // ─── Khởi tạo Database khi app start ─────────────────────────────────────
