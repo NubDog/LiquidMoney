@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     },
     amountInputContainer: {
         width: '100%',
-        height: 70,
+        height: 56,
     },
     saveBtn: {
         backgroundColor: '#007AFF',
