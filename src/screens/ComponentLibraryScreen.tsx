@@ -127,6 +127,12 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                             Disabled Background Wrapper
                         </Text>
                     </BackgroundLiquidGlass>
+                    <View style={{ height: 16 }} />
+                    <BackgroundLiquidGlass variant="dense">
+                        <Text style={{ color: '#fff', textAlign: 'center', padding: 16, fontWeight: '500' }}>
+                            Dense Background Wrapper
+                        </Text>
+                    </BackgroundLiquidGlass>
                 </Section>
 
                 <Section title="LiquidButton2 (Apple Glass)">

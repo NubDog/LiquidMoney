@@ -30,6 +30,7 @@ interface BackgroundLiquidGlassProps {
     onPress?: () => void;
     onLongPress?: () => void;
     disableBlur?: boolean;
+    variant?: 'default' | 'dense';
 }
 
 /**
@@ -49,9 +50,11 @@ const BackgroundLiquidGlass: React.FC<BackgroundLiquidGlassProps> = ({
     onPress,
     onLongPress,
     disableBlur = false,
+    variant = 'default',
 }) => {
     const scale = useRef(new Animated.Value(1)).current;
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+    const isDense = variant === 'dense';
 
     const handlePressIn = () => {
         if (!onPress && !onLongPress) return;
@@ -95,12 +98,12 @@ const BackgroundLiquidGlass: React.FC<BackgroundLiquidGlassProps> = ({
                     <Defs>
                         {/* Inner ambient glass body */}
                         <RadialGradient id="glassBodyTL" cx="0%" cy="0%" rx="100%" ry="100%">
-                            <Stop offset="0" stopColor="#FFFFFF" stopOpacity="0.25" />
-                            <Stop offset="1" stopColor="#FFFFFF" stopOpacity="0.05" />
+                            <Stop offset="0" stopColor="#FFFFFF" stopOpacity={isDense ? "0.35" : "0.25"} />
+                            <Stop offset="1" stopColor="#FFFFFF" stopOpacity={isDense ? "0.15" : "0.05"} />
                         </RadialGradient>
                         <RadialGradient id="glassBodyBR" cx="100%" cy="100%" rx="100%" ry="100%">
-                            <Stop offset="0" stopColor="#FFFFFF" stopOpacity="0.15" />
-                            <Stop offset="1" stopColor="#FFFFFF" stopOpacity="0.02" />
+                            <Stop offset="0" stopColor="#FFFFFF" stopOpacity={isDense ? "0.25" : "0.15"} />
+                            <Stop offset="1" stopColor="#FFFFFF" stopOpacity={isDense ? "0.05" : "0.02"} />
                         </RadialGradient>
 
                         {/* --- TL BORDER GLOW (Golden Ratio 61.8%) --- */}
@@ -151,13 +154,14 @@ const BackgroundLiquidGlass: React.FC<BackgroundLiquidGlassProps> = ({
             fillContainer && styles.fillContainer,
             { borderRadius },
             disabled && styles.disabledGlass,
-            disableBlur && { backgroundColor: 'rgba(255, 255, 255, 0.05)' }
+            disableBlur && { backgroundColor: 'rgba(255, 255, 255, 0.05)' },
+            isDense && !disableBlur && { backgroundColor: 'rgba(0, 0, 0, 0.15)' }
         ]}>
             {disableBlur ? blurContent : (
                 /* @ts-ignore */
                 <BlurView
-                    blurType="light"
-                    blurAmount={12}
+                    blurType={isDense ? "dark" : "light"}
+                    blurAmount={isDense ? 25 : 12}
                     overlayColor="transparent"
                     reducedTransparencyFallbackColor="transparent"
                     style={fillContainer ? styles.fillContainer : undefined}
