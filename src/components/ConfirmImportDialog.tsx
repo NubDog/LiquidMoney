@@ -15,7 +15,7 @@ import {
 import { AlertTriangle } from 'lucide-react-native';
 import { animateDialogOpen, animateDialogClose } from '../common/animations';
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
-import LiquidCard from './LiquidCard';
+import BackgroundLiquidGlass from './BackgroundLiquidGlass';
 import LiquidButton2 from './LiquidButton2';
 
 interface ConfirmImportDialogProps {
@@ -65,9 +65,8 @@ const ConfirmImportDialog: React.FC<ConfirmImportDialogProps> = ({
                     onPress={onCancel}
                 />
                 <Animated.View style={[styles.cardContainer, { transform: [{ scale: cardScale }] }]}>
-                    <LiquidCard 
+                    <BackgroundLiquidGlass 
                         style={styles.card}
-                        intensity="light"
                         
                         borderRadius={Radii.xxl}
                     >
@@ -94,7 +93,7 @@ const ConfirmImportDialog: React.FC<ConfirmImportDialogProps> = ({
                                 />
                             </View>
                         </View>
-                    </LiquidCard>
+                    </BackgroundLiquidGlass>
                 </Animated.View>
             </View>
         </Modal>

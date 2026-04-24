@@ -17,7 +17,7 @@ import { X, Copy } from 'lucide-react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { animateSheetIn, animateSheetOut } from '../common/animations';
 import { Colors, FontSizes, Shadows, Spacing } from '../common/theme';
-import LiquidCard from './LiquidCard';
+import BackgroundLiquidGlass from './BackgroundLiquidGlass';
 
 interface TerminalLogModalProps {
     visible: boolean;
@@ -64,9 +64,8 @@ const TerminalLogModal: React.FC<TerminalLogModalProps> = ({ visible, onClose, l
                         styles.modalContainer,
                         { transform: [{ translateY }] },
                     ]}>
-                    <LiquidCard 
+                    <BackgroundLiquidGlass 
                         style={styles.card}
-                        intensity="light"
                         
                         borderRadius={20}
                     >
@@ -100,7 +99,7 @@ const TerminalLogModal: React.FC<TerminalLogModalProps> = ({ visible, onClose, l
                                 ))
                             )}
                         </ScrollView>
-                    </LiquidCard>
+                    </BackgroundLiquidGlass>
                 </Animated.View>
             </View>
         </Modal>

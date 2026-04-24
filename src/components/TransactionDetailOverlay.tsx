@@ -17,7 +17,7 @@ import { X } from 'lucide-react-native';
 import { format } from 'date-fns';
 import { animateSheetIn, animateSheetOut } from '../common/animations';
 import AnimatedOverlay from './AnimatedOverlay';
-import LiquidCard from './LiquidCard';
+import BackgroundLiquidGlass from './BackgroundLiquidGlass';
 
 import { Colors, FontSizes, Shadows, Spacing, Radii } from '../common/theme';
 import type { Transaction } from '../common/types';
@@ -73,11 +73,9 @@ const TransactionDetailOverlay: React.FC<TransactionDetailOverlayProps> = ({
                 <AnimatedOverlay visible={!!visible} onPress={handleClose} />
                 
                 <Animated.View style={[styles.sheetContainer, { transform: [{ translateY }] }]}>
-                    <LiquidCard 
+                    <BackgroundLiquidGlass 
                         style={styles.sheet}
-                        intensity="light"
                         borderRadius={Radii.xxl}
-                        extendBottom={true}
                     >
                         <View style={styles.handleBar} />
                         
@@ -124,7 +122,7 @@ const TransactionDetailOverlay: React.FC<TransactionDetailOverlayProps> = ({
                                 </Text>
                             </View>
                         </ScrollView>
-                    </LiquidCard>
+                    </BackgroundLiquidGlass>
                 </Animated.View>
             </View>
         </Modal>

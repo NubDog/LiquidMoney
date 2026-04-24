@@ -19,7 +19,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Code, Database, Bug, Play, TerminalSquare } from 'lucide-react-native';
-import LiquidCard from '../components/LiquidCard';
+import BackgroundLiquidGlass from '../components/BackgroundLiquidGlass';
 import TerminalLogModal from '../components/TerminalLogModal';
 import { useStore } from '../store/useStore';
 import { generateRandomTransactions } from '../database/queries';
@@ -118,9 +118,8 @@ const DeveloperScreen: React.FC = () => {
                 </View>
 
                 {/* Mock Data Generator Card */}
-                <LiquidCard
+                <BackgroundLiquidGlass
                     style={styles.card}
-                    intensity="light"
 
                     borderRadius={Radii.xl}>
                     <View style={styles.cardInner}>
@@ -164,12 +163,11 @@ const DeveloperScreen: React.FC = () => {
                             )}
                         </Pressable>
                     </View>
-                </LiquidCard>
+                </BackgroundLiquidGlass>
 
                 {/* Component Library Card */}
-                <LiquidCard
+                <BackgroundLiquidGlass
                     style={styles.card}
-                    intensity="light"
                     borderRadius={Radii.xl}>
                     <Pressable
                         style={styles.cardInner}
@@ -184,12 +182,11 @@ const DeveloperScreen: React.FC = () => {
                             </View>
                         </View>
                     </Pressable>
-                </LiquidCard>
+                </BackgroundLiquidGlass>
 
                 {/* Placeholder Card */}
-                <LiquidCard
+                <BackgroundLiquidGlass
                     style={styles.card}
-                    intensity="light"
 
                     borderRadius={Radii.xl}>
                     <View style={styles.cardInner}>
@@ -207,7 +204,7 @@ const DeveloperScreen: React.FC = () => {
                             <Text style={styles.comingSoon}>Coming soon</Text>
                         </View>
                     </View>
-                </LiquidCard>
+                </BackgroundLiquidGlass>
 
                 <Text style={styles.infoText}>
                     Đây là màn hình dành cho nhà phát triển.{'\n'}

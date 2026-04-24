@@ -31,7 +31,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Rect, Stop, Text as SvgText } from 'react-native-svg';
 import { BlurView } from '@react-native-community/blur';
-import LiquidCard from '../components/LiquidCard';
+import BackgroundLiquidGlass from '../components/BackgroundLiquidGlass';
 import LiquidButton2 from '../components/LiquidButton2';
 import LiquidSegmentedControl2 from '../components/LiquidSegmentedControl2';
 import TransactionRow2 from '../components/TransactionRow2';
@@ -266,9 +266,8 @@ const SummarySection: React.FC<{
 }> = React.memo(({ totalIn, totalOut }) => {
     const balance = totalIn - totalOut;
     return (
-        <LiquidCard
+        <BackgroundLiquidGlass
             style={sumStyles.card}
-            intensity="light"
             
             borderRadius={Radii.xl}>
             <View style={sumStyles.inner}>
@@ -305,7 +304,7 @@ const SummarySection: React.FC<{
                     ]}
                 />
             </View>
-        </LiquidCard>
+        </BackgroundLiquidGlass>
     );
 });
 
@@ -429,9 +428,8 @@ const BarChart: React.FC<{
     const barRadius = Math.min(barWidth / 2, 8);
 
     return (
-        <LiquidCard
+        <BackgroundLiquidGlass
             style={chStyles.card}
-            intensity="light"
             borderRadius={Radii.xl}>
             <View style={chStyles.inner}>
                 <Text style={chStyles.title}>Dòng tiền</Text>
@@ -568,7 +566,7 @@ const BarChart: React.FC<{
                     </View>
                 </View>
             </View>
-        </LiquidCard>
+        </BackgroundLiquidGlass>
     );
 });
 
@@ -664,9 +662,9 @@ const WalletChips: React.FC<{
                             zIndex: 0,
                         }}
                     >
-                        <LiquidCard intensity="light" borderRadius={24} style={StyleSheet.absoluteFill}>
+                        <BackgroundLiquidGlass borderRadius={24} style={StyleSheet.absoluteFill}>
                             <View />
-                        </LiquidCard>
+                        </BackgroundLiquidGlass>
                     </Animated.View>
                 )}
                 

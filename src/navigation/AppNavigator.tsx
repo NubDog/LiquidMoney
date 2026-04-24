@@ -22,7 +22,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from '@react-native-community/blur';
 
 import LiquidBackground from '../components/LiquidBackground';
-import LiquidCard from '../components/LiquidCard';
+import BackgroundLiquidGlass from '../components/BackgroundLiquidGlass';
 import HomeScreen from '../screens/HomeScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import StatsScreen from '../screens/StatsScreen';

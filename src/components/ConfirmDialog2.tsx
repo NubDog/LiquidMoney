@@ -17,6 +17,7 @@ export interface ConfirmDialog2Props {
     onConfirm: () => void;
     cancelText?: string;
     confirmText?: string;
+    isDestructive?: boolean;
 }
 
 const ConfirmDialog2: React.FC<ConfirmDialog2Props> = ({
@@ -27,6 +28,7 @@ const ConfirmDialog2: React.FC<ConfirmDialog2Props> = ({
     onConfirm,
     cancelText = 'Hủy',
     confirmText = 'Xác nhận',
+    isDestructive = false,
 }) => {
     const [isRendered, setIsRendered] = useState(visible);
     const animValue = useRef(new Animated.Value(0)).current;
@@ -112,7 +114,7 @@ const ConfirmDialog2: React.FC<ConfirmDialog2Props> = ({
                             <LiquidButton2 
                                 title={confirmText} 
                                 onPress={onConfirm} 
-                                style={[styles.btn, styles.destructiveBtn]} 
+                                style={[styles.btn, isDestructive && styles.destructiveBtn]} 
                                 disableBlur
                             />
                         </View>

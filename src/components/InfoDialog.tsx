@@ -15,7 +15,7 @@ import {
 import { CheckCircle, AlertTriangle } from 'lucide-react-native';
 import { animateDialogOpen, animateDialogClose } from '../common/animations';
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
-import LiquidCard from './LiquidCard';
+import BackgroundLiquidGlass from './BackgroundLiquidGlass';
 import LiquidButton2 from './LiquidButton2';
 
 interface InfoDialogProps {
@@ -66,9 +66,8 @@ const InfoDialog: React.FC<InfoDialogProps> = ({
                     onPress={handleClose}
                 />
                 <Animated.View style={[styles.cardContainer, { transform: [{ scale: cardScale }] }]}>
-                    <LiquidCard 
+                    <BackgroundLiquidGlass 
                         style={styles.card}
-                        intensity="light"
                         
                         borderRadius={Radii.xxl}
                     >
@@ -88,7 +87,7 @@ const InfoDialog: React.FC<InfoDialogProps> = ({
                             onPress={handleClose}
                             style={styles.okBtn}
                         />
-                    </LiquidCard>
+                    </BackgroundLiquidGlass>
                 </Animated.View>
             </View>
         </Modal>

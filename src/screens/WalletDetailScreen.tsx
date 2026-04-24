@@ -25,7 +25,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronLeft, MoreVertical, Plus } from 'lucide-react-native';
 
 // ─── Components ───────────────────────────────────────────────────────────────
-import LiquidCard from '../components/LiquidCard';
+import BackgroundLiquidGlass from '../components/BackgroundLiquidGlass';
 import LiquidSegmentedControl2 from '../components/LiquidSegmentedControl2';
 import TransactionModal from '../components/TransactionModal';
 import TransactionRow2 from '../components/TransactionRow2';
@@ -220,9 +220,8 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
         () => (
             <View>
                 <View collapsable={false}>
-                    <LiquidCard
+                    <BackgroundLiquidGlass
                         style={styles.summaryCard}
-                        intensity="light"
                         
                         borderRadius={Radii.xxl}>
                         <Text style={styles.walletName}>{wallet?.name || 'Ví'}</Text>
@@ -246,7 +245,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
                                 </Text>
                             </View>
                         </View>
-                    </LiquidCard>
+                    </BackgroundLiquidGlass>
                 </View>
 
                 <View style={styles.filterWrapper}>

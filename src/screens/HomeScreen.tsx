@@ -18,7 +18,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store/useStore';
 import { Wallet as WalletIcon, PieChart, Plus } from 'lucide-react-native';
-import LiquidCard from '../components/LiquidCard';
+import BackgroundLiquidGlass from '../components/BackgroundLiquidGlass';
 import WalletModal from '../components/WalletModal';
 import WalletCard2 from '../components/WalletCard2';
 import IconButton from '../components/IconButton';

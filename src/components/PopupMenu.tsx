@@ -15,7 +15,7 @@ import {
 import { Check } from 'lucide-react-native';
 import { animateDialogOpen, animateDialogClose } from '../common/animations';
 import { Colors, FontSizes, Radii, Shadows, Spacing } from '../common/theme';
-import LiquidCard from './LiquidCard';
+import BackgroundLiquidGlass from './BackgroundLiquidGlass';
 
 interface MenuItem {
     id: string;
@@ -90,9 +90,8 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
                         right: anchor.x,
                     } : null
                 ]}>
-                    <LiquidCard 
+                    <BackgroundLiquidGlass 
                         style={styles.card}
-                        intensity="light"
                         
                         borderRadius={Radii.xl}
                     >
@@ -141,7 +140,7 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
                                 );
                             })}
                         </View>
-                    </LiquidCard>
+                    </BackgroundLiquidGlass>
                 </Animated.View>
             </View>
         </Modal>

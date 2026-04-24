@@ -12,8 +12,8 @@ import {
     Keyboard,
     TouchableOpacity
 } from 'react-native';
-import { X } from 'lucide-react-native';
-import { animateSheetIn, animateSheetOut } from '../common/animations';
+
+import { Easing } from 'react-native';
 
 interface WalletModalProps {
     visible: boolean;
@@ -31,21 +31,33 @@ const WalletModal: React.FC<WalletModalProps> = ({
     const [name, setName] = useState('');
     const [balanceStr, setBalanceStr] = useState('');
 
-    const translateY = useRef(new Animated.Value(800)).current;
+    const animValue = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
         if (visible) {
-            animateSheetIn(translateY).start();
-            // Reset state khi mở
+            Animated.timing(animValue, {
+                toValue: 1,
+                duration: 350,
+                easing: Easing.out(Easing.poly(4)), // Rất mượt ở đoạn cuối
+                useNativeDriver: true,
+            }).start();
             setName('');
             setBalanceStr('');
         }
-    }, [visible, translateY]);
+    }, [visible, animValue]);
 
     const handleClose = () => {
         Keyboard.dismiss();
-        animateSheetOut(translateY, 800, 250).start(({ finished }) => {
-            if (finished) onClose();
+        Animated.timing(animValue, {
+            toValue: 0,
+            duration: 250,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+        }).start(({ finished }) => {
+            if (finished) {
+                onClose();
+                animValue.setValue(0);
+            }
         });
     };
 
@@ -81,17 +93,13 @@ const WalletModal: React.FC<WalletModalProps> = ({
             <View style={styles.container}>
                 {/* Backdrop Layer */}
                 <Pressable style={styles.backdrop} onPress={handleClose}>
-                    <Animated.View 
+                    <Animated.View
                         style={[
-                            styles.backdropFill, 
-                            { 
-                                opacity: translateY.interpolate({ 
-                                    inputRange: [0, 800], 
-                                    outputRange: [1, 0],
-                                    extrapolate: 'clamp'
-                                }) 
+                            styles.backdropFill,
+                            {
+                                opacity: animValue
                             }
-                        ]} 
+                        ]}
                     />
                 </Pressable>
 
@@ -99,13 +107,18 @@ const WalletModal: React.FC<WalletModalProps> = ({
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                     style={styles.keyboardView}
                     pointerEvents="box-none">
-                    <Animated.View style={[styles.sheet, { transform: [{ translateY }] }]}>
+                    <Animated.View style={[styles.sheet, { 
+                        opacity: animValue, 
+                        transform: [{ 
+                            scale: animValue.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [0.95, 1],
+                            }) 
+                        }] 
+                    }]}>
                         {/* Header */}
                         <View style={styles.header}>
                             <Text style={styles.title}>Thêm Ví Mới</Text>
-                            <TouchableOpacity onPress={handleClose} style={styles.closeBtn} activeOpacity={0.7}>
-                                <X size={20} color="#8E8E93" strokeWidth={2.5} />
-                            </TouchableOpacity>
                         </View>
 
                         {/* Content */}
@@ -117,7 +130,7 @@ const WalletModal: React.FC<WalletModalProps> = ({
                                     value={name}
                                     onChangeText={setName}
                                     placeholder="VD: Tiền mặt, Thẻ tín dụng..."
-                                    placeholderTextColor="#C7C7CC"
+                                    placeholderTextColor="#8E8E93"
                                     autoCapitalize="sentences"
                                 />
                             </View>
@@ -129,13 +142,13 @@ const WalletModal: React.FC<WalletModalProps> = ({
                                     value={balanceStr}
                                     onChangeText={handleAmountChange}
                                     placeholder="0"
-                                    placeholderTextColor="#C7C7CC"
+                                    placeholderTextColor="#8E8E93"
                                     keyboardType="numeric"
                                 />
                             </View>
 
-                            <TouchableOpacity 
-                                style={[styles.saveBtn, isSaveDisabled && styles.saveBtnDisabled]} 
+                            <TouchableOpacity
+                                style={[styles.saveBtn, isSaveDisabled && styles.saveBtnDisabled]}
                                 onPress={handleSave}
                                 disabled={isSaveDisabled}
                                 activeOpacity={0.8}
@@ -155,52 +168,46 @@ const WalletModal: React.FC<WalletModalProps> = ({
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'flex-end',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     backdrop: {
         ...StyleSheet.absoluteFillObject,
     },
     backdropFill: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        backgroundColor: 'rgba(0, 0, 0, 0.45)',
     },
     keyboardView: {
-        justifyContent: 'flex-end',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100%',
     },
     sheet: {
-        backgroundColor: '#FFFFFF',
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
-        paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+        backgroundColor: '#1C1C1E',
+        borderRadius: 24,
+        paddingBottom: 24,
+        width: '85%',
+        maxWidth: 360,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: -2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.3,
+        shadowRadius: 20,
         elevation: 10,
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justifyContent: 'center',
         paddingHorizontal: 20,
         paddingTop: 20,
         paddingBottom: 16,
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: '#E5E5EA',
     },
     title: {
         fontSize: 20,
         fontWeight: '700',
-        color: '#000000',
+        color: '#FFFFFF',
         letterSpacing: -0.5,
-    },
-    closeBtn: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        backgroundColor: '#F2F2F7',
-        alignItems: 'center',
-        justifyContent: 'center',
     },
     content: {
         paddingHorizontal: 20,
@@ -212,16 +219,16 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 15,
         fontWeight: '500',
-        color: '#3A3A3C',
+        color: 'rgba(255, 255, 255, 0.7)',
         marginBottom: 8,
     },
     input: {
-        backgroundColor: '#F2F2F7',
+        backgroundColor: '#2C2C2E',
         borderRadius: 12,
         paddingHorizontal: 16,
         paddingVertical: 14,
         fontSize: 17,
-        color: '#000000',
+        color: '#FFFFFF',
     },
     amountInput: {
         fontSize: 28,

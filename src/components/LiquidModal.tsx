@@ -1,7 +1,7 @@
 import React from 'react';
 import { Modal, StyleSheet, View, Pressable, type ViewStyle, KeyboardAvoidingView, Platform } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
-import LiquidCard from './LiquidCard';
+import BackgroundLiquidGlass from './BackgroundLiquidGlass';
 
 interface LiquidModalProps {
     visible: boolean;
@@ -38,9 +38,9 @@ const LiquidModal: React.FC<LiquidModalProps> = ({ visible, onClose, children, c
                 )}
 
                 <View style={styles.contentWrapper}>
-                    <LiquidCard style={[styles.card, contentStyle]} intensity="light">
+                    <BackgroundLiquidGlass style={[styles.card, contentStyle]}>
                         {children}
-                    </LiquidCard>
+                    </BackgroundLiquidGlass>
                 </View>
             </KeyboardAvoidingView>
         </Modal>

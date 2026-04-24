@@ -18,7 +18,7 @@ import {
     View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import LiquidCard from '../components/LiquidCard';
+import BackgroundLiquidGlass from '../components/BackgroundLiquidGlass';
 import LiquidButton2 from '../components/LiquidButton2';
 import TransactionModal from '../components/TransactionModal';
 import ConfirmDialog2 from '../components/ConfirmDialog2';
@@ -125,9 +125,8 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
                 showsVerticalScrollIndicator={false}>
 
                 {/* ── Amount Card ── */}
-                <LiquidCard
+                <BackgroundLiquidGlass
                     style={styles.amountCard}
-                    intensity="light"
                     
                     borderRadius={Radii.xxl}>
                     <View style={[styles.typeBadge, { borderColor: typeColor }]}>
@@ -143,12 +142,11 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
                     <Text style={[styles.amount, { color: typeColor }]}>
                         {typeSign}{formatVND(transaction.amount)}
                     </Text>
-                </LiquidCard>
+                </BackgroundLiquidGlass>
 
                 {/* ── Info Card ── */}
-                <LiquidCard
+                <BackgroundLiquidGlass
                     style={styles.infoCard}
-                    intensity="light"
                     
                     borderRadius={Radii.xl}>
                     {/* Reason */}
@@ -191,13 +189,12 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
                             <Text style={styles.infoValue}>{walletName}</Text>
                         </View>
                     </View>
-                </LiquidCard>
+                </BackgroundLiquidGlass>
 
                 {/* ── Image Card ── */}
                 {transaction.image_uri ? (
-                    <LiquidCard
+                    <BackgroundLiquidGlass
                         style={styles.imageCard}
-                        intensity="light"
                         
                         borderRadius={Radii.xl}>
                         <View style={styles.imageHeader}>
@@ -209,7 +206,7 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
                             style={styles.transactionImage}
                             resizeMode="cover"
                         />
-                    </LiquidCard>
+                    </BackgroundLiquidGlass>
                 ) : null}
 
                 {/* ── Action Buttons ── */}

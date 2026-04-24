@@ -27,7 +27,7 @@ import {
     XCircle,
     FolderOpen,
 } from 'lucide-react-native';
-import LiquidCard from '../components/LiquidCard';
+import BackgroundLiquidGlass from '../components/BackgroundLiquidGlass';
 import LiquidButton2 from '../components/LiquidButton2';
 import InfoDialog from '../components/InfoDialog';
 import ConfirmImportDialog2 from '../components/ConfirmImportDialog2';
@@ -166,9 +166,8 @@ const SettingsScreen: React.FC = () => {
                     />
                 }>
                 {/* ── App Info Card ── */}
-                <LiquidCard
+                <BackgroundLiquidGlass
                     style={styles.card}
-                    intensity="light"
                     
                     borderRadius={Radii.xl}>
                     <View style={styles.cardInner}>
@@ -232,12 +231,11 @@ const SettingsScreen: React.FC = () => {
                             </View>
                         </View>
                     </View>
-                </LiquidCard>
+                </BackgroundLiquidGlass>
 
                 {/* ── Appearance Card ── */}
-                <LiquidCard
+                <BackgroundLiquidGlass
                     style={styles.card}
-                    intensity="light"
                     borderRadius={Radii.xl}>
                     <View style={styles.cardInner}>
                         <View style={styles.cardHeader}>
@@ -254,12 +252,11 @@ const SettingsScreen: React.FC = () => {
                             />
                         </View>
                     </View>
-                </LiquidCard>
+                </BackgroundLiquidGlass>
 
                 {/* ── Backup / Restore Card ── */}
-                <LiquidCard
+                <BackgroundLiquidGlass
                     style={styles.card}
-                    intensity="light"
                     
                     borderRadius={Radii.xl}>
                     <View style={styles.cardInner}>
@@ -287,12 +284,11 @@ const SettingsScreen: React.FC = () => {
                             />
                         </View>
                     </View>
-                </LiquidCard>
+                </BackgroundLiquidGlass>
 
                 {/* ── Developer Mode Card ── */}
-                <LiquidCard
+                <BackgroundLiquidGlass
                     style={styles.card}
-                    intensity="light"
                     
                     borderRadius={Radii.xl}>
                     <View style={styles.cardInner}>
@@ -316,12 +312,11 @@ const SettingsScreen: React.FC = () => {
                             />
                         </View>
                     </View>
-                </LiquidCard>
+                </BackgroundLiquidGlass>
 
                 {/* ── About Card ── */}
-                <LiquidCard
+                <BackgroundLiquidGlass
                     style={styles.card}
-                    intensity="light"
                     
                     borderRadius={Radii.xl}>
                     <View style={styles.cardInner}>
@@ -342,7 +337,7 @@ const SettingsScreen: React.FC = () => {
                             <Text style={styles.infoValue}>React Native</Text>
                         </View>
                     </View>
-                </LiquidCard>
+                </BackgroundLiquidGlass>
 
                 <View style={{ height: insets.bottom + 40 }} />
             </ScrollView>

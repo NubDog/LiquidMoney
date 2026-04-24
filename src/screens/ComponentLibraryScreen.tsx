@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, Figma, Plus } from 'lucide-react-native';
 
 import LiquidBackground from '../components/LiquidBackground';
-import LiquidCard from '../components/LiquidCard';
+
 import LiquidButton2 from '../components/LiquidButton2';
 import LiquidInput from '../components/LiquidInput';
 import LiquidSegmentedControl2 from '../components/LiquidSegmentedControl2';
@@ -166,15 +166,15 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                 </Section>
 
                 <Section title="LiquidCard (Intensities)">
-                    <LiquidCard intensity="light" style={styles.cardItem}>
+                    <BackgroundLiquidGlass style={styles.cardItem}>
                         <Text style={styles.cardText}>Light Intensity</Text>
-                    </LiquidCard>
-                    <LiquidCard intensity="medium" style={styles.cardItem}>
+                    </BackgroundLiquidGlass>
+                    <BackgroundLiquidGlass style={styles.cardItem}>
                         <Text style={styles.cardText}>Medium Intensity</Text>
-                    </LiquidCard>
-                    <LiquidCard intensity="light" style={styles.cardItem}>
+                    </BackgroundLiquidGlass>
+                    <BackgroundLiquidGlass style={styles.cardItem}>
                         <Text style={styles.cardText}>Heavy Intensity</Text>
-                    </LiquidCard>
+                    </BackgroundLiquidGlass>
                 </Section>
 
                 <Section title="WalletCard2">

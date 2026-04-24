@@ -21,7 +21,7 @@ import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
 import AnimatedOverlay from './AnimatedOverlay';
 import LiquidButton2 from './LiquidButton2';
 import AmountInput2 from './AmountInput2';
-import LiquidCard from './LiquidCard';
+import BackgroundLiquidGlass from './BackgroundLiquidGlass';
 import LiquidInput from './LiquidInput';
 
 interface EditWalletModalProps {
@@ -106,9 +106,8 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
                     style={styles.keyboardView}
                     pointerEvents="box-none">
                     <Animated.View style={[{ transform: [{ translateY: sheetTranslateY }] }]}>
-                        <LiquidCard 
+                        <BackgroundLiquidGlass 
                             style={styles.sheet}
-                            intensity="light"
                             
                             borderRadius={Radii.xxl}
                         >
@@ -136,7 +135,7 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
                                     <LiquidButton2 title="Hủy" onPress={handleClose} />
                                 </View>
                             </Pressable>
-                        </LiquidCard>
+                        </BackgroundLiquidGlass>
                     </Animated.View>
                 </KeyboardAvoidingView>
             </View>

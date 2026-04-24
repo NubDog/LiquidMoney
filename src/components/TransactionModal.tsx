@@ -22,7 +22,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
 import { animateSheetIn, animateSheetOut } from '../common/animations';
 import AnimatedOverlay from './AnimatedOverlay';
-import LiquidCard from './LiquidCard';
+import BackgroundLiquidGlass from './BackgroundLiquidGlass';
 import LiquidButton2 from './LiquidButton2';
 import IconButton from './IconButton';
 import LiquidSegmentedControl2 from './LiquidSegmentedControl2';
@@ -118,11 +118,9 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                     style={styles.keyboardView}
                     pointerEvents="box-none">
                     <Animated.View style={[styles.sheetContainer, { transform: [{ translateY }] }]}>
-                        <LiquidCard
+                        <BackgroundLiquidGlass
                             style={styles.sheet}
-                            intensity="light"
                             borderRadius={Radii.xxl}
-                            extendBottom={true}
                         >
                             <View style={styles.handleBar} />
                             <View style={styles.header}>
@@ -195,7 +193,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                                     style={{ marginTop: Spacing.md, marginBottom: 2 }}
                                 />
                             </ScrollView>
-                        </LiquidCard>
+                        </BackgroundLiquidGlass>
                     </Animated.View>
                 </KeyboardAvoidingView>
             </View>
