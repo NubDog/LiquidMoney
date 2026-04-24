@@ -1,24 +1,19 @@
-/**
- * WalletModal.tsx
- * Modal for creating a new wallet, Refactored to Volumetric Glass
- */
-
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
     KeyboardAvoidingView,
     Modal,
     Platform,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
+    Pressable,
+    Animated,
+    Keyboard,
+    TouchableOpacity
 } from 'react-native';
-import { Keyboard, StyleSheet, Text, TextInput, View, Pressable, Animated } from 'react-native';
-import { X, Pencil, Image as ImageIcon, Wallet } from 'lucide-react-native';
+import { X } from 'lucide-react-native';
 import { animateSheetIn, animateSheetOut } from '../common/animations';
-import AnimatedOverlay from './AnimatedOverlay';
-import LiquidCard from './LiquidCard';
-import LiquidIconButton from './LiquidIconButton';
-import LiquidButton2 from './LiquidButton2';
-import AmountInput2 from './AmountInput2';
-import LiquidInput from './LiquidInput';
-import { Colors, FontSizes, Shadows, Spacing, Radii } from '../common/theme';
 
 interface WalletModalProps {
     visible: boolean;
@@ -27,6 +22,7 @@ interface WalletModalProps {
     editData?: any | null;
     onDelete?: () => void;
 }
+
 const WalletModal: React.FC<WalletModalProps> = ({
     visible,
     onClose,
@@ -35,12 +31,12 @@ const WalletModal: React.FC<WalletModalProps> = ({
     const [name, setName] = useState('');
     const [balanceStr, setBalanceStr] = useState('');
 
-    const translateY = useRef(new Animated.Value(500)).current;
+    const translateY = useRef(new Animated.Value(800)).current;
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (visible) {
             animateSheetIn(translateY).start();
-            // Reset state
+            // Reset state khi mở
             setName('');
             setBalanceStr('');
         }
@@ -48,7 +44,7 @@ const WalletModal: React.FC<WalletModalProps> = ({
 
     const handleClose = () => {
         Keyboard.dismiss();
-        animateSheetOut(translateY, 600, 250).start(({ finished }) => {
+        animateSheetOut(translateY, 800, 250).start(({ finished }) => {
             if (finished) onClose();
         });
     };
@@ -63,6 +59,18 @@ const WalletModal: React.FC<WalletModalProps> = ({
         handleClose();
     };
 
+    const handleAmountChange = (text: string) => {
+        const rawValue = text.replace(/[^0-9]/g, '');
+        if (!rawValue) {
+            setBalanceStr('');
+            return;
+        }
+        const formatted = parseInt(rawValue, 10).toLocaleString('vi-VN').replace(/,/g, '.');
+        setBalanceStr(formatted);
+    };
+
+    const isSaveDisabled = !name.trim() || !balanceStr;
+
     return (
         <Modal
             visible={visible}
@@ -71,46 +79,72 @@ const WalletModal: React.FC<WalletModalProps> = ({
             statusBarTranslucent
             onRequestClose={handleClose}>
             <View style={styles.container}>
-                <AnimatedOverlay visible={visible} onPress={handleClose} />
+                {/* Backdrop Layer */}
+                <Pressable style={styles.backdrop} onPress={handleClose}>
+                    <Animated.View 
+                        style={[
+                            styles.backdropFill, 
+                            { 
+                                opacity: translateY.interpolate({ 
+                                    inputRange: [0, 800], 
+                                    outputRange: [1, 0],
+                                    extrapolate: 'clamp'
+                                }) 
+                            }
+                        ]} 
+                    />
+                </Pressable>
+
                 <KeyboardAvoidingView
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                     style={styles.keyboardView}
                     pointerEvents="box-none">
-                    <Animated.View style={[styles.sheetContainer, { transform: [{ translateY }] }]}>
-                        <LiquidCard
-                            style={styles.sheet}
-                            intensity="light"
-                            borderRadius={Radii.xxl}
-                            extendBottom={true}
-                        >
-                            <View style={styles.header}>
-                                <Text style={styles.title}>Thêm Ví Mới</Text>
-                                <LiquidIconButton onPress={handleClose} style={styles.closeBtn} size={36}>
-                                    <X size={20} color="#FFFFFF" strokeWidth={2.5} />
-                                </LiquidIconButton>
-                            </View>
+                    <Animated.View style={[styles.sheet, { transform: [{ translateY }] }]}>
+                        {/* Header */}
+                        <View style={styles.header}>
+                            <Text style={styles.title}>Thêm Ví Mới</Text>
+                            <TouchableOpacity onPress={handleClose} style={styles.closeBtn} activeOpacity={0.7}>
+                                <X size={20} color="#8E8E93" strokeWidth={2.5} />
+                            </TouchableOpacity>
+                        </View>
 
-                            <View style={styles.content}>
+                        {/* Content */}
+                        <View style={styles.content}>
+                            <View style={styles.inputGroup}>
                                 <Text style={styles.label}>Tên ví</Text>
-                                <LiquidInput
+                                <TextInput
+                                    style={styles.input}
                                     value={name}
                                     onChangeText={setName}
                                     placeholder="VD: Tiền mặt, Thẻ tín dụng..."
-                                    containerStyle={{ marginBottom: Spacing.lg }}
-                                />
-
-                                <AmountInput2
-                                    value={balanceStr}
-                                    onChangeText={setBalanceStr}
-                                />
-
-                                <LiquidButton2
-                                    title="Tạo Ví"
-                                    onPress={handleSave}
-                                    style={{ marginTop: Spacing.lg, marginBottom: 12 }}
+                                    placeholderTextColor="#C7C7CC"
+                                    autoCapitalize="sentences"
                                 />
                             </View>
-                        </LiquidCard>
+
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.label}>Số dư ban đầu</Text>
+                                <TextInput
+                                    style={[styles.input, styles.amountInput]}
+                                    value={balanceStr}
+                                    onChangeText={handleAmountChange}
+                                    placeholder="0"
+                                    placeholderTextColor="#C7C7CC"
+                                    keyboardType="numeric"
+                                />
+                            </View>
+
+                            <TouchableOpacity 
+                                style={[styles.saveBtn, isSaveDisabled && styles.saveBtnDisabled]} 
+                                onPress={handleSave}
+                                disabled={isSaveDisabled}
+                                activeOpacity={0.8}
+                            >
+                                <Text style={[styles.saveBtnText, isSaveDisabled && styles.saveBtnTextDisabled]}>
+                                    Tạo Ví
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
                     </Animated.View>
                 </KeyboardAvoidingView>
             </View>
@@ -119,47 +153,100 @@ const WalletModal: React.FC<WalletModalProps> = ({
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, justifyContent: 'flex-end' },
-    keyboardView: { flex: 1, justifyContent: 'flex-end' },
-    sheetContainer: {
-        borderTopLeftRadius: Radii.xxl,
-        borderTopRightRadius: Radii.xxl,
-        ...Shadows.menu,
+    container: {
+        flex: 1,
+        justifyContent: 'flex-end',
+    },
+    backdrop: {
+        ...StyleSheet.absoluteFillObject,
+    },
+    backdropFill: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    },
+    keyboardView: {
+        justifyContent: 'flex-end',
     },
     sheet: {
-        borderBottomLeftRadius: 0,
-        borderBottomRightRadius: 0,
-        borderBottomWidth: 0,
-        paddingBottom: 40,
+        backgroundColor: '#FFFFFF',
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+        elevation: 10,
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: Spacing.xl,
-        paddingTop: Spacing.xl, // Bù lại khoảng trống của HandleBar cũ
-        paddingBottom: Spacing.lg,
+        paddingHorizontal: 20,
+        paddingTop: 20,
+        paddingBottom: 16,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: '#E5E5EA',
     },
     title: {
-        fontSize: FontSizes.xl + 2,
+        fontSize: 20,
         fontWeight: '700',
-        color: '#FFFFFF',
+        color: '#000000',
+        letterSpacing: -0.5,
     },
     closeBtn: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: '#F2F2F7',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     content: {
-        paddingHorizontal: Spacing.xl,
+        paddingHorizontal: 20,
+        paddingTop: 24,
+    },
+    inputGroup: {
+        marginBottom: 20,
     },
     label: {
-        fontSize: FontSizes.md,
-        fontWeight: '600',
-        color: 'rgba(255, 255, 255, 0.7)',
-        marginBottom: Spacing.sm,
+        fontSize: 15,
+        fontWeight: '500',
+        color: '#3A3A3C',
+        marginBottom: 8,
+    },
+    input: {
+        backgroundColor: '#F2F2F7',
+        borderRadius: 12,
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        fontSize: 17,
+        color: '#000000',
     },
     amountInput: {
-        fontSize: FontSizes.xl,
+        fontSize: 28,
         fontWeight: '700',
-        paddingVertical: Spacing.lg,
+        textAlign: 'right',
+        paddingVertical: 20,
+    },
+    saveBtn: {
+        backgroundColor: '#007AFF',
+        borderRadius: 14,
+        paddingVertical: 16,
+        alignItems: 'center',
+        marginTop: 10,
+        marginBottom: 10,
+    },
+    saveBtnDisabled: {
+        backgroundColor: '#E5E5EA',
+    },
+    saveBtnText: {
+        fontSize: 17,
+        fontWeight: '600',
+        color: '#FFFFFF',
+    },
+    saveBtnTextDisabled: {
+        color: '#8E8E93',
     },
 });
 

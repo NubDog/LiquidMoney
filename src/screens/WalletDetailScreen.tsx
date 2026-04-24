@@ -35,7 +35,6 @@ import EditWalletModal from '../components/EditWalletModal';
 import PopupMenu from '../components/PopupMenu';
 import IconButton from '../components/IconButton';
 import LiquidBackground from '../components/LiquidBackground';
-import LiquidIconButton from '../components/LiquidIconButton';
 import { WalletDetailSkeleton } from '../components/WalletDetailSkeleton';
 import EmptyState2 from '../components/EmptyState2';
 
@@ -434,20 +433,18 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
 
             {/* LAYER 1: IMMEDIATE SHELL */}
             <View style={styles.topBar}>
-                <LiquidIconButton onPress={onGoBack} style={styles.backBtn} size={42}>
-                    <ChevronLeft size={24} color={Colors.text} />
-                </LiquidIconButton>
+                <IconButton onPress={onGoBack} style={styles.backBtn} size={42} icon={<ChevronLeft size={24} color={Colors.text} />} />
 
                 <View style={{ flex: 1 }} />
 
                 <View ref={menuBtnRef} collapsable={false}>
-                    <LiquidIconButton
+                    <IconButton
                         onPress={handleMenuPress}
                         style={[styles.menuBtn, !isReady && { opacity: 0.5 }]}
                         disabled={!isReady}
-                        size={42}>
-                        <MoreVertical size={22} color={Colors.text} strokeWidth={1.5} />
-                    </LiquidIconButton>
+                        size={42}
+                        icon={<MoreVertical size={22} color={Colors.text} strokeWidth={1.5} />}
+                    />
                 </View>
             </View>
 

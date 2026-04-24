@@ -8,13 +8,15 @@ interface IconButtonProps {
     onPress: () => void;
     style?: StyleProp<ViewStyle>;
     disableBlur?: boolean;
+    disabled?: boolean;
 }
 
-const IconButton: React.FC<IconButtonProps> = ({ icon, size = 64, onPress, style, disableBlur = false }) => {
+const IconButton: React.FC<IconButtonProps> = ({ icon, size = 64, onPress, style, disableBlur = false, disabled = false }) => {
     return (
         <BackgroundLiquidGlass
             onPress={onPress}
             disableBlur={disableBlur}
+            disabled={disabled}
             borderRadius={size / 2}
             style={[{ width: size, height: size }, style]}
             // Đảm bảo chiều cao content bên trong khớp tuyệt đối với size (ghi đè minHeight: 48 của BackgroundLiquidGlass)

@@ -17,7 +17,6 @@ import { X, Figma, Plus } from 'lucide-react-native';
 import LiquidBackground from '../components/LiquidBackground';
 import LiquidCard from '../components/LiquidCard';
 import LiquidButton2 from '../components/LiquidButton2';
-import LiquidIconButton from '../components/LiquidIconButton';
 import LiquidInput from '../components/LiquidInput';
 import LiquidSegmentedControl2 from '../components/LiquidSegmentedControl2';
 import IconButton from '../components/IconButton';

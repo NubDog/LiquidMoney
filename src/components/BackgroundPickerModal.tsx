@@ -13,7 +13,7 @@ import { BlurView } from '@react-native-community/blur';
 import { X, CheckCircle2 } from 'lucide-react-native';
 import { BACKGROUNDS, BACKGROUND_KEYS } from '../assets/img/backgrounds';
 import { useStore } from '../store/useStore';
-import LiquidIconButton from './LiquidIconButton';
+import IconButton from './IconButton';
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
 
 interface BackgroundPickerModalProps {
@@ -50,9 +50,7 @@ const BackgroundPickerModal: React.FC<BackgroundPickerModalProps> = ({
 
                 <View style={styles.header}>
                     <Text style={styles.title}>Chọn Hình Nền</Text>
-                    <LiquidIconButton onPress={onClose} style={styles.closeBtn} size={42}>
-                        <X color="#FFF" size={24} />
-                    </LiquidIconButton>
+                    <IconButton onPress={onClose} style={styles.closeBtn} size={42} icon={<X color="#FFF" size={24} />} />
                 </View>
 
                 <ScrollView

@@ -1,33 +1,32 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Modal, StyleSheet, View, Text, Pressable, KeyboardAvoidingView, Platform, Animated, Easing } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
-import { X } from 'lucide-react-native';
+import { AlertTriangle } from 'lucide-react-native';
 
 import BackgroundLiquidGlass from './BackgroundLiquidGlass';
 import LiquidButton2 from './LiquidButton2';
-import IconButton from './IconButton';
-import { FontSizes, Spacing, Radii } from '../common/theme';
+import { FontSizes, Spacing, Radii, Colors } from '../common/theme';
+
+const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 
 export interface ConfirmDialog2Props {
     visible: boolean;
-    title: string;
-    message: string;
+    title?: string;
+    message?: string;
     onCancel: () => void;
     onConfirm: () => void;
     cancelText?: string;
     confirmText?: string;
-    isDestructive?: boolean;
 }
 
 const ConfirmDialog2: React.FC<ConfirmDialog2Props> = ({
     visible,
-    title,
-    message,
+    title = 'Xác nhận',
+    message = 'Bạn có chắc chắn muốn thực hiện hành động này?',
     onCancel,
     onConfirm,
     cancelText = 'Hủy',
     confirmText = 'Xác nhận',
-    isDestructive = false,
 }) => {
     const [isRendered, setIsRendered] = useState(visible);
     const animValue = useRef(new Animated.Value(0)).current;
@@ -66,34 +65,40 @@ const ConfirmDialog2: React.FC<ConfirmDialog2Props> = ({
         <Modal
             visible={isRendered}
             transparent
+            statusBarTranslucent // Quan trọng: Đảm bảo phủ mờ cả thanh trạng thái (status bar)
             animationType="none"
             onRequestClose={onCancel}>
             <KeyboardAvoidingView 
                 style={styles.container} 
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
-                {/* Backdrop Layer */}
-                <Animated.View style={[StyleSheet.absoluteFill, { zIndex: 0, backgroundColor: 'rgba(0, 0, 0, 0.75)', opacity }]} />
+                {/* Backdrop Layer - Đen tuyền mờ mờ ảo ảo (Dark Frosted Glass) */}
+                <AnimatedBlurView
+                    style={[StyleSheet.absoluteFill, { zIndex: 0, opacity }]}
+                    blurType="dark"
+                    blurAmount={15}
+                    reducedTransparencyFallbackColor="rgba(0,0,0,0.85)"
+                />
+                {/* Lớp màu đen nhẹ kết hợp với blur tạo ra độ mờ ảo, không bị đen thui */}
+                <Animated.View 
+                    style={[StyleSheet.absoluteFill, { zIndex: 0, backgroundColor: 'rgba(0, 0, 0, 0.45)', opacity }]} 
+                    pointerEvents="none" 
+                />
 
-                {/* Pressable Backdrop to dismiss the dialog */}
+                {/* Pressable Backdrop để đóng dialog khi nhấn ra ngoài */}
                 <Pressable style={styles.backdropPressable} onPress={onCancel} />
 
                 {/* Main Dialog UI */}
-                <Animated.View style={[styles.contentWrapper, { opacity, transform: [{ scale }] }]}>
+                <Animated.View style={[styles.contentWrapper, { opacity, transform: [{ scale }] }]} pointerEvents="box-none">
                     <BackgroundLiquidGlass borderRadius={Radii.xxl} contentContainerStyle={styles.card}>
                         
-                        {/* Header Row */}
-                        <View style={styles.headerRow}>
-                            <Text style={styles.title}>{title}</Text>
-                            <IconButton 
-                                icon={<X size={20} color="#FFFFFF" opacity={0.8} strokeWidth={2.5} />} 
-                                size={36}
-                                onPress={onCancel}
-                                disableBlur
-                            />
+                        {/* Icon */}
+                        <View style={styles.iconContainer}>
+                            <AlertTriangle size={36} color={Colors.warning} strokeWidth={2.5} />
                         </View>
 
-                        {/* Content Message */}
+                        {/* Title & Message */}
+                        <Text style={styles.title}>{title}</Text>
                         <Text style={styles.message}>{message}</Text>
 
                         {/* Actions Row */}
@@ -107,7 +112,7 @@ const ConfirmDialog2: React.FC<ConfirmDialog2Props> = ({
                             <LiquidButton2 
                                 title={confirmText} 
                                 onPress={onConfirm} 
-                                style={[styles.btn, isDestructive && styles.destructiveBtn]} 
+                                style={[styles.btn, styles.destructiveBtn]} 
                                 disableBlur
                             />
                         </View>
@@ -131,41 +136,50 @@ const styles = StyleSheet.create({
     },
     contentWrapper: {
         zIndex: 2,
-        width: '90%',
-        maxWidth: 400,
+        width: '85%',
+        maxWidth: 360,
     },
     card: {
         padding: Spacing.xl,
-    },
-    headerRow: {
-        flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
+    },
+    iconContainer: {
         marginBottom: Spacing.md,
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: 'rgba(250, 204, 21, 0.15)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(250, 204, 21, 0.3)',
     },
     title: {
-        color: '#FFFFFF',
         fontSize: FontSizes.xl,
         fontWeight: '700',
-        letterSpacing: 0.3,
+        color: '#FFFFFF',
+        marginBottom: Spacing.sm,
+        textAlign: 'center',
+        letterSpacing: -0.3,
     },
     message: {
-        color: 'rgba(255, 255, 255, 0.7)',
         fontSize: FontSizes.md,
-        lineHeight: 24,
+        color: 'rgba(255, 255, 255, 0.7)',
+        textAlign: 'center',
+        lineHeight: 22,
         marginBottom: Spacing.xl,
     },
     actionsRow: {
         flexDirection: 'row',
-        gap: Spacing.md,
+        gap: Spacing.sm,
+        width: '100%',
     },
     btn: {
         flex: 1,
-        width: 'auto' as any, // Prevent BackgroundLiquidGlass from stretching 100% over the sibling
     },
     destructiveBtn: {
-        // TBD: Custom red glow for destructive actions using an external prop/style in the future
-    }
+        // Có thể custom lại màu nếu muốn, mặc định LiquidButton2 dùng tone chung
+    },
 });
 
 export default ConfirmDialog2;

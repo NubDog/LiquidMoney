@@ -24,7 +24,7 @@ import { animateSheetIn, animateSheetOut } from '../common/animations';
 import AnimatedOverlay from './AnimatedOverlay';
 import LiquidCard from './LiquidCard';
 import LiquidButton2 from './LiquidButton2';
-import LiquidIconButton from './LiquidIconButton';
+import IconButton from './IconButton';
 import LiquidSegmentedControl2 from './LiquidSegmentedControl2';
 import AmountInput2 from './AmountInput2';
 import LiquidInput from './LiquidInput';
@@ -127,9 +127,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                             <View style={styles.handleBar} />
                             <View style={styles.header}>
                                 <Text style={styles.title}>Giao dịch mới</Text>
-                                <LiquidIconButton onPress={handleClose} style={styles.closeBtn} size={36}>
-                                    <X size={20} color="#FFFFFF" strokeWidth={2.5} />
-                                </LiquidIconButton>
+                                <IconButton onPress={handleClose} style={styles.closeBtn} size={36} icon={<X size={20} color="#FFFFFF" strokeWidth={2.5} />} />
                             </View>
 
                             <ScrollView
