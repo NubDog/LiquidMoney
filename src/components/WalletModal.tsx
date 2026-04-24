@@ -15,6 +15,8 @@ import {
 
 import { Easing } from 'react-native';
 import BackgroundLiquidGlass from './BackgroundLiquidGlass';
+import LiquidInput from './LiquidInput';
+import AmountInput2 from './AmountInput2';
 
 interface WalletModalProps {
     visible: boolean;
@@ -127,25 +129,24 @@ const WalletModal: React.FC<WalletModalProps> = ({
                         <View style={styles.content}>
                             <View style={styles.inputGroup}>
                                 <Text style={styles.label}>Tên ví</Text>
-                                <TextInput
+                                <LiquidInput
+                                    containerStyle={styles.nameInputContainer}
                                     style={styles.input}
                                     value={name}
                                     onChangeText={setName}
                                     placeholder="VD: Tiền mặt, Thẻ tín dụng..."
-                                    placeholderTextColor="#8E8E93"
                                     autoCapitalize="sentences"
+                                    disableBlur={true}
                                 />
                             </View>
 
                             <View style={styles.inputGroup}>
                                 <Text style={styles.label}>Số dư ban đầu</Text>
-                                <TextInput
-                                    style={[styles.input, styles.amountInput]}
+                                <AmountInput2
+                                    style={styles.amountInputContainer}
                                     value={balanceStr}
                                     onChangeText={handleAmountChange}
-                                    placeholder="0"
-                                    placeholderTextColor="#8E8E93"
-                                    keyboardType="numeric"
+                                    disableBlur={true}
                                 />
                             </View>
 
@@ -220,24 +221,20 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     label: {
-        fontSize: 15,
-        fontWeight: '500',
-        color: 'rgba(255, 255, 255, 0.7)',
+        fontSize: 14,
+        color: '#FFFFFF',
         marginBottom: 8,
+        fontWeight: '500',
     },
     input: {
-        backgroundColor: '#2C2C2E',
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        paddingVertical: 14,
-        fontSize: 17,
-        color: '#FFFFFF',
+        fontSize: 16,
     },
-    amountInput: {
-        fontSize: 28,
-        fontWeight: '700',
-        textAlign: 'right',
-        paddingVertical: 20,
+    nameInputContainer: {
+        height: 54,
+    },
+    amountInputContainer: {
+        width: '100%',
+        height: 70,
     },
     saveBtn: {
         backgroundColor: '#007AFF',

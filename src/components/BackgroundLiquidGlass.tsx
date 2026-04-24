@@ -72,18 +72,18 @@ const BackgroundLiquidGlass: React.FC<BackgroundLiquidGlassProps> = ({
     };
 
     const hasDimensions = dimensions.width > 0 && dimensions.height > 0;
-    
+
     // Tính toán border radius thực tế cho SVG (chặn việc rx quá lớn gây lỗi ellipse)
     const effectiveRadius = hasDimensions ? Math.min(borderRadius, dimensions.width / 2, dimensions.height / 2) : borderRadius;
 
-    const glowSteps = hasDimensions 
+    const glowSteps = hasDimensions
         ? [
-            { c: 0.19,  o: "0.02" },
-            { c: 0.15,  o: "0.02" },
-            { c: 0.12,  o: "0.03" },
+            { c: 0.19, o: "0.02" },
+            { c: 0.15, o: "0.02" },
+            { c: 0.12, o: "0.03" },
             { c: 0.095, o: "0.04" },
-            { c: 0.07,  o: "0.06" },
-            { c: 0.05,  o: "0.08" },
+            { c: 0.07, o: "0.06" },
+            { c: 0.05, o: "0.08" },
             { c: 0.038, o: "0.12" },
             { c: 0.024, o: "0.18" },
             { c: 0.014, o: "0.25" },
@@ -98,12 +98,12 @@ const BackgroundLiquidGlass: React.FC<BackgroundLiquidGlassProps> = ({
                     <Defs>
                         {/* Inner ambient glass body */}
                         <RadialGradient id="glassBodyTL" cx="0%" cy="0%" rx="100%" ry="100%">
-                            <Stop offset="0" stopColor="#FFFFFF" stopOpacity={isDense ? "0.35" : "0.25"} />
-                            <Stop offset="1" stopColor="#FFFFFF" stopOpacity={isDense ? "0.15" : "0.05"} />
+                            <Stop offset="0" stopColor="#FFFFFF" stopOpacity={isDense ? "0.15" : "0.25"} />
+                            <Stop offset="1" stopColor="#FFFFFF" stopOpacity={isDense ? "0.05" : "0.05"} />
                         </RadialGradient>
                         <RadialGradient id="glassBodyBR" cx="100%" cy="100%" rx="100%" ry="100%">
-                            <Stop offset="0" stopColor="#FFFFFF" stopOpacity={isDense ? "0.25" : "0.15"} />
-                            <Stop offset="1" stopColor="#FFFFFF" stopOpacity={isDense ? "0.05" : "0.02"} />
+                            <Stop offset="0" stopColor="#FFFFFF" stopOpacity={isDense ? "0.1" : "0.15"} />
+                            <Stop offset="1" stopColor="#FFFFFF" stopOpacity={isDense ? "0.02" : "0.02"} />
                         </RadialGradient>
 
                         {/* --- TL BORDER GLOW (Golden Ratio 61.8%) --- */}
@@ -150,12 +150,12 @@ const BackgroundLiquidGlass: React.FC<BackgroundLiquidGlassProps> = ({
 
     const innerContent = (
         <View style={[
-            styles.glassWrapper, 
+            styles.glassWrapper,
             fillContainer && styles.fillContainer,
             { borderRadius },
             disabled && styles.disabledGlass,
             disableBlur && { backgroundColor: 'rgba(255, 255, 255, 0.05)' },
-            isDense && !disableBlur && { backgroundColor: 'rgba(0, 0, 0, 0.15)' }
+            isDense && !disableBlur && { backgroundColor: 'rgba(0, 0, 0, 0.75)' }
         ]}>
             {disableBlur ? blurContent : (
                 /* @ts-ignore */
@@ -195,13 +195,13 @@ const BackgroundLiquidGlass: React.FC<BackgroundLiquidGlassProps> = ({
     }
 
     return (
-        <View 
+        <View
             style={[
-                styles.container, 
-                { borderRadius }, 
+                styles.container,
+                { borderRadius },
                 disabled && styles.disabled,
                 style
-            ]} 
+            ]}
             onLayout={onLayout}
         >
             {innerContent}

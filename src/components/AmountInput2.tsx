@@ -15,6 +15,7 @@ import BackgroundLiquidGlass from './BackgroundLiquidGlass';
 interface AmountInput2Props extends Omit<TextInputProps, 'style'> {
     label?: string;
     style?: StyleProp<ViewStyle>;
+    disableBlur?: boolean;
 }
 
 const AmountInput2: React.FC<AmountInput2Props> = ({
@@ -22,6 +23,7 @@ const AmountInput2: React.FC<AmountInput2Props> = ({
     style,
     value,
     onChangeText,
+    disableBlur,
     ...props
 }) => {
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -66,6 +68,7 @@ const AmountInput2: React.FC<AmountInput2Props> = ({
                 <BackgroundLiquidGlass
                     borderRadius={9999}
                     style={StyleSheet.absoluteFill}
+                    disableBlur={disableBlur}
                     contentContainerStyle={[
                         styles.glassContent,
                         { height: hasDimensions ? dimensions.height : 56, minHeight: hasDimensions ? dimensions.height : 56 }

@@ -6,9 +6,10 @@ import BackgroundLiquidGlass from './BackgroundLiquidGlass';
 interface LiquidInputProps extends TextInputProps {
     containerStyle?: ViewStyle;
     leftIcon?: React.ReactNode;
+    disableBlur?: boolean;
 }
 
-const LiquidInput: React.FC<LiquidInputProps> = ({ containerStyle, leftIcon, onFocus, onBlur, ...props }) => {
+const LiquidInput: React.FC<LiquidInputProps> = ({ containerStyle, leftIcon, disableBlur, onFocus, onBlur, ...props }) => {
     const [isFocused, setIsFocused] = useState(false);
 
     return (
@@ -16,6 +17,7 @@ const LiquidInput: React.FC<LiquidInputProps> = ({ containerStyle, leftIcon, onF
             style={[styles.container, containerStyle]}
             contentContainerStyle={styles.contentContainer}
             borderRadius={24}
+            disableBlur={disableBlur}
         >
             <View 
                 style={[
@@ -28,7 +30,6 @@ const LiquidInput: React.FC<LiquidInputProps> = ({ containerStyle, leftIcon, onF
             {leftIcon && <View style={styles.iconContainer}>{leftIcon}</View>}
             
             <TextInput
-                style={[styles.input, leftIcon ? { paddingLeft: 44 } : undefined]}
                 placeholderTextColor={Colors.textMuted}
                 cursorColor="#FFFFFF"
                 selectionColor="rgba(255, 255, 255, 0.3)"
@@ -40,7 +41,13 @@ const LiquidInput: React.FC<LiquidInputProps> = ({ containerStyle, leftIcon, onF
                     setIsFocused(false);
                     onBlur?.(e);
                 }}
+                onChangeText={(text) => {
+                    // Only allow letters and spaces
+                    const filteredText = text.replace(/[^a-zA-ZÀ-Ỹà-ỹ\s]/g, '');
+                    props.onChangeText?.(filteredText);
+                }}
                 {...props}
+                style={[styles.input, leftIcon ? { paddingLeft: 44 } : undefined, props.style]}
             />
         </BackgroundLiquidGlass>
     );
