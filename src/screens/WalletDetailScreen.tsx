@@ -85,7 +85,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
 
     // ─── State ──────────────────────────────────────────────────────────────
     const [filterIndex, setFilterIndex] = useState(0);
-    
+
     // Stable callback for segmented control to prevent re-renders
     const handleFilterChange = useCallback((key: string) => {
         setFilterIndex(parseInt(key, 10));
@@ -222,7 +222,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
                 <View collapsable={false}>
                     <BackgroundLiquidGlass
                         style={styles.summaryCard}
-                        
+
                         borderRadius={Radii.xxl}>
                         <Text style={styles.walletName}>{wallet?.name || 'Ví'}</Text>
                         <Text style={styles.balanceLabel}>Số dư hiện tại</Text>
@@ -300,11 +300,11 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
             />
 
             {/* FAB */}
-            <IconButton 
+            <IconButton
                 icon={<Plus strokeWidth={1.5} color="#FFF" size={32} />}
                 size={60}
-                onPress={handleOpenCreate} 
-                style={{ position: 'absolute', bottom: 140, right: 20, zIndex: 9999, shadowColor: 'rgba(0, 0, 0, 0.6)', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 1, shadowRadius: 10, elevation: 10 }} 
+                onPress={handleOpenCreate}
+                style={{ position: 'absolute', bottom: 140, right: 20, zIndex: 9999, shadowColor: 'rgba(0, 0, 0, 0.6)', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 1, shadowRadius: 10, elevation: 10 }}
             />
 
             {/* Transaction Modal */}
@@ -487,13 +487,14 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     listContent: {
+        paddingTop: Spacing.xl,
         paddingHorizontal: Spacing.md,
         paddingBottom: 100,
     },
 
     // ── Summary Card ──
     summaryCard: {
-        marginBottom: Spacing.md,
+        marginBottom: Spacing.xl,
         overflow: 'hidden',
     },
     walletName: {
@@ -545,7 +546,7 @@ const styles = StyleSheet.create({
 
     // ── Filter ──
     filterWrapper: {
-        marginBottom: Spacing.md,
+        marginBottom: Spacing.xl,
     },
 
     // ── Section ──

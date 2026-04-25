@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import {
     StyleSheet,
     TextInput,
@@ -7,7 +7,8 @@ import {
     LayoutChangeEvent,
     StyleProp,
     ViewStyle,
-    TextInputProps
+    TextInputProps,
+    Pressable
 } from 'react-native';
 import { FontSizes, Spacing } from '../common/theme';
 import BackgroundLiquidGlass from './BackgroundLiquidGlass';
@@ -28,6 +29,7 @@ const AmountInput2: React.FC<AmountInput2Props> = ({
 }) => {
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     const [isFocused, setIsFocused] = useState(false);
+    const inputRef = useRef<TextInput>(null);
 
     const onLayout = (event: LayoutChangeEvent) => {
         const { width, height } = event.nativeEvent.layout;
@@ -74,25 +76,32 @@ const AmountInput2: React.FC<AmountInput2Props> = ({
                         { height: hasDimensions ? dimensions.height : 56, minHeight: hasDimensions ? dimensions.height : 56 }
                     ]}
                 >
-                    <TextInput
-                        style={[styles.input, { fontSize: dynamicFontSize }]}
-                        placeholder="0"
-                        placeholderTextColor="rgba(255,255,255,0.2)"
-                        keyboardType="numeric"
-                        cursorColor="#FFFFFF"
-                        selectionColor="rgba(255, 255, 255, 0.3)"
-                        value={displayValue}
-                        onChangeText={handleChangeText}
-                        onFocus={(e) => {
-                            setIsFocused(true);
-                            props.onFocus?.(e);
-                        }}
-                        onBlur={(e) => {
-                            setIsFocused(false);
-                            props.onBlur?.(e);
-                        }}
-                        {...props}
-                    />
+                    <Pressable 
+                        style={styles.touchableArea} 
+                        onPress={() => inputRef.current?.focus()}
+                    >
+                        <TextInput
+                            ref={inputRef}
+                            style={[styles.input, { fontSize: dynamicFontSize }]}
+                            placeholder="0"
+                            placeholderTextColor="rgba(255,255,255,0.2)"
+                            keyboardType="numeric"
+                            cursorColor="#FFFFFF"
+                            selectionColor="rgba(255, 255, 255, 0.3)"
+                            pointerEvents="none"
+                            value={displayValue}
+                            onChangeText={handleChangeText}
+                            onFocus={(e) => {
+                                setIsFocused(true);
+                                props.onFocus?.(e);
+                            }}
+                            onBlur={(e) => {
+                                setIsFocused(false);
+                                props.onBlur?.(e);
+                            }}
+                            {...props}
+                        />
+                    </Pressable>
                 </BackgroundLiquidGlass>
             </View>
         </View>
@@ -121,13 +130,17 @@ const styles = StyleSheet.create({
     glassContent: {
         width: '100%',
     },
-    input: {
+    touchableArea: {
         width: '100%',
         height: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    input: {
+        width: '100%',
         color: '#FFFFFF',
         fontWeight: '700',
         textAlign: 'center',
-        paddingHorizontal: Spacing.md,
     },
 });
 

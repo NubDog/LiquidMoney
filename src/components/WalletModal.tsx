@@ -17,6 +17,7 @@ import { Easing } from 'react-native';
 import BackgroundLiquidGlass from './BackgroundLiquidGlass';
 import LiquidInput from './LiquidInput';
 import AmountInput2 from './AmountInput2';
+import LiquidButton2 from './LiquidButton2';
 
 interface WalletModalProps {
     visible: boolean;
@@ -150,16 +151,13 @@ const WalletModal: React.FC<WalletModalProps> = ({
                                 />
                             </View>
 
-                            <TouchableOpacity
-                                style={[styles.saveBtn, isSaveDisabled && styles.saveBtnDisabled]}
+                            <LiquidButton2
+                                title="Tạo Ví"
                                 onPress={handleSave}
                                 disabled={isSaveDisabled}
-                                activeOpacity={0.8}
-                            >
-                                <Text style={[styles.saveBtnText, isSaveDisabled && styles.saveBtnTextDisabled]}>
-                                    Tạo Ví
-                                </Text>
-                            </TouchableOpacity>
+                                style={styles.saveBtn}
+                                disableBlur={true}
+                            />
                         </View>
                         </BackgroundLiquidGlass>
                     </Animated.View>
@@ -237,23 +235,7 @@ const styles = StyleSheet.create({
         height: 56,
     },
     saveBtn: {
-        backgroundColor: '#007AFF',
-        borderRadius: 14,
-        paddingVertical: 16,
-        alignItems: 'center',
         marginTop: 10,
-        marginBottom: 10,
-    },
-    saveBtnDisabled: {
-        backgroundColor: '#E5E5EA',
-    },
-    saveBtnText: {
-        fontSize: 17,
-        fontWeight: '600',
-        color: '#FFFFFF',
-    },
-    saveBtnTextDisabled: {
-        color: '#8E8E93',
     },
 });
 

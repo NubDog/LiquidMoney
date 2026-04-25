@@ -53,32 +53,34 @@ export const useWaterDropAnimation = ({
 
         // "Water Drop" stretching effect via scaleX
         // Since transform-origin is center by default, we stretch it momentarily
-        // The scale factor should stretch it to cover the distance
-        const stretchScale = 1 + (distance * 0.5);
+        // We set the stretch scale instantly, and then spring back to 1.
+        // This avoids Animated.sequence, which relies on the JS thread and gets 
+        // blocked by the FlatList re-rendering when the filter changes.
+        const stretchScale = 1 + (distance * 0.35);
 
-        Animated.sequence([
-            // Stretch simultaneously while moving
-            Animated.parallel([
-                Animated.spring(translateXAnim, {
-                    toValue: targetX,
-                    bounciness: 8,
-                    speed: 12,
-                    useNativeDriver: true,
-                }),
-                Animated.sequence([
-                    Animated.timing(scaleXAnim, {
-                        toValue: stretchScale,
-                        duration: 100,
-                        useNativeDriver: true,
-                    }),
-                    Animated.spring(scaleXAnim, {
-                        toValue: 1,
-                        bounciness: 12,
-                        speed: 16,
-                        useNativeDriver: true,
-                    })
-                ])
-            ])
+        // Stop any running animations to prevent conflicts
+        translateXAnim.stopAnimation();
+        scaleXAnim.stopAnimation();
+
+        // Instantly stretch
+        scaleXAnim.setValue(stretchScale);
+
+        // Animate purely natively without relying on JS sequence callbacks
+        Animated.parallel([
+            Animated.spring(translateXAnim, {
+                toValue: targetX,
+                stiffness: 250,
+                damping: 24,
+                mass: 1,
+                useNativeDriver: true,
+            }),
+            Animated.spring(scaleXAnim, {
+                toValue: 1,
+                stiffness: 200,
+                damping: 18,
+                mass: 1,
+                useNativeDriver: true,
+            })
         ]).start();
 
     }, [selected, containerWidth, options, tabWidth, gap, paddingHorizontal, translateXAnim, scaleXAnim]);
