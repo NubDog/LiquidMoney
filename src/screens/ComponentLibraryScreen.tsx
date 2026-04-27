@@ -25,6 +25,10 @@ import EmptyState2 from '../components/EmptyState2';
 import BackgroundLiquidGlass from '../components/BackgroundLiquidGlass';
 import TransactionRow2 from '../components/TransactionRow2';
 import WalletCard2 from '../components/WalletCard2';
+import AppleButton from '../components/ui/AppleButton';
+import AppleTextInput from '../components/ui/AppleTextInput';
+import AppleAmountInput from '../components/ui/AppleAmountInput';
+import AppleTransactionRow from '../components/ui/AppleTransactionRow';
 
 // --- newly imported components ---
 import AnimatedOverlay from '../components/AnimatedOverlay';
@@ -109,6 +113,33 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                 showsVerticalScrollIndicator={false}>
 
                 {/* --- EXISTING SECTIONS --- */}
+                <Section title="Apple UI Kit (New & Fast)">
+                    <View style={{ gap: Spacing.md }}>
+                        <AppleButton 
+                            title="Primary Button" 
+                            onPress={() => {}} 
+                            variant="primary" 
+                        />
+                        <AppleButton 
+                            title="Secondary Button" 
+                            onPress={() => {}} 
+                            variant="secondary" 
+                        />
+                        <AppleTextInput 
+                            label="Wallet Name"
+                            placeholder="Enter wallet name..."
+                        />
+                        <AppleAmountInput 
+                            label="Current Balance (VND)"
+                            placeholder="0"
+                        />
+                        <AppleTransactionRow 
+                            item={dummyTransaction} 
+                            onPress={() => {}} 
+                        />
+                    </View>
+                </Section>
+
                 <Section title="BackgroundLiquidGlass (VIP Pro Max)">
                     <BackgroundLiquidGlass>
                         <Text style={{ color: '#fff', textAlign: 'center', padding: 16 }}>

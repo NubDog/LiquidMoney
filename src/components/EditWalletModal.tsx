@@ -12,6 +12,9 @@ import {
     View,
 } from 'react-native';
 import { SpringConfigs } from '../common/animations';
+import AppleButton from './ui/AppleButton';
+import AppleTextInput from './ui/AppleTextInput';
+import AppleAmountInput from './ui/AppleAmountInput';
 
 interface EditWalletModalProps {
     visible: boolean;
@@ -134,44 +137,41 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
 
                             {/* Inputs */}
                             <View style={styles.formContainer}>
-                                <Text style={styles.inputLabel}>Tên ví</Text>
-                                <TextInput
-                                    style={styles.inputField}
+                                <AppleTextInput
+                                    label="Tên ví"
                                     value={name}
                                     onChangeText={setName}
                                     placeholder="Nhập tên ví..."
-                                    placeholderTextColor="rgba(235, 235, 245, 0.3)"
                                     autoCapitalize="sentences"
                                 />
 
-                                <Text style={[styles.inputLabel, { marginTop: 20 }]}>Số dư hiện tại (₫)</Text>
-                                <TextInput
-                                    style={styles.inputField}
+                                <AppleAmountInput
+                                    label="Số dư hiện tại (₫)"
                                     value={balanceStr}
                                     onChangeText={handleBalanceChange}
                                     placeholder="0"
-                                    placeholderTextColor="rgba(235, 235, 245, 0.3)"
-                                    keyboardType="numeric"
                                 />
                             </View>
                             
                             {/* Actions (Bottom) */}
                             <View style={styles.actionsContainer}>
-                                <Pressable 
-                                    style={[styles.bottomBtn, styles.bottomBtnCancel]} 
+                                <AppleButton
+                                    title="Hủy"
                                     onPress={handleClose}
-                                >
-                                    <Text style={styles.bottomBtnCancelText}>Hủy</Text>
-                                </Pressable>
-
-                                <Pressable 
-                                    style={[styles.bottomBtn, styles.bottomBtnSave, isSaveDisabled && styles.bottomBtnDisabled]} 
+                                    variant="secondary"
+                                    style={{ flex: 1 }}
+                                />
+                                <AppleButton
+                                    title="Lưu thay đổi"
                                     onPress={handleSave}
+                                    variant="primary"
                                     disabled={isSaveDisabled}
-                                >
-                                    <Text style={styles.bottomBtnSaveText}>Lưu thay đổi</Text>
-                                </Pressable>
+                                    style={{ flex: 1 }}
+                                />
                             </View>
+
+                            {/* Bottom padding to push up content from the screen edge / home indicator */}
+                            <View style={styles.bottomSpace} />
                         </View>
                     </Animated.View>
                 </KeyboardAvoidingView>
@@ -200,10 +200,13 @@ const styles = StyleSheet.create({
         elevation: 20,
     },
     sheet: {
-        backgroundColor: '#1C1C1E', // Standard iOS dark modal background
+        backgroundColor: '#1C1C1E', // Apple iOS Dark Mode elevated background
         borderTopLeftRadius: 16,
         borderTopRightRadius: 16,
+        borderBottomLeftRadius: 0,
+        borderBottomRightRadius: 0,
         paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+        marginBottom: -20, // Hides the bottom curved corners off-screen
     },
     handleBar: {
         width: 36,
@@ -217,7 +220,7 @@ const styles = StyleSheet.create({
     header: {
         alignItems: 'center',
         paddingVertical: 12,
-        marginBottom: 8,
+        marginBottom: 16,
     },
     headerTitle: {
         fontSize: 18,
@@ -228,50 +231,13 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         marginBottom: 32,
     },
-    inputLabel: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: 'rgba(255, 255, 255, 0.7)',
-        marginBottom: 8,
-    },
-    inputField: {
-        backgroundColor: '#2C2C2E',
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        paddingVertical: 14,
-        fontSize: 16,
-        color: '#FFFFFF',
-    },
     actionsContainer: {
         flexDirection: 'row',
         paddingHorizontal: 20,
         gap: 12,
     },
-    bottomBtn: {
-        flex: 1,
-        paddingVertical: 16,
-        borderRadius: 12,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    bottomBtnCancel: {
-        backgroundColor: '#2C2C2E',
-    },
-    bottomBtnSave: {
-        backgroundColor: '#0A84FF',
-    },
-    bottomBtnDisabled: {
-        opacity: 0.5,
-    },
-    bottomBtnCancelText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    bottomBtnSaveText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-        fontWeight: '600',
+    bottomSpace: {
+        height: (Platform.OS === 'ios' ? 40 : 32) + 20, // Compensate for the -20 marginBottom
     }
 });
 
