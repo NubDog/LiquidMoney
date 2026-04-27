@@ -1,9 +1,4 @@
-/**
- * PopupMenu.tsx — Context menu / Popup
- * Refactored to Volumetric Liquid Glass using LiquidCard
- */
-
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     Animated,
     Modal,
@@ -11,132 +6,156 @@ import {
     StyleSheet,
     Text,
     View,
+    Dimensions,
 } from 'react-native';
-import { Check } from 'lucide-react-native';
-import { animateDialogOpen, animateDialogClose } from '../common/animations';
 import { Colors, FontSizes, Radii, Shadows, Spacing } from '../common/theme';
 import BackgroundLiquidGlass from './BackgroundLiquidGlass';
 
-interface MenuItem {
+export interface MenuItem {
     id: string;
     label: string;
-    icon?: React.ReactNode;
     color?: string;
     onPress: () => void;
 }
 
-interface PopupMenuProps {
+export interface PopupMenuProps {
     visible: boolean;
     onClose: () => void;
     items: MenuItem[];
-    title?: string;
-    selectedId?: string;
-    anchor?: { x: number; y: number };
+    anchor?: { x: number; y: number }; // x from right, y from top
 }
 
 const PopupMenu: React.FC<PopupMenuProps> = ({
     visible,
     onClose,
     items,
-    title,
-    selectedId,
-    anchor,
+    anchor = { x: 16, y: 50 },
 }) => {
-    const overlayOpacity = useRef(new Animated.Value(0)).current;
-    const menuScale = useRef(new Animated.Value(0.9)).current;
+    // We use a local state to keep the modal rendered while the close animation plays
+    const [isRendered, setIsRendered] = useState(false);
+    
+    // Animation values
+    const scaleAnim = useRef(new Animated.Value(0.9)).current;
+    const opacityAnim = useRef(new Animated.Value(0)).current;
+    const translateYAnim = useRef(new Animated.Value(-10)).current;
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (visible) {
-            // Reset to starting values before animating to prevent flicker
-            overlayOpacity.setValue(0);
-            menuScale.setValue(0.9);
-            animateDialogOpen(overlayOpacity, menuScale);
+            setIsRendered(true);
+            
+            // Reset before animating
+            scaleAnim.setValue(0.9);
+            opacityAnim.setValue(0);
+            translateYAnim.setValue(-10);
+            
+            // Smooth, standard enter animation
+            Animated.parallel([
+                Animated.timing(opacityAnim, {
+                    toValue: 1,
+                    duration: 200,
+                    useNativeDriver: true,
+                }),
+                Animated.spring(scaleAnim, {
+                    toValue: 1,
+                    stiffness: 300,
+                    damping: 25,
+                    useNativeDriver: true,
+                }),
+                Animated.spring(translateYAnim, {
+                    toValue: 0,
+                    stiffness: 300,
+                    damping: 25,
+                    useNativeDriver: true,
+                }),
+            ]).start();
+        } else if (isRendered) {
+            // Smooth exit animation
+            Animated.parallel([
+                Animated.timing(opacityAnim, {
+                    toValue: 0,
+                    duration: 150,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(scaleAnim, {
+                    toValue: 0.9,
+                    duration: 150,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(translateYAnim, {
+                    toValue: -10,
+                    duration: 150,
+                    useNativeDriver: true,
+                }),
+            ]).start(() => {
+                setIsRendered(false);
+            });
         }
-    }, [visible, overlayOpacity, menuScale]);
+    }, [visible]);
 
-    const handleItemPress = (onPress: () => void) => {
-        animateDialogClose(overlayOpacity, menuScale, () => {
-            onPress();
-            onClose();
-        });
-    };
+    if (!visible && !isRendered) return null;
 
     return (
         <Modal
-            visible={visible}
+            visible={isRendered}
             transparent
             animationType="none"
             statusBarTranslucent
             onRequestClose={onClose}>
             <View style={styles.root}>
-                <Animated.View
-                    style={[
-                        StyleSheet.absoluteFill,
-                        styles.overlay,
-                        { opacity: overlayOpacity },
-                    ]}
-                />
-                <Pressable
-                    style={StyleSheet.absoluteFill}
-                    onPress={() => animateDialogClose(overlayOpacity, menuScale, onClose)}
-                />
+                {/* Overlay để click ra ngoài là tắt */}
+                <Animated.View style={[StyleSheet.absoluteFill, { opacity: opacityAnim }]}>
+                    <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+                </Animated.View>
                 
-                <Animated.View style={[
-                    styles.menuContainer, 
-                    { transform: [{ scale: menuScale }] },
-                    anchor ? {
-                        position: 'absolute',
-                        top: anchor.y + 8,
-                        right: anchor.x,
-                    } : null
-                ]}>
+                {/* Khung menu */}
+                <Animated.View 
+                    style={[
+                        styles.menuContainer, 
+                        {
+                            top: anchor.y + 8,
+                            right: anchor.x,
+                            opacity: opacityAnim,
+                            transform: [
+                                { translateY: translateYAnim },
+                                { scale: scaleAnim }
+                            ],
+                        }
+                    ]}
+                >
                     <BackgroundLiquidGlass 
                         style={styles.card}
-                        
+                        variant="dense" // Nền đục nhất
                         borderRadius={Radii.xl}
                     >
-                        {title && (
-                            <View style={styles.header}>
-                                <Text style={styles.title}>{title}</Text>
-                            </View>
-                        )}
-                        
                         <View style={styles.itemsContainer}>
                             {items.map((item, index) => {
-                                const isSelected = item.id === selectedId;
                                 const isLast = index === items.length - 1;
                                 
                                 return (
-                                    <View key={item.id} style={{ marginBottom: isLast ? 0 : Spacing.md }}>
+                                    <React.Fragment key={item.id}>
                                         <Pressable
-                                            onPress={() => handleItemPress(item.onPress)}
+                                            onPress={() => {
+                                                // Đợi animation đóng xong mới gọi hàm
+                                                onClose();
+                                                setTimeout(() => item.onPress(), 200);
+                                            }}
                                             style={({ pressed }) => [
                                                 styles.item,
-                                                { opacity: pressed ? 0.6 : 1 }
+                                                { backgroundColor: pressed ? 'rgba(255,255,255,0.1)' : 'transparent' }
                                             ]}
                                         >
-                                            <View style={styles.itemContent}>
-                                                {item.icon && (
-                                                    <View style={styles.itemIcon}>
-                                                        {item.icon}
-                                                    </View>
-                                                )}
-                                                <Text
-                                                    style={[
-                                                        styles.itemLabel,
-                                                        { color: item.color || '#FFFFFF' },
-                                                        isSelected && styles.itemLabelSelected,
-                                                    ]}>
-                                                    {item.label}
-                                                </Text>
-                                                {isSelected && (
-                                                    <View style={{ flex: 1, alignItems: 'flex-end' }}>
-                                                        <Check size={20} color={Colors.accent} strokeWidth={3} />
-                                                    </View>
-                                                )}
-                                            </View>
+                                            <Text
+                                                style={[
+                                                    styles.itemLabel,
+                                                    { color: item.color || '#FFFFFF' },
+                                                ]}>
+                                                {item.label}
+                                            </Text>
                                         </Pressable>
-                                    </View>
+                                        
+                                        {/* Dấu gạch ngang phân cách giữa các nút */}
+                                        {!isLast && <View style={styles.separator} />}
+                                    </React.Fragment>
                                 );
                             })}
                         </View>
@@ -150,55 +169,35 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
 const styles = StyleSheet.create({
     root: {
         flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    overlay: {
-        backgroundColor: Colors.overlayHeavy,
     },
     menuContainer: {
-        width: '80%',
-        maxWidth: 320,
+        position: 'absolute',
+        width: 180,
         ...Shadows.card,
+        elevation: 8,
     },
     card: {
         overflow: 'hidden',
     },
-    header: {
-        padding: Spacing.md,
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: 'rgba(255,255,255,0.1)',
-        backgroundColor: 'rgba(255,255,255,0.03)',
-    },
-    title: {
-        fontSize: FontSizes.md,
-        fontWeight: '600',
-        color: 'rgba(255, 255, 255, 0.7)',
-        textAlign: 'center',
-    },
     itemsContainer: {
-        paddingVertical: Spacing.md,
-        paddingHorizontal: Spacing.md,
+        flexDirection: 'column',
     },
     item: {
         width: '100%',
-        paddingVertical: 12,
-        paddingHorizontal: Spacing.sm,
-    },
-    itemContent: {
-        flexDirection: 'row',
+        paddingVertical: 16,
+        paddingHorizontal: Spacing.lg,
         alignItems: 'center',
-    },
-    itemIcon: {
-        marginRight: Spacing.md,
+        justifyContent: 'center',
     },
     itemLabel: {
-        fontSize: FontSizes.lg - 1,
-        fontWeight: '500',
+        fontSize: FontSizes.md,
+        fontWeight: '600',
+        textAlign: 'center',
     },
-    itemLabelSelected: {
-        fontWeight: '700',
-        color: Colors.accent,
+    separator: {
+        height: 1,
+        backgroundColor: 'rgba(255,255,255,0.3)',
+        width: '100%',
     },
 });
 

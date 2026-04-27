@@ -1,8 +1,3 @@
-/**
- * EditWalletModal.tsx — Modal for editing wallet name and balance
- * Refactored to Volumetric Liquid Glass
- */
-
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     Animated,
@@ -16,13 +11,7 @@ import {
     TextInput,
     View,
 } from 'react-native';
-import { animateModalOpen, animateModalClose, SpringConfigs } from '../common/animations';
-import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
-import AnimatedOverlay from './AnimatedOverlay';
-import LiquidButton2 from './LiquidButton2';
-import AmountInput2 from './AmountInput2';
-import BackgroundLiquidGlass from './BackgroundLiquidGlass';
-import LiquidInput from './LiquidInput';
+import { SpringConfigs } from '../common/animations';
 
 interface EditWalletModalProps {
     visible: boolean;
@@ -32,6 +21,14 @@ interface EditWalletModalProps {
     walletBalance: number;
 }
 
+const formatCurrency = (val: string) => {
+    const num = val.replace(/[^0-9-]/g, '');
+    if (!num || num === '-') return num;
+    const parsed = parseInt(num, 10);
+    if (isNaN(parsed)) return '';
+    return parsed.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+};
+
 const EditWalletModal: React.FC<EditWalletModalProps> = ({
     visible,
     onClose,
@@ -40,48 +37,69 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
     walletBalance,
 }) => {
     const [name, setName] = useState(walletName);
-    const [balanceStr, setBalanceStr] = useState(walletBalance.toString());
+    const [balanceStr, setBalanceStr] = useState(formatCurrency(walletBalance.toString()));
 
-    const sheetTranslateY = useRef(new Animated.Value(400)).current;
+    const sheetTranslateY = useRef(new Animated.Value(600)).current;
+    const opacityAnim = useRef(new Animated.Value(0)).current;
     const [shouldRender, setShouldRender] = useState(false);
 
     useEffect(() => {
         if (visible) {
             setShouldRender(true);
             setName(walletName);
-            setBalanceStr(walletBalance.toString());
+            setBalanceStr(formatCurrency(walletBalance.toString()));
+            
             // Animate after mount
             requestAnimationFrame(() => {
-                Animated.spring(sheetTranslateY, {
-                    toValue: 0,
-                    ...SpringConfigs.gentle,
-                    useNativeDriver: true,
-                }).start();
+                Animated.parallel([
+                    Animated.spring(sheetTranslateY, {
+                        toValue: 0,
+                        ...SpringConfigs.gentle,
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(opacityAnim, {
+                        toValue: 1,
+                        duration: 250,
+                        useNativeDriver: true,
+                    })
+                ]).start();
             });
         }
-    }, [visible, walletName, walletBalance, sheetTranslateY]);
+    }, [visible, walletName, walletBalance, sheetTranslateY, opacityAnim]);
 
     const handleClose = useCallback(() => {
-        Animated.timing(sheetTranslateY, {
-            toValue: 400,
-            duration: 250,
-            useNativeDriver: true, // We will manually hide via timeout or parallel with Overlay
-        }).start(({ finished }) => {
+        Animated.parallel([
+            Animated.timing(sheetTranslateY, {
+                toValue: 600,
+                duration: 250,
+                useNativeDriver: true,
+            }),
+            Animated.timing(opacityAnim, {
+                toValue: 0,
+                duration: 250,
+                useNativeDriver: true,
+            })
+        ]).start(({ finished }) => {
             if (finished) {
                 setShouldRender(false);
                 onClose();
             }
         });
-    }, [sheetTranslateY, onClose]);
+    }, [sheetTranslateY, opacityAnim, onClose]);
 
     const handleSave = useCallback(() => {
         const trimmedName = name.trim();
         if (!trimmedName) { return; }
-        const balance = parseInt(balanceStr.replace(/[^0-9-]/g, ''), 10);
-        if (isNaN(balance)) { return; }
+        const balance = parseInt(balanceStr.replace(/[^0-9-]/g, ''), 10) || 0;
         onSave(trimmedName, balance);
         handleClose();
     }, [name, balanceStr, onSave, handleClose]);
+
+    const handleBalanceChange = (text: string) => {
+        setBalanceStr(formatCurrency(text));
+    };
+
+    const isSaveDisabled = !name.trim();
 
     if (!shouldRender && !visible) return null;
 
@@ -93,49 +111,68 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
             statusBarTranslucent
             onRequestClose={handleClose}>
             <View style={styles.root}>
-                <AnimatedOverlay 
-                    visible={visible} 
-                    onPress={() => {
+                <Animated.View style={[StyleSheet.absoluteFill, styles.overlay, { opacity: opacityAnim }]}>
+                    <Pressable style={StyleSheet.absoluteFill} onPress={() => {
                         Keyboard.dismiss();
                         handleClose();
-                    }} 
-                />
+                    }} />
+                </Animated.View>
 
                 <KeyboardAvoidingView
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                     style={styles.keyboardView}
                     pointerEvents="box-none">
-                    <Animated.View style={[{ transform: [{ translateY: sheetTranslateY }] }]}>
-                        <BackgroundLiquidGlass 
-                            style={styles.sheet}
-                            
-                            borderRadius={Radii.xxl}
-                        >
-                            <Pressable onPress={Keyboard.dismiss}>
-                                <View style={styles.handleBar} />
+                    <Animated.View style={[styles.sheetContainer, { transform: [{ translateY: sheetTranslateY }] }]}>
+                        <View style={styles.sheet}>
+                            {/* Drag Handle */}
+                            <View style={styles.handleBar} />
 
-                                <Text style={styles.title}>Chỉnh sửa ví</Text>
+                            {/* Header */}
+                            <View style={styles.header}>
+                                <Text style={styles.headerTitle}>Chỉnh sửa ví</Text>
+                            </View>
 
-                                <Text style={styles.label}>Tên ví</Text>
-                                <LiquidInput
+                            {/* Inputs */}
+                            <View style={styles.formContainer}>
+                                <Text style={styles.inputLabel}>Tên ví</Text>
+                                <TextInput
+                                    style={styles.inputField}
                                     value={name}
                                     onChangeText={setName}
-                                    placeholder="Nhập tên ví"
-                                    containerStyle={{ marginBottom: Spacing.lg }}
+                                    placeholder="Nhập tên ví..."
+                                    placeholderTextColor="rgba(235, 235, 245, 0.3)"
+                                    autoCapitalize="sentences"
                                 />
 
-                                <AmountInput2
-                                    label="Số dư hiện tại (₫)"
+                                <Text style={[styles.inputLabel, { marginTop: 20 }]}>Số dư hiện tại (₫)</Text>
+                                <TextInput
+                                    style={styles.inputField}
                                     value={balanceStr}
-                                    onChangeText={setBalanceStr}
+                                    onChangeText={handleBalanceChange}
+                                    placeholder="0"
+                                    placeholderTextColor="rgba(235, 235, 245, 0.3)"
+                                    keyboardType="numeric"
                                 />
+                            </View>
+                            
+                            {/* Actions (Bottom) */}
+                            <View style={styles.actionsContainer}>
+                                <Pressable 
+                                    style={[styles.bottomBtn, styles.bottomBtnCancel]} 
+                                    onPress={handleClose}
+                                >
+                                    <Text style={styles.bottomBtnCancelText}>Hủy</Text>
+                                </Pressable>
 
-                                <View style={styles.actions}>
-                                    <LiquidButton2 title="Lưu thay đổi" onPress={handleSave} />
-                                    <LiquidButton2 title="Hủy" onPress={handleClose} />
-                                </View>
-                            </Pressable>
-                        </BackgroundLiquidGlass>
+                                <Pressable 
+                                    style={[styles.bottomBtn, styles.bottomBtnSave, isSaveDisabled && styles.bottomBtnDisabled]} 
+                                    onPress={handleSave}
+                                    disabled={isSaveDisabled}
+                                >
+                                    <Text style={styles.bottomBtnSaveText}>Lưu thay đổi</Text>
+                                </Pressable>
+                            </View>
+                        </View>
                     </Animated.View>
                 </KeyboardAvoidingView>
             </View>
@@ -144,46 +181,98 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
 };
 
 const styles = StyleSheet.create({
-    root: { flex: 1 },
+    root: { 
+        flex: 1,
+    },
+    overlay: {
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    },
     keyboardView: {
         flex: 1,
         justifyContent: 'flex-end',
     },
+    sheetContainer: {
+        width: '100%',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 12,
+        elevation: 20,
+    },
     sheet: {
-        borderBottomLeftRadius: 0,
-        borderBottomRightRadius: 0,
-        borderBottomWidth: 0,
-        paddingHorizontal: Spacing.xl,
-        paddingBottom: 40,
+        backgroundColor: '#1C1C1E', // Standard iOS dark modal background
+        borderTopLeftRadius: 16,
+        borderTopRightRadius: 16,
+        paddingBottom: Platform.OS === 'ios' ? 40 : 24,
     },
     handleBar: {
-        width: 40,
-        height: 4,
-        borderRadius: 2,
-        backgroundColor: 'rgba(255, 255, 255, 0.4)',
+        width: 36,
+        height: 5,
+        borderRadius: 2.5,
+        backgroundColor: '#545456',
         alignSelf: 'center',
-        marginTop: 12,
-        marginBottom: Spacing.lg,
+        marginTop: 10,
+        marginBottom: 6,
     },
-    title: {
-        fontSize: FontSizes.xl,
+    header: {
+        alignItems: 'center',
+        paddingVertical: 12,
+        marginBottom: 8,
+    },
+    headerTitle: {
+        fontSize: 18,
         fontWeight: '700',
         color: '#FFFFFF',
-        marginBottom: Spacing.xl,
-        textShadowColor: 'rgba(0,0,0,0.5)',
-        textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 2,
     },
-    label: {
-        fontSize: FontSizes.md - 1,
+    formContainer: {
+        paddingHorizontal: 20,
+        marginBottom: 32,
+    },
+    inputLabel: {
+        fontSize: 15,
         fontWeight: '600',
         color: 'rgba(255, 255, 255, 0.7)',
-        marginBottom: Spacing.sm,
+        marginBottom: 8,
     },
-    actions: {
+    inputField: {
+        backgroundColor: '#2C2C2E',
+        borderRadius: 12,
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        fontSize: 16,
+        color: '#FFFFFF',
+    },
+    actionsContainer: {
+        flexDirection: 'row',
+        paddingHorizontal: 20,
         gap: 12,
-        marginTop: Spacing.sm,
     },
+    bottomBtn: {
+        flex: 1,
+        paddingVertical: 16,
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    bottomBtnCancel: {
+        backgroundColor: '#2C2C2E',
+    },
+    bottomBtnSave: {
+        backgroundColor: '#0A84FF',
+    },
+    bottomBtnDisabled: {
+        opacity: 0.5,
+    },
+    bottomBtnCancelText: {
+        color: '#FFFFFF',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    bottomBtnSaveText: {
+        color: '#FFFFFF',
+        fontSize: 16,
+        fontWeight: '600',
+    }
 });
 
 export default EditWalletModal;

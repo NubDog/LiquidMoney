@@ -286,7 +286,7 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
             <PopupMenu
                 visible={activeModal === 'PopupMenu'}
                 onClose={() => setActiveModal(null)}
-                items={[{ id: '1', label: 'Option 1', icon: <Plus size={20} color="#fff" />, onPress: () => setActiveModal(null) }]}
+                items={[{ id: '1', label: 'Option 1', onPress: () => setActiveModal(null) }]}
                 anchor={{ x: 100, y: 100 }}
             />
 
