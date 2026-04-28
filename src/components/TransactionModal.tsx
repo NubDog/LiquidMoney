@@ -11,23 +11,21 @@ import {
     Modal,
     Platform,
     Pressable,
-    ScrollView,
     StyleSheet,
     Text,
     TextInput,
     View,
 } from 'react-native';
 import { Calendar as CalendarIcon, X } from 'lucide-react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
 import { animateSheetIn, animateSheetOut } from '../common/animations';
 import AnimatedOverlay from './AnimatedOverlay';
-import BackgroundLiquidGlass from './BackgroundLiquidGlass';
-import LiquidButton2 from './LiquidButton2';
-import IconButton from './IconButton';
-import LiquidSegmentedControl2 from './LiquidSegmentedControl2';
-import AmountInput2 from './AmountInput2';
-import LiquidInput from './LiquidInput';
+import AppleButton from './ui/AppleButton';
+import AppleTextInput from './ui/AppleTextInput';
+import AppleAmountInput from './ui/AppleAmountInput';
+import AppleDatePicker from './ui/AppleDatePicker';
+import AppleSegmentedControl from './ui/AppleSegmentedControl';
+import AppleCloseButton from './ui/AppleCloseButton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, FontSizes, Shadows, Spacing, Radii } from '../common/theme';
 
@@ -53,7 +51,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
     onDelete,
 }) => {
     const insets = useSafeAreaInsets();
-    const [activeTab, setActiveTab] = useState('Chi Tiêu');
+    const [activeTab, setActiveTab] = useState('Thu Nhập');
     const [amount, setAmount] = useState('');
     const [description, setDescription] = useState('');
     const [date, setDate] = useState(new Date());
@@ -71,7 +69,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
             setAmount('');
             setDescription('');
             setDate(new Date());
-            setActiveTab('Chi Tiêu');
+            setActiveTab('Thu Nhập');
         }
     }, [visible, translateY]);
 
@@ -118,26 +116,19 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                     style={styles.keyboardView}
                     pointerEvents="box-none">
                     <Animated.View style={[styles.sheetContainer, { transform: [{ translateY }] }]}>
-                        <BackgroundLiquidGlass
-                            style={styles.sheet}
-                            borderRadius={Radii.xxl}
-                        >
+                        <View style={styles.sheet}>
                             <View style={styles.handleBar} />
                             <View style={styles.header}>
                                 <Text style={styles.title}>Giao dịch mới</Text>
-                                <IconButton onPress={handleClose} style={styles.closeBtn} size={36} icon={<X size={20} color="#FFFFFF" strokeWidth={2.5} />} />
+                                <AppleCloseButton onPress={handleClose} size={32} />
                             </View>
 
-                            <ScrollView
-                                style={styles.scroll}
-                                contentContainerStyle={{ paddingBottom: insets.bottom }}
-                                showsVerticalScrollIndicator={false}
-                                keyboardShouldPersistTaps="handled">
+                            <View style={styles.formContainer}>
                                 <View style={styles.tabsWrapper}>
-                                    <LiquidSegmentedControl2
+                                    <AppleSegmentedControl
                                         options={[
-                                            { key: 'Chi Tiêu', label: 'CHI TIÊU' },
-                                            { key: 'Thu Nhập', label: 'THU NHẬP' }
+                                            { key: 'Thu Nhập', label: 'THU NHẬP' },
+                                            { key: 'Chi Tiêu', label: 'CHI TIÊU' }
                                         ]}
                                         selected={activeTab}
                                         onChange={(val) => setActiveTab(val as string)}
@@ -145,15 +136,15 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                                 </View>
 
                                 {/* AMOUNT INPUT */}
-                                <AmountInput2
+                                <AppleAmountInput
                                     label="Số tiền (₫)"
                                     value={amount}
                                     onChangeText={setAmount}
                                 />
 
                                 {/* DESCRIPTION INPUT */}
-                                <Text style={styles.label}>Mô tả</Text>
-                                <LiquidInput
+                                <AppleTextInput
+                                    label="Mô tả"
                                     value={description}
                                     onChangeText={setDescription}
                                     placeholder="VD: Cà phê sáng..."
@@ -171,29 +162,30 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                                     </Text>
                                 </Pressable>
 
-                                {showDatePicker && (
-                                    <DateTimePicker
-                                        value={date}
-                                        mode="date"
-                                        display="default"
-                                        onChange={(event, selectedDate) => {
-                                            setShowDatePicker(false);
-                                            if (selectedDate) {
-                                                setDate(selectedDate);
-                                            }
-                                        }}
-                                    />
-                                )}
+                                <AppleDatePicker
+                                    visible={showDatePicker}
+                                    date={date}
+                                    onConfirm={(newDate) => {
+                                        setDate(newDate);
+                                        setShowDatePicker(false);
+                                    }}
+                                    onCancel={() => setShowDatePicker(false)}
+                                />
 
                                 {/* ACTION BUTTON */}
-                                <LiquidButton2
-                                    title="Lưu Giao Dịch"
-                                    onPress={handleSave}
-                                    disabled={isSubmitting}
-                                    style={{ marginTop: Spacing.md, marginBottom: 2 }}
-                                />
-                            </ScrollView>
-                        </BackgroundLiquidGlass>
+                                <View style={styles.actionsContainer}>
+                                    <AppleButton
+                                        title="Lưu Giao Dịch"
+                                        onPress={handleSave}
+                                        disabled={isSubmitting}
+                                        style={{ width: '100%' }}
+                                    />
+                                </View>
+                            </View>
+                            
+                            {/* Bottom padding to push up content from the screen edge / home indicator */}
+                            <View style={{ height: Math.max(insets.bottom, 48) }} />
+                        </View>
                     </Animated.View>
                 </KeyboardAvoidingView>
             </View>
@@ -207,14 +199,13 @@ const styles = StyleSheet.create({
     sheetContainer: {
         borderTopLeftRadius: Radii.xxl,
         borderTopRightRadius: Radii.xxl,
+        backgroundColor: '#1C1C1E', // iOS Dark Mode Elevated
         ...Shadows.menu,
     },
     sheet: {
         borderBottomLeftRadius: 0,
         borderBottomRightRadius: 0,
         borderBottomWidth: 0,
-        paddingBottom: 40,
-        maxHeight: '88%',
     },
     handleBar: {
         width: 44,
@@ -236,44 +227,40 @@ const styles = StyleSheet.create({
         fontSize: FontSizes.xl + 2,
         fontWeight: '700',
         color: '#FFFFFF',
-        textShadowColor: 'rgba(0,0,0,0.5)',
-        textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 2,
     },
     closeBtn: {
     },
-    scroll: {
+    formContainer: {
         paddingHorizontal: Spacing.xl,
     },
     tabsWrapper: {
         marginBottom: Spacing.xl,
     },
     label: {
-        fontSize: FontSizes.md,
-        fontWeight: '600',
-        color: 'rgba(255, 255, 255, 0.7)',
-        marginBottom: Spacing.sm,
-    },
-    amountInput: {
-        fontSize: FontSizes.xxl,
-        fontWeight: '800',
-        paddingVertical: Spacing.lg,
+        fontSize: 13,
+        color: 'rgba(235, 235, 245, 0.6)',
+        marginBottom: 8,
+        marginLeft: 4,
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
     },
     datePickerBtn: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.08)',
-        borderRadius: Radii.md,
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.2)',
-        padding: Spacing.md,
+        backgroundColor: '#2C2C2E', // iOS Dark Mode Elevated
+        borderRadius: 100, // Pill-shape to match inputs
+        paddingHorizontal: 20,
+        paddingVertical: 14,
         gap: Spacing.sm,
-        marginBottom: Spacing.xxl,
+        marginBottom: Spacing.md,
     },
     dateText: {
-        fontSize: FontSizes.lg - 2,
+        fontSize: 16,
         color: '#FFFFFF',
         fontWeight: '500',
+    },
+    actionsContainer: {
+        paddingTop: Spacing.xl,
     },
 });
 
