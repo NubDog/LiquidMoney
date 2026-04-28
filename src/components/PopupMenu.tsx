@@ -7,6 +7,7 @@ import {
     Text,
     View,
     Dimensions,
+    Easing,
 } from 'react-native';
 import { Colors, FontSizes, Radii, Shadows, Spacing } from '../common/theme';
 import BackgroundLiquidGlass from './BackgroundLiquidGlass';
@@ -43,31 +44,34 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
         if (visible) {
             setIsRendered(true);
             
-            // Reset before animating
-            scaleAnim.setValue(0.9);
+            // Reset before animating (start closer to 1 to avoid large leaps)
+            scaleAnim.setValue(0.85);
             opacityAnim.setValue(0);
-            translateYAnim.setValue(-10);
+            translateYAnim.setValue(-15);
             
-            // Smooth, standard enter animation
-            Animated.parallel([
-                Animated.timing(opacityAnim, {
-                    toValue: 1,
-                    duration: 200,
-                    useNativeDriver: true,
-                }),
-                Animated.spring(scaleAnim, {
-                    toValue: 1,
-                    stiffness: 300,
-                    damping: 25,
-                    useNativeDriver: true,
-                }),
-                Animated.spring(translateYAnim, {
-                    toValue: 0,
-                    stiffness: 300,
-                    damping: 25,
-                    useNativeDriver: true,
-                }),
-            ]).start();
+            // Wait for Modal to mount to prevent frame drops/stuttering
+            requestAnimationFrame(() => {
+                Animated.parallel([
+                    Animated.timing(opacityAnim, {
+                        toValue: 1,
+                        duration: 150,
+                        easing: Easing.out(Easing.cubic),
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(scaleAnim, {
+                        toValue: 1,
+                        duration: 250,
+                        easing: Easing.out(Easing.back(1.2)),
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(translateYAnim, {
+                        toValue: 0,
+                        duration: 250,
+                        easing: Easing.out(Easing.back(1.2)),
+                        useNativeDriver: true,
+                    }),
+                ]).start();
+            });
         } else if (isRendered) {
             // Smooth exit animation
             Animated.parallel([
@@ -77,7 +81,7 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
                     useNativeDriver: true,
                 }),
                 Animated.timing(scaleAnim, {
-                    toValue: 0.9,
+                    toValue: 0.8,
                     duration: 150,
                     useNativeDriver: true,
                 }),

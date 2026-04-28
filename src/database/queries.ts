@@ -269,12 +269,19 @@ export function generateRandomTransactions(
     const commands: [string, any[]][] = [];
 
     for (let i = 0; i < count; i++) {
-        // Random Type (60% OUT, 40% IN)
-        const isOut = Math.random() > 0.4;
+        // Random Type (50% OUT, 50% IN)
+        const isOut = Math.random() >= 0.5;
         const type = isOut ? 'OUT' : 'IN';
 
-        // Random Amount: 10k đến 5tr, làm tròn ngàn
-        const baseAmount = Math.floor(Math.random() * 4990000) + 10000;
+        // Random Amount:
+        // IN: 1tr đến 15tr (Lương, thưởng...)
+        // OUT: 10k đến 500k (Cà phê, ăn uống...)
+        let baseAmount = 0;
+        if (isOut) {
+            baseAmount = Math.floor(Math.random() * 490000) + 10000; // 10k -> 500k
+        } else {
+            baseAmount = Math.floor(Math.random() * 14000000) + 1000000; // 1M -> 15M
+        }
         const amount = Math.floor(baseAmount / 1000) * 1000;
 
         // Random reason
@@ -305,6 +312,52 @@ export function generateRandomTransactions(
     } catch (e: any) {
         progressCallback(`> [ERROR] ${e.message}`);
     }
+}
+
+/**
+ * Developer Tool: Tạo ngẫu nhiên tối đa 5 ví mới với số dư ngẫu nhiên
+ */
+export function generateRandomWallets(
+    count: number,
+    progressCallback: (msg: string) => void
+): void {
+    const db = getDatabase();
+    
+    const walletNames = ['Ví tiền mặt', 'Thẻ tín dụng', 'Tiết kiệm', 'Đầu tư', 'Ví đen', 'Quỹ du lịch', 'Crypto', 'Ví trả sau'];
+    const icons = ['Wallet', 'CreditCard', 'PiggyBank', 'Briefcase', 'Banknote', 'Gem', 'Bitcoin', 'DollarSign'];
+
+    const actualCount = Math.min(count, 5); // Tối đa 5 ví mỗi lần
+    
+    for (let i = 0; i < actualCount; i++) {
+        const id = generateUUID();
+        const name = walletNames[Math.floor(Math.random() * walletNames.length)] + ' ' + Math.floor(Math.random() * 100);
+        const icon = icons[Math.floor(Math.random() * icons.length)];
+        
+        // Random Số dư ban đầu: 1tr đến 50tr
+        const baseAmount = Math.floor(Math.random() * 49000000) + 1000000;
+        const initialBalance = Math.floor(baseAmount / 10000) * 10000;
+        const createdAt = nowISO();
+
+        db.execute(
+            `INSERT INTO wallets (id, name, initial_balance, current_balance, icon, image_uri, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?);`,
+            [id, name, initialBalance, initialBalance, icon, null, createdAt]
+        );
+        progressCallback(`> Created wallet: ${name} (${initialBalance.toLocaleString('vi-VN')} đ)`);
+    }
+}
+
+/**
+ * Developer Tool: Xóa toàn bộ dữ liệu (Ví và Giao dịch)
+ */
+export function deleteAllData(): void {
+    const db = getDatabase();
+    
+    // Xóa tất cả giao dịch
+    db.execute('DELETE FROM transactions;');
+    
+    // Xóa tất cả ví
+    db.execute('DELETE FROM wallets;');
 }
 
 /**

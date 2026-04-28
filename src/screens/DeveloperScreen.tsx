@@ -22,7 +22,7 @@ import { Code, Database, Bug, Play, TerminalSquare } from 'lucide-react-native';
 import BackgroundLiquidGlass from '../components/BackgroundLiquidGlass';
 import TerminalLogModal from '../components/TerminalLogModal';
 import { useStore } from '../store/useStore';
-import { generateRandomTransactions } from '../database/queries';
+import { generateRandomTransactions, generateRandomWallets, deleteAllData } from '../database/queries';
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
 import ComponentLibraryScreen from './ComponentLibraryScreen';
 
@@ -33,6 +33,7 @@ const DeveloperScreen: React.FC = () => {
     const { wallets, refreshWallets } = useStore();
 
     const [txCountStr, setTxCountStr] = useState<string>('50');
+    const [walletCountStr, setWalletCountStr] = useState<string>('5');
     const [isGenerating, setIsGenerating] = useState(false);
 
     // Terminal Log State
@@ -95,6 +96,87 @@ const DeveloperScreen: React.FC = () => {
         setIsComplete(true);
         setIsGenerating(false);
     }, [txCountStr, wallets, refreshWallets]);
+    const handleGenerateWallets = useCallback(async () => {
+        Keyboard.dismiss();
+
+        let count = parseInt(walletCountStr, 10);
+        if (isNaN(count) || count <= 0) {
+            Alert.alert('Lỗi', 'Số lượng không hợp lệ');
+            return;
+        }
+        if (count > 5) {
+            count = 5;
+            setWalletCountStr('5');
+        }
+
+        setLogs([`> Target: Generate ${count} random wallets`, '> Starting...']);
+        setIsComplete(false);
+        setShowTerminal(true);
+        setIsGenerating(true);
+
+        const appendLog = (msg: string) => {
+            setLogs(prev => [...prev, msg]);
+        };
+
+        await new Promise(r => setTimeout(() => r(null), 400));
+
+        try {
+            generateRandomWallets(count, appendLog);
+        } catch (err: any) {
+            appendLog(`> [ERROR] ${err.message}`);
+        }
+
+        appendLog('\n> Refreshing global store...');
+        refreshWallets();
+
+        await new Promise(r => setTimeout(() => r(null), 300));
+        appendLog('> [SUCCESS] Done!');
+
+        setIsComplete(true);
+        setIsGenerating(false);
+    }, [walletCountStr, refreshWallets]);
+
+    const handleWipeData = useCallback(() => {
+        Alert.alert(
+            'Xóa toàn bộ dữ liệu',
+            'Hành động này sẽ xóa vĩnh viễn tất cả Ví và Giao dịch. Bạn có chắc chắn không?',
+            [
+                { text: 'Hủy', style: 'cancel' },
+                {
+                    text: 'Xóa',
+                    style: 'destructive',
+                    onPress: async () => {
+                        setLogs(['> WARNING: Wiping all database records...', '> Starting...']);
+                        setIsComplete(false);
+                        setShowTerminal(true);
+                        setIsGenerating(true);
+
+                        const appendLog = (msg: string) => {
+                            setLogs(prev => [...prev, msg]);
+                        };
+
+                        await new Promise(r => setTimeout(() => r(null), 400));
+
+                        try {
+                            deleteAllData();
+                            appendLog('> [SUCCESS] All wallets and transactions deleted.');
+                        } catch (err: any) {
+                            appendLog(`> [ERROR] ${err.message}`);
+                        }
+
+                        appendLog('\n> Refreshing global store...');
+                        refreshWallets();
+
+                        await new Promise(r => setTimeout(() => r(null), 300));
+                        appendLog('> [SUCCESS] Done!');
+
+                        setIsComplete(true);
+                        setIsGenerating(false);
+                    }
+                }
+            ]
+        );
+    }, [refreshWallets]);
 
     const closeTerminal = useCallback(() => {
         setShowTerminal(false);
@@ -159,6 +241,86 @@ const DeveloperScreen: React.FC = () => {
                                 <>
                                     <Play size={16} color="#064e3b" strokeWidth={3} />
                                     <Text style={styles.runBtnText}>Run Generation</Text>
+                                </>
+                            )}
+                        </Pressable>
+                    </View>
+                </BackgroundLiquidGlass>
+
+                {/* Mock Wallet Generator Card */}
+                <BackgroundLiquidGlass
+                    style={styles.card}
+                    borderRadius={Radii.xl}>
+                    <View style={styles.cardInner}>
+                        <View style={styles.cardHeader}>
+                            <Database size={20} color={Colors.cyan} strokeWidth={2} />
+                            <Text style={styles.cardTitle}>Mock Wallets Generator</Text>
+                        </View>
+                        <Text style={styles.cardDesc}>
+                            Tạo ví ngẫu nhiên với số dư ban đầu từ 1 đến 50 triệu.
+                        </Text>
+
+                        <View style={styles.inputContainer}>
+                            <Text style={styles.inputLabel}>Số lượng (tối đa 5):</Text>
+                            <TextInput
+                                style={styles.input}
+                                value={walletCountStr}
+                                onChangeText={setWalletCountStr}
+                                keyboardType="number-pad"
+                                placeholder="5"
+                                placeholderTextColor={Colors.textMuted}
+                                maxLength={1}
+                            />
+                        </View>
+
+                        <Pressable
+                            onPress={handleGenerateWallets}
+                            disabled={isGenerating}
+                            style={({ pressed }) => [
+                                styles.runBtn,
+                                { backgroundColor: Colors.cyan },
+                                pressed && { opacity: 0.8 },
+                                isGenerating && styles.runBtnDisabled,
+                            ]}>
+                            {isGenerating ? (
+                                <ActivityIndicator size="small" color="#000" />
+                            ) : (
+                                <>
+                                    <Play size={16} color="#083344" strokeWidth={3} />
+                                    <Text style={[styles.runBtnText, { color: '#083344' }]}>Run Generation</Text>
+                                </>
+                            )}
+                        </Pressable>
+                    </View>
+                </BackgroundLiquidGlass>
+
+                {/* Wipe Data Card */}
+                <BackgroundLiquidGlass
+                    style={styles.card}
+                    borderRadius={Radii.xl}>
+                    <View style={styles.cardInner}>
+                        <View style={styles.cardHeader}>
+                            <Bug size={20} color={Colors.expense} strokeWidth={2} />
+                            <Text style={[styles.cardTitle, { color: Colors.expense }]}>Wipe All Data</Text>
+                        </View>
+                        <Text style={styles.cardDesc}>
+                            Xóa toàn bộ Ví và Giao dịch khỏi cơ sở dữ liệu.
+                        </Text>
+
+                        <Pressable
+                            onPress={handleWipeData}
+                            disabled={isGenerating}
+                            style={({ pressed }) => [
+                                styles.runBtn,
+                                { backgroundColor: 'rgba(239, 68, 68, 0.15)', borderWidth: 1, borderColor: 'rgba(239, 68, 68, 0.3)' },
+                                pressed && { opacity: 0.8 },
+                                isGenerating && styles.runBtnDisabled,
+                            ]}>
+                            {isGenerating ? (
+                                <ActivityIndicator size="small" color={Colors.expense} />
+                            ) : (
+                                <>
+                                    <Text style={[styles.runBtnText, { color: Colors.expense }]}>Xóa toàn bộ dữ liệu</Text>
                                 </>
                             )}
                         </Pressable>

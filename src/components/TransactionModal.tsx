@@ -52,7 +52,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
 }) => {
     const insets = useSafeAreaInsets();
     const [activeTab, setActiveTab] = useState('Thu Nhập');
-    const [amount, setAmount] = useState('0');
+    const [amount, setAmount] = useState('');
     const [description, setDescription] = useState('');
     const [date, setDate] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
@@ -66,7 +66,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
         if (visible) {
             animateSheetIn(translateY).start();
             // Reset state
-            setAmount('0');
+            setAmount('');
             setDescription('');
             setDate(new Date());
             setActiveTab('Thu Nhập');
@@ -140,6 +140,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                                     label="Số tiền (₫)"
                                     value={amount}
                                     onChangeText={setAmount}
+                                    placeholder="0"
                                 />
 
                                 {/* DESCRIPTION INPUT */}
@@ -182,7 +183,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                                     />
                                 </View>
                             </View>
-                            
+
                             {/* Bottom padding to push up content from the screen edge / home indicator */}
                             <View style={{ height: Math.max(insets.bottom, 48) }} />
                         </View>
