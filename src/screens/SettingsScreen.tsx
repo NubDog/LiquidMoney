@@ -1,6 +1,6 @@
 /**
  * SettingsScreen.tsx — Settings screen
- * Apple iOS 17/18 Inset Grouped UI redesign.
+ * Minimalist, Flat, No Liquid Glass
  */
 
 import React, { useCallback, useState } from 'react';
@@ -15,13 +15,13 @@ import {
     View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronRight } from 'lucide-react-native';
+import { CheckCircle2, XCircle } from 'lucide-react-native';
 import InfoDialog from '../components/InfoDialog';
 import ConfirmImportDialog2 from '../components/ConfirmImportDialog2';
 import BackgroundPickerModal from '../components/BackgroundPickerModal';
 import { useStore } from '../store/useStore';
 import { isDatabaseAvailable } from '../database/db';
-import { Colors, Spacing } from '../common/theme';
+import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -29,52 +29,7 @@ function isBackupAvailable(): boolean {
     return NativeModules.RNFSManager != null;
 }
 
-// ─── UI Components ────────────────────────────────────────────────────────────
-
-const AppleListGroup: React.FC<{ children: React.ReactNode; title?: string; footer?: string }> = ({ children, title, footer }) => (
-    <View style={styles.groupContainer}>
-        {title && <Text style={styles.groupTitle}>{title.toUpperCase()}</Text>}
-        <View style={styles.groupBody}>
-            {children}
-        </View>
-        {footer && <Text style={styles.groupFooter}>{footer}</Text>}
-    </View>
-);
-
-const AppleListRow: React.FC<{
-    label: string;
-    value?: string | React.ReactNode;
-    isLast?: boolean;
-    onPress?: () => void;
-    showChevron?: boolean;
-    valueColor?: string;
-}> = ({ label, value, isLast, onPress, showChevron, valueColor }) => {
-    const Component = onPress ? Pressable : View;
-    return (
-        <View style={styles.rowWrapper}>
-            <Component
-                style={({ pressed }) => [
-                    styles.rowInner,
-                    pressed && onPress ? styles.rowPressed : null
-                ]}
-                onPress={onPress}
-            >
-                <Text style={styles.rowLabel}>{label}</Text>
-                <View style={styles.rowRight}>
-                    {typeof value === 'string' ? (
-                        <Text style={[styles.rowValue, valueColor ? { color: valueColor } : null]}>{value}</Text>
-                    ) : (
-                        value
-                    )}
-                    {showChevron && <ChevronRight size={16} color="#48484A" style={{ marginLeft: 6 }} />}
-                </View>
-            </Component>
-            {!isLast && <View style={styles.rowSeparator} />}
-        </View>
-    );
-};
-
-// ─── Main Component ───────────────────────────────────────────────────────────
+// ─── Component ────────────────────────────────────────────────────────────────
 
 const SettingsScreen: React.FC = () => {
     const insets = useSafeAreaInsets();
@@ -94,7 +49,7 @@ const SettingsScreen: React.FC = () => {
     const [backgroundPickerVisible, setBackgroundPickerVisible] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
 
-    // Data
+    // Thông tin tổng quan
     const totalWallets = wallets.length;
     const totalBalance = wallets.reduce((s, w) => s + w.current_balance, 0);
     const dbAvailable = isDatabaseAvailable();
@@ -180,10 +135,10 @@ const SettingsScreen: React.FC = () => {
     // ─── Render ─────────────────────────────────────────────────────────────
 
     return (
-        <View style={styles.container}>
+        <>
             <ScrollView
-                style={styles.scrollView}
-                contentContainerStyle={[styles.content, { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 40 }]}
+                style={[styles.container, { paddingTop: insets.top + 16 }]}
+                contentContainerStyle={styles.content}
                 showsVerticalScrollIndicator={false}
                 refreshControl={
                     <RefreshControl
@@ -194,74 +149,147 @@ const SettingsScreen: React.FC = () => {
                             setTimeout(() => setRefreshing(false), 300);
                         }}
                         tintColor="rgba(255,255,255,0.3)"
-                        colors={[Colors.cyan]}
+                        colors={['#22d3ee']}
                     />
                 }>
                 
-                <Text style={styles.largeTitle}>Cài đặt</Text>
+                <Text style={styles.pageTitle}>Cài đặt</Text>
 
-                {/* Giao diện */}
-                <AppleListGroup title="Giao diện" footer="Tùy chỉnh hình nền hiển thị phía sau các màn hình của ứng dụng.">
-                    <AppleListRow 
-                        label="Chọn Hình Nền" 
-                        showChevron 
-                        onPress={() => setBackgroundPickerVisible(true)} 
-                        isLast 
-                    />
-                </AppleListGroup>
+                {/* ── App Info Card ── */}
+                <View style={styles.card}>
+                    <Text style={styles.cardTitle}>Tổng quan</Text>
 
-                {/* Dữ liệu */}
-                <AppleListGroup title="Dữ liệu & Sao lưu" footer="Xuất toàn bộ ví và giao dịch ra file JSON vào thư mục Downloads của máy. Nhập lại khi cần.">
-                    <AppleListRow 
-                        label="Xuất dữ liệu" 
-                        value={exporting ? 'Đang xử lý...' : ''}
-                        showChevron={!exporting && dbAvailable}
-                        onPress={dbAvailable && !exporting ? handleExport : undefined}
-                    />
-                    <AppleListRow 
-                        label="Nhập dữ liệu" 
-                        value={importing ? 'Đang xử lý...' : ''}
-                        showChevron={!importing && dbAvailable}
-                        onPress={dbAvailable && !importing ? handleImportPress : undefined}
-                        isLast 
-                    />
-                </AppleListGroup>
+                    <View style={styles.infoRow}>
+                        <Text style={styles.infoLabel}>Số ví</Text>
+                        <Text style={styles.infoValue}>{totalWallets}</Text>
+                    </View>
 
-                {/* Developer */}
-                <AppleListGroup title="Nhà phát triển" footer="Bật chế độ nhà phát triển để truy cập công cụ debug.">
-                    <AppleListRow 
-                        label="Chế độ Developer" 
-                        value={
-                            <Switch
-                                value={isDeveloperMode}
-                                onValueChange={toggleDeveloperMode}
-                                trackColor={{ false: '#39393D', true: Colors.income }}
-                                thumbColor="#FFFFFF"
-                            />
-                        }
-                        isLast 
-                    />
-                </AppleListGroup>
+                    <View style={styles.divider} />
 
-                {/* Thông tin */}
-                <AppleListGroup title="Thông tin ứng dụng">
-                    <AppleListRow label="Phiên bản" value="20.02.2026.2" />
-                    <AppleListRow label="Nền tảng" value="React Native" />
-                    <AppleListRow label="Số ví" value={totalWallets.toString()} />
-                    <AppleListRow label="Tổng số dư" value={`${totalBalance.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')} ₫`} />
-                    <AppleListRow 
-                        label="Database" 
-                        value={dbAvailable ? 'Hoạt động' : 'Chưa sẵn sàng'} 
-                        valueColor={dbAvailable ? Colors.income : Colors.expense}
-                    />
-                    <AppleListRow 
-                        label="Backup Service" 
-                        value={backupAvailable ? 'Sẵn sàng' : 'Cần rebuild'} 
-                        valueColor={backupAvailable ? Colors.income : Colors.expense}
-                        isLast 
-                    />
-                </AppleListGroup>
+                    <View style={styles.infoRow}>
+                        <Text style={styles.infoLabel}>Tổng số dư</Text>
+                        <Text style={styles.infoValueAccent}>
+                            {totalBalance
+                                .toString()
+                                .replace(/\B(?=(\d{3})+(?!\d))/g, '.')}{' '}
+                            ₫
+                        </Text>
+                    </View>
 
+                    <View style={styles.divider} />
+
+                    <View style={styles.infoRow}>
+                        <Text style={styles.infoLabel}>Database</Text>
+                        <View style={styles.statusRow}>
+                            {dbAvailable ? (
+                                <>
+                                    <CheckCircle2 size={16} color={Colors.income} />
+                                    <Text style={[styles.statusText, { color: Colors.income }]}>Hoạt động</Text>
+                                </>
+                            ) : (
+                                <>
+                                    <XCircle size={16} color={Colors.expense} />
+                                    <Text style={[styles.statusText, { color: Colors.expense }]}>Chưa sẵn sàng</Text>
+                                </>
+                            )}
+                        </View>
+                    </View>
+
+                    <View style={styles.divider} />
+
+                    <View style={styles.infoRow}>
+                        <Text style={styles.infoLabel}>Backup</Text>
+                        <View style={styles.statusRow}>
+                            {backupAvailable ? (
+                                <>
+                                    <CheckCircle2 size={16} color={Colors.income} />
+                                    <Text style={[styles.statusText, { color: Colors.income }]}>Sẵn sàng</Text>
+                                </>
+                            ) : (
+                                <>
+                                    <XCircle size={16} color={Colors.expense} />
+                                    <Text style={[styles.statusText, { color: Colors.expense }]}>Cần rebuild</Text>
+                                </>
+                            )}
+                        </View>
+                    </View>
+                </View>
+
+                {/* ── Appearance Card ── */}
+                <View style={styles.card}>
+                    <Text style={styles.cardTitle}>Giao diện</Text>
+                    <Text style={styles.cardDesc}>
+                        Tùy chỉnh hình nền hiển thị trong ứng dụng.
+                    </Text>
+                    <Pressable 
+                        style={styles.actionBtn}
+                        onPress={() => setBackgroundPickerVisible(true)}>
+                        <Text style={styles.actionBtnText}>Chọn hình nền</Text>
+                    </Pressable>
+                </View>
+
+                {/* ── Backup / Restore Card ── */}
+                <View style={styles.card}>
+                    <Text style={styles.cardTitle}>Dữ liệu</Text>
+                    <Text style={styles.cardDesc}>
+                        Xuất dữ liệu an toàn hoặc phục hồi từ bản sao lưu.
+                    </Text>
+
+                    <View style={styles.buttonGroup}>
+                        <Pressable
+                            style={[styles.actionBtn, (exporting || !dbAvailable) && styles.disabledBtn]}
+                            onPress={handleExport}
+                            disabled={exporting || !dbAvailable}>
+                            <Text style={styles.actionBtnText}>{exporting ? 'Đang xuất...' : 'Xuất dữ liệu'}</Text>
+                        </Pressable>
+
+                        <Pressable
+                            style={[styles.actionBtn, (importing || !dbAvailable) && styles.disabledBtn]}
+                            onPress={handleImportPress}
+                            disabled={importing || !dbAvailable}>
+                            <Text style={styles.actionBtnText}>{importing ? 'Đang nhập...' : 'Nhập dữ liệu'}</Text>
+                        </Pressable>
+                    </View>
+                </View>
+
+                {/* ── Developer Mode Card ── */}
+                <View style={styles.card}>
+                    <Text style={styles.cardTitle}>Nhà phát triển</Text>
+                    <Text style={styles.cardDesc}>
+                        Bật để sử dụng các công cụ gỡ lỗi nội bộ.
+                    </Text>
+                    <View style={styles.infoRow}>
+                        <Text style={styles.infoLabel}>Chế độ Developer</Text>
+                        <Switch
+                            value={isDeveloperMode}
+                            onValueChange={toggleDeveloperMode}
+                            trackColor={{
+                                false: 'rgba(255,255,255,0.1)',
+                                true: 'rgba(34,211,238,0.3)',
+                            }}
+                            thumbColor={isDeveloperMode ? Colors.cyan : '#f4f3f4'}
+                        />
+                    </View>
+                </View>
+
+                {/* ── About Card ── */}
+                <View style={[styles.card, { marginBottom: Spacing.xl }]}>
+                    <Text style={styles.cardTitle}>Về ứng dụng</Text>
+
+                    <View style={styles.infoRow}>
+                        <Text style={styles.infoLabel}>Phiên bản</Text>
+                        <Text style={styles.infoValue}>20.02.2026.3</Text>
+                    </View>
+
+                    <View style={styles.divider} />
+
+                    <View style={styles.infoRow}>
+                        <Text style={styles.infoLabel}>Nền tảng</Text>
+                        <Text style={styles.infoValue}>React Native</Text>
+                    </View>
+                </View>
+
+                <View style={{ height: insets.bottom + 40 }} />
             </ScrollView>
 
             {/* Dialogs */}
@@ -283,7 +311,7 @@ const SettingsScreen: React.FC = () => {
                 visible={backgroundPickerVisible}
                 onClose={() => setBackgroundPickerVisible(false)}
             />
-        </View>
+        </>
     );
 };
 
@@ -292,75 +320,96 @@ const SettingsScreen: React.FC = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#000000',
-    },
-    scrollView: {
-        flex: 1,
+        paddingHorizontal: Spacing.lg,
     },
     content: {
-        paddingHorizontal: Spacing.md,
+        paddingBottom: 120,
     },
-    largeTitle: {
-        fontSize: 32,
-        fontWeight: 'bold',
+    pageTitle: {
+        fontSize: FontSizes.xxl,
+        fontWeight: '800',
         color: '#FFFFFF',
-        marginBottom: 24,
-        marginTop: 10,
-        paddingHorizontal: Spacing.sm,
+        marginBottom: Spacing.xl,
+        marginTop: Spacing.sm,
+        letterSpacing: -0.5,
     },
-    // Group
-    groupContainer: {
-        marginBottom: 24,
-    },
-    groupTitle: {
-        fontSize: 13,
-        color: '#8E8E93',
-        marginBottom: 6,
-        paddingHorizontal: 16,
-    },
-    groupFooter: {
-        fontSize: 13,
-        color: '#8E8E93',
-        marginTop: 6,
-        paddingHorizontal: 16,
-        lineHeight: 18,
-    },
-    groupBody: {
+
+    // ── Card ──
+    card: {
         backgroundColor: '#1C1C1E',
-        borderRadius: 10,
-        overflow: 'hidden',
+        borderRadius: 20,
+        padding: Spacing.lg,
+        marginBottom: Spacing.lg,
     },
-    // Row
-    rowWrapper: {
-        backgroundColor: '#1C1C1E',
+    cardTitle: {
+        fontSize: FontSizes.lg,
+        fontWeight: '700',
+        color: '#FFFFFF',
+        marginBottom: 8,
+        letterSpacing: -0.3,
     },
-    rowInner: {
+    cardDesc: {
+        fontSize: FontSizes.md,
+        color: 'rgba(255, 255, 255, 0.5)',
+        lineHeight: 22,
+        marginBottom: Spacing.lg,
+    },
+
+    // ── Info rows ──
+    infoRow: {
         flexDirection: 'row',
-        alignItems: 'center',
         justifyContent: 'space-between',
-        paddingVertical: 14,
-        paddingHorizontal: 16,
-        minHeight: 44,
+        alignItems: 'center',
+        paddingVertical: 12,
     },
-    rowPressed: {
-        backgroundColor: '#2C2C2E',
+    infoLabel: {
+        fontSize: FontSizes.md,
+        color: 'rgba(255, 255, 255, 0.6)',
+        fontWeight: '500',
     },
-    rowLabel: {
-        fontSize: 17,
+    infoValue: {
+        fontSize: FontSizes.md,
         color: '#FFFFFF',
+        fontWeight: '600',
     },
-    rowRight: {
+    infoValueAccent: {
+        fontSize: FontSizes.md,
+        color: Colors.cyan,
+        fontWeight: '700',
+    },
+    statusRow: {
         flexDirection: 'row',
         alignItems: 'center',
+        gap: 6,
     },
-    rowValue: {
-        fontSize: 17,
-        color: '#8E8E93',
+    statusText: {
+        fontSize: FontSizes.sm,
+        fontWeight: '600',
     },
-    rowSeparator: {
-        height: StyleSheet.hairlineWidth,
-        backgroundColor: '#38383A',
-        marginLeft: 16,
+    divider: {
+        height: 1,
+        backgroundColor: 'rgba(255, 255, 255, 0.06)',
+        marginVertical: 4,
+    },
+
+    // ── Action Buttons ──
+    buttonGroup: {
+        gap: 12,
+    },
+    actionBtn: {
+        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+        paddingVertical: 14,
+        borderRadius: 14,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    actionBtnText: {
+        fontSize: FontSizes.md,
+        fontWeight: '600',
+        color: '#FFFFFF',
+    },
+    disabledBtn: {
+        opacity: 0.4,
     },
 });
 
