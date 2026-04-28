@@ -5,12 +5,13 @@ import {
     View,
     LayoutChangeEvent,
     StyleProp,
-    ViewStyle
+    ViewStyle,
+    TouchableOpacity
 } from 'react-native';
 import { Wallet } from 'lucide-react-native';
 import { FontSizes, Shadows, Radii, Spacing } from '../common/theme';
 import { formatVND } from '../common/formatters';
-import BackgroundLiquidGlass from './BackgroundLiquidGlass';
+import AppleGlassBackground from './ui/AppleGlassBackground';
 
 interface WalletCard2Props {
     name: string;
@@ -52,11 +53,16 @@ const WalletCard2: React.FC<WalletCard2Props> = ({
     };
 
     return (
-        <View style={[styles.wrapper, style]} onLayout={onLayout}>
-            <BackgroundLiquidGlass
-                onPress={onPress}
-                onLongPress={onLongPress}
-                disabled={!onPress && !onLongPress}
+        <TouchableOpacity 
+            style={[styles.wrapper, style]} 
+            onLayout={onLayout}
+            onPress={onPress}
+            onLongPress={onLongPress}
+            disabled={!onPress && !onLongPress}
+            activeOpacity={0.8}
+        >
+            <AppleGlassBackground
+                variant="chromeMaterial"
                 borderRadius={cardRadius}
                 fillContainer={true}
                 style={styles.container}
@@ -79,8 +85,8 @@ const WalletCard2: React.FC<WalletCard2Props> = ({
                         </Text>
                     </View>
                 </View>
-            </BackgroundLiquidGlass>
-        </View>
+            </AppleGlassBackground>
+        </TouchableOpacity>
     );
 };
 

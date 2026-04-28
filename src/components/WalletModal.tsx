@@ -14,10 +14,15 @@ import {
 } from 'react-native';
 
 import { Easing } from 'react-native';
-import BackgroundLiquidGlass from './BackgroundLiquidGlass';
+import AppleGlassBackground from './ui/AppleGlassBackground';
 import LiquidInput from './LiquidInput';
 import AmountInput2 from './AmountInput2';
 import LiquidButton2 from './LiquidButton2';
+import { animateSheetIn, animateSheetOut } from '../common/animations';
+import AnimatedOverlay from './AnimatedOverlay';
+import AppleCloseButton from './ui/AppleCloseButton';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Radii, Shadows, Spacing, FontSizes } from '../common/theme';
 
 interface WalletModalProps {
     visible: boolean;
@@ -32,36 +37,24 @@ const WalletModal: React.FC<WalletModalProps> = ({
     onClose,
     onSave,
 }) => {
+    const insets = useSafeAreaInsets();
     const [name, setName] = useState('');
     const [balanceStr, setBalanceStr] = useState('');
 
-    const animValue = useRef(new Animated.Value(0)).current;
+    const translateY = useRef(new Animated.Value(600)).current;
 
     useEffect(() => {
         if (visible) {
-            Animated.timing(animValue, {
-                toValue: 1,
-                duration: 350,
-                easing: Easing.out(Easing.poly(4)), // Rất mượt ở đoạn cuối
-                useNativeDriver: true,
-            }).start();
+            animateSheetIn(translateY).start();
             setName('');
             setBalanceStr('');
         }
-    }, [visible, animValue]);
+    }, [visible, translateY]);
 
     const handleClose = () => {
         Keyboard.dismiss();
-        Animated.timing(animValue, {
-            toValue: 0,
-            duration: 250,
-            easing: Easing.out(Easing.ease),
-            useNativeDriver: true,
-        }).start(({ finished }) => {
-            if (finished) {
-                onClose();
-                animValue.setValue(0);
-            }
+        animateSheetOut(translateY, 600, 250).start(({ finished }) => {
+            if (finished) onClose();
         });
     };
 
@@ -95,71 +88,64 @@ const WalletModal: React.FC<WalletModalProps> = ({
             statusBarTranslucent
             onRequestClose={handleClose}>
             <View style={styles.container}>
-                {/* Backdrop Layer */}
-                <Pressable style={styles.backdrop} onPress={handleClose}>
-                    <Animated.View
-                        style={[
-                            styles.backdropFill,
-                            {
-                                opacity: animValue
-                            }
-                        ]}
-                    />
-                </Pressable>
+                <AnimatedOverlay visible={visible} onPress={handleClose} />
 
                 <KeyboardAvoidingView
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                     style={styles.keyboardView}
                     pointerEvents="box-none">
-                    <Animated.View style={[styles.contentWrapper, { 
-                        opacity: animValue, 
-                        transform: [{ 
-                            scale: animValue.interpolate({
-                                inputRange: [0, 1],
-                                outputRange: [0.95, 1],
-                            }) 
-                        }] 
-                    }]}>
-                        <BackgroundLiquidGlass variant="dense" borderRadius={24} contentContainerStyle={styles.card}>
-                        {/* Header */}
-                        <View style={styles.header}>
-                            <Text style={styles.title}>Thêm Ví Mới</Text>
-                        </View>
-
-                        {/* Content */}
-                        <View style={styles.content}>
-                            <View style={styles.inputGroup}>
-                                <Text style={styles.label}>Tên ví</Text>
-                                <LiquidInput
-                                    containerStyle={styles.nameInputContainer}
-                                    style={styles.input}
-                                    value={name}
-                                    onChangeText={setName}
-                                    placeholder="VD: Tiền mặt, Thẻ tín dụng..."
-                                    autoCapitalize="sentences"
-                                    disableBlur={true}
-                                />
+                    <Animated.View style={[styles.sheetContainer, { transform: [{ translateY }] }]}>
+                        <AppleGlassBackground 
+                            variant="dark" 
+                            borderRadius={Radii.xxl} 
+                            style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+                            contentContainerStyle={styles.card}
+                        >
+                            <View style={styles.handleBar} />
+                            
+                            {/* Header */}
+                            <View style={styles.header}>
+                                <Text style={styles.title}>Thêm Ví Mới</Text>
+                                <AppleCloseButton onPress={handleClose} size={32} />
                             </View>
 
-                            <View style={styles.inputGroup}>
-                                <Text style={styles.label}>Số dư ban đầu</Text>
-                                <AmountInput2
-                                    style={styles.amountInputContainer}
-                                    value={balanceStr}
-                                    onChangeText={handleAmountChange}
+                            {/* Content */}
+                            <View style={styles.content}>
+                                <View style={styles.inputGroup}>
+                                    <Text style={styles.label}>Tên ví</Text>
+                                    <LiquidInput
+                                        containerStyle={styles.nameInputContainer}
+                                        style={styles.input}
+                                        value={name}
+                                        onChangeText={setName}
+                                        placeholder="VD: Tiền mặt, Thẻ tín dụng..."
+                                        autoCapitalize="sentences"
+                                        disableBlur={true}
+                                    />
+                                </View>
+
+                                <View style={styles.inputGroup}>
+                                    <Text style={styles.label}>Số dư ban đầu</Text>
+                                    <AmountInput2
+                                        style={styles.amountInputContainer}
+                                        value={balanceStr}
+                                        onChangeText={handleAmountChange}
+                                        disableBlur={true}
+                                    />
+                                </View>
+
+                                <LiquidButton2
+                                    title="Tạo Ví"
+                                    onPress={handleSave}
+                                    disabled={isSaveDisabled}
+                                    style={styles.saveBtn}
                                     disableBlur={true}
                                 />
+                                
+                                {/* Bottom padding to push up content from the screen edge / home indicator */}
+                                <View style={{ height: Math.max(insets.bottom, 48) }} />
                             </View>
-
-                            <LiquidButton2
-                                title="Tạo Ví"
-                                onPress={handleSave}
-                                disabled={isSaveDisabled}
-                                style={styles.saveBtn}
-                                disableBlur={true}
-                            />
-                        </View>
-                        </BackgroundLiquidGlass>
+                        </AppleGlassBackground>
                     </Animated.View>
                 </KeyboardAvoidingView>
             </View>
@@ -170,50 +156,44 @@ const WalletModal: React.FC<WalletModalProps> = ({
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    backdrop: {
-        ...StyleSheet.absoluteFillObject,
-    },
-    backdropFill: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.45)',
+        justifyContent: 'flex-end',
     },
     keyboardView: {
-        justifyContent: 'center',
-        alignItems: 'center',
+        flex: 1,
+        justifyContent: 'flex-end',
         width: '100%',
     },
-    contentWrapper: {
-        width: '85%',
-        maxWidth: 360,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.3,
-        shadowRadius: 20,
-        elevation: 10,
+    sheetContainer: {
+        width: '100%',
+        ...Shadows.menu,
     },
     card: {
-        paddingBottom: 24,
+        // Content wrapper
+    },
+    handleBar: {
+        width: 44,
+        height: 5,
+        borderRadius: 2.5,
+        backgroundColor: 'rgba(255,255,255,0.4)',
+        alignSelf: 'center',
+        marginTop: 12,
+        marginBottom: Spacing.md,
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 20,
-        paddingTop: 20,
-        paddingBottom: 16,
+        justifyContent: 'space-between',
+        paddingHorizontal: Spacing.xl,
+        paddingBottom: Spacing.lg,
     },
     title: {
-        fontSize: 20,
+        fontSize: FontSizes.xl + 2,
         fontWeight: '700',
         color: '#FFFFFF',
-        letterSpacing: -0.5,
     },
     content: {
-        paddingHorizontal: 20,
-        paddingTop: 24,
+        paddingHorizontal: Spacing.xl,
+        paddingTop: 10,
     },
     inputGroup: {
         marginBottom: 20,
@@ -223,6 +203,8 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         marginBottom: 8,
         fontWeight: '500',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
     },
     input: {
         fontSize: 16,

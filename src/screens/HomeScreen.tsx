@@ -19,6 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store/useStore';
 import { Wallet as WalletIcon, PieChart, Plus } from 'lucide-react-native';
 import BackgroundLiquidGlass from '../components/BackgroundLiquidGlass';
+import AppleGlassBackground from '../components/ui/AppleGlassBackground';
 import WalletModal from '../components/WalletModal';
 import EditWalletModal from '../components/EditWalletModal';
 import WalletCard2 from '../components/WalletCard2';
@@ -146,10 +147,15 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
                         </View>
                         
                         <View style={styles.heroFooter}>
-                            <View style={styles.badge}>
+                            <AppleGlassBackground
+                                variant="chromeMaterial"
+                                borderRadius={9999}
+                                style={styles.badge}
+                                contentContainerStyle={styles.badgeContent}
+                            >
                                 <WalletIcon size={16} color="#FFFFFF" strokeWidth={2.5} />
                                 <Text style={styles.badgeText}>{wallets.length} ví hoạt động</Text>
-                            </View>
+                            </AppleGlassBackground>
                         </View>
                     </View>
                 )}
@@ -281,14 +287,13 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     badge: {
+        borderRadius: 9999,
+    },
+    badgeContent: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.15)',
         paddingHorizontal: 16,
         paddingVertical: 8,
-        borderRadius: 9999,
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.25)',
     },
     badgeText: {
         marginLeft: 8,
