@@ -222,10 +222,11 @@ export function createTransaction(
     amount: number,
     reason?: string | null,
     imageUri?: string | null,
+    customDate?: string,
 ): Transaction {
     const db = getDatabase();
     const id = generateUUID();
-    const createdAt = nowISO();
+    const createdAt = customDate ?? nowISO();
 
     db.execute(
         `INSERT INTO transactions (id, wallet_id, type, amount, reason, image_uri, created_at)

@@ -130,12 +130,13 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
     }, []);
 
     const handleSave = useCallback(
-        (type: 'IN' | 'OUT', amount: number, reason?: string | null, imageUri?: string | null) => {
+        (type: 'IN' | 'OUT', amount: number, reason?: string | null, imageUri?: string | null, customDate?: string) => {
             LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
             if (editingTx) {
+                // Editing existing transaction (does not support changing date yet)
                 editTransaction(editingTx.id, walletId, type, amount, reason, imageUri);
             } else {
-                addTransaction(walletId, type, amount, reason, imageUri);
+                addTransaction(walletId, type, amount, reason, imageUri, customDate);
             }
         },
         [editingTx, walletId, addTransaction, editTransaction],

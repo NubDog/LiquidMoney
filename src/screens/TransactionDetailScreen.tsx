@@ -90,8 +90,8 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
     }, []);
 
     const handleSaveEdit = useCallback(
-        (type: 'IN' | 'OUT', amount: number, reason?: string | null, imageUri?: string | null) => {
-            onEdit(transaction.id, transaction.wallet_id, type, amount, reason, imageUri);
+        (type: 'IN' | 'OUT', amount: number, reason?: string | null, imageUri?: string | null, customDate?: string) => {
+            onEdit(transaction.id, transaction.wallet_id, type, amount, reason, imageUri); // customDate is ignored on edit for now
             onGoBack();
         },
         [transaction.id, transaction.wallet_id, onEdit, onGoBack],

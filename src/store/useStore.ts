@@ -102,6 +102,7 @@ interface StoreActions {
         amount: number,
         reason?: string | null,
         imageUri?: string | null,
+        date?: string,
     ) => void;
 
     /** Cập nhật giao dịch */
@@ -329,13 +330,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
             amount: number,
             reason?: string | null,
             imageUri?: string | null,
+            date?: string,
         ) => {
             if (!isDatabaseAvailable()) {
                 Alert.alert('Database chưa sẵn sàng', 'Cần rebuild native app.');
                 return;
             }
             try {
-                dbCreateTransaction(walletId, type, amount, reason, imageUri);
+                dbCreateTransaction(walletId, type, amount, reason, imageUri, date);
                 refreshTransactions(walletId);
             } catch (err) {
                 console.error('[Store] addTransaction error:', err);

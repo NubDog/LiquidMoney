@@ -32,7 +32,7 @@ import { Colors, FontSizes, Shadows, Spacing, Radii } from '../common/theme';
 interface TransactionModalProps {
     visible: boolean;
     onClose: () => void;
-    onSave: (type: 'IN' | 'OUT', amount: number, reason?: string | null, imageUri?: string | null) => void | Promise<void>;
+    onSave: (type: 'IN' | 'OUT', amount: number, reason?: string | null, imageUri?: string | null, customDate?: string) => void | Promise<void>;
     editData?: any | null;
     onDelete?: () => void;
 }
@@ -94,7 +94,8 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                 mappedType,
                 parseInt(amount.replace(/[^0-9]/g, ''), 10),
                 description,
-                null // imageUri
+                null, // imageUri
+                date.toISOString() // pass the selected date
             );
             handleClose();
         } catch (error) {
