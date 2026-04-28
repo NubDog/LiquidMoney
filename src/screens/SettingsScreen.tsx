@@ -1,7 +1,6 @@
 /**
  * SettingsScreen.tsx — Settings screen
- * Backup / Restore + App info + Developer Mode
- * Refactored: Extracted InfoDialog and ConfirmImportDialog into standalone components.
+ * Apple iOS 17/18 Inset Grouped UI redesign.
  */
 
 import React, { useCallback, useState } from 'react';
@@ -16,25 +15,13 @@ import {
     View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-    ChartPie,
-    Code,
-    HardDrive,
-    Info,
-    Upload,
-    Download,
-    CheckCircle2,
-    XCircle,
-    FolderOpen,
-} from 'lucide-react-native';
-import BackgroundLiquidGlass from '../components/BackgroundLiquidGlass';
-import LiquidButton2 from '../components/LiquidButton2';
+import { ChevronRight } from 'lucide-react-native';
 import InfoDialog from '../components/InfoDialog';
 import ConfirmImportDialog2 from '../components/ConfirmImportDialog2';
 import BackgroundPickerModal from '../components/BackgroundPickerModal';
 import { useStore } from '../store/useStore';
 import { isDatabaseAvailable } from '../database/db';
-import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
+import { Colors, Spacing } from '../common/theme';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -42,7 +29,52 @@ function isBackupAvailable(): boolean {
     return NativeModules.RNFSManager != null;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── UI Components ────────────────────────────────────────────────────────────
+
+const AppleListGroup: React.FC<{ children: React.ReactNode; title?: string; footer?: string }> = ({ children, title, footer }) => (
+    <View style={styles.groupContainer}>
+        {title && <Text style={styles.groupTitle}>{title.toUpperCase()}</Text>}
+        <View style={styles.groupBody}>
+            {children}
+        </View>
+        {footer && <Text style={styles.groupFooter}>{footer}</Text>}
+    </View>
+);
+
+const AppleListRow: React.FC<{
+    label: string;
+    value?: string | React.ReactNode;
+    isLast?: boolean;
+    onPress?: () => void;
+    showChevron?: boolean;
+    valueColor?: string;
+}> = ({ label, value, isLast, onPress, showChevron, valueColor }) => {
+    const Component = onPress ? Pressable : View;
+    return (
+        <View style={styles.rowWrapper}>
+            <Component
+                style={({ pressed }) => [
+                    styles.rowInner,
+                    pressed && onPress ? styles.rowPressed : null
+                ]}
+                onPress={onPress}
+            >
+                <Text style={styles.rowLabel}>{label}</Text>
+                <View style={styles.rowRight}>
+                    {typeof value === 'string' ? (
+                        <Text style={[styles.rowValue, valueColor ? { color: valueColor } : null]}>{value}</Text>
+                    ) : (
+                        value
+                    )}
+                    {showChevron && <ChevronRight size={16} color="#48484A" style={{ marginLeft: 6 }} />}
+                </View>
+            </Component>
+            {!isLast && <View style={styles.rowSeparator} />}
+        </View>
+    );
+};
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 
 const SettingsScreen: React.FC = () => {
     const insets = useSafeAreaInsets();
@@ -62,7 +94,7 @@ const SettingsScreen: React.FC = () => {
     const [backgroundPickerVisible, setBackgroundPickerVisible] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
 
-    // Thông tin tổng quan
+    // Data
     const totalWallets = wallets.length;
     const totalBalance = wallets.reduce((s, w) => s + w.current_balance, 0);
     const dbAvailable = isDatabaseAvailable();
@@ -148,10 +180,10 @@ const SettingsScreen: React.FC = () => {
     // ─── Render ─────────────────────────────────────────────────────────────
 
     return (
-        <>
+        <View style={styles.container}>
             <ScrollView
-                style={[styles.container, { paddingTop: insets.top + 16 }]}
-                contentContainerStyle={styles.content}
+                style={styles.scrollView}
+                contentContainerStyle={[styles.content, { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 40 }]}
                 showsVerticalScrollIndicator={false}
                 refreshControl={
                     <RefreshControl
@@ -162,184 +194,74 @@ const SettingsScreen: React.FC = () => {
                             setTimeout(() => setRefreshing(false), 300);
                         }}
                         tintColor="rgba(255,255,255,0.3)"
-                        colors={['#22d3ee']}
+                        colors={[Colors.cyan]}
                     />
                 }>
-                {/* ── App Info Card ── */}
-                <BackgroundLiquidGlass
-                    style={styles.card}
-                    
-                    borderRadius={Radii.xl}>
-                    <View style={styles.cardInner}>
-                        <View style={styles.cardHeader}>
-                            <ChartPie size={20} color={Colors.accentLight} strokeWidth={2} />
-                            <Text style={styles.cardTitle}>Tổng quan</Text>
-                        </View>
+                
+                <Text style={styles.largeTitle}>Cài đặt</Text>
 
-                        <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Số ví</Text>
-                            <Text style={styles.infoValue}>{totalWallets}</Text>
-                        </View>
+                {/* Giao diện */}
+                <AppleListGroup title="Giao diện" footer="Tùy chỉnh hình nền hiển thị phía sau các màn hình của ứng dụng.">
+                    <AppleListRow 
+                        label="Chọn Hình Nền" 
+                        showChevron 
+                        onPress={() => setBackgroundPickerVisible(true)} 
+                        isLast 
+                    />
+                </AppleListGroup>
 
-                        <View style={styles.divider} />
+                {/* Dữ liệu */}
+                <AppleListGroup title="Dữ liệu & Sao lưu" footer="Xuất toàn bộ ví và giao dịch ra file JSON vào thư mục Downloads của máy. Nhập lại khi cần.">
+                    <AppleListRow 
+                        label="Xuất dữ liệu" 
+                        value={exporting ? 'Đang xử lý...' : ''}
+                        showChevron={!exporting && dbAvailable}
+                        onPress={dbAvailable && !exporting ? handleExport : undefined}
+                    />
+                    <AppleListRow 
+                        label="Nhập dữ liệu" 
+                        value={importing ? 'Đang xử lý...' : ''}
+                        showChevron={!importing && dbAvailable}
+                        onPress={dbAvailable && !importing ? handleImportPress : undefined}
+                        isLast 
+                    />
+                </AppleListGroup>
 
-                        <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Tổng số dư</Text>
-                            <Text style={styles.infoValueAccent}>
-                                {totalBalance
-                                    .toString()
-                                    .replace(/\B(?=(\d{3})+(?!\d))/g, '.')}{' '}
-                                ₫
-                            </Text>
-                        </View>
-
-                        <View style={styles.divider} />
-
-                        <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Database</Text>
-                            <View style={styles.statusRow}>
-                                {dbAvailable ? (
-                                    <>
-                                        <CheckCircle2 size={16} color={Colors.income} />
-                                        <Text style={[styles.statusText, { color: Colors.income }]}>Hoạt động</Text>
-                                    </>
-                                ) : (
-                                    <>
-                                        <XCircle size={16} color={Colors.expense} />
-                                        <Text style={[styles.statusText, { color: Colors.expense }]}>Chưa sẵn sàng</Text>
-                                    </>
-                                )}
-                            </View>
-                        </View>
-
-                        <View style={styles.divider} />
-
-                        <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Backup</Text>
-                            <View style={styles.statusRow}>
-                                {backupAvailable ? (
-                                    <>
-                                        <CheckCircle2 size={16} color={Colors.income} />
-                                        <Text style={[styles.statusText, { color: Colors.income }]}>Sẵn sàng</Text>
-                                    </>
-                                ) : (
-                                    <>
-                                        <XCircle size={16} color={Colors.expense} />
-                                        <Text style={[styles.statusText, { color: Colors.expense }]}>Cần rebuild</Text>
-                                    </>
-                                )}
-                            </View>
-                        </View>
-                    </View>
-                </BackgroundLiquidGlass>
-
-                {/* ── Appearance Card ── */}
-                <BackgroundLiquidGlass
-                    style={styles.card}
-                    borderRadius={Radii.xl}>
-                    <View style={styles.cardInner}>
-                        <View style={styles.cardHeader}>
-                            <FolderOpen size={20} color={Colors.cyan} strokeWidth={2} />
-                            <Text style={styles.cardTitle}>Giao diện</Text>
-                        </View>
-                        <Text style={styles.cardDesc}>
-                            Tùy chỉnh hình nền hiển thị trong ứng dụng.
-                        </Text>
-                        <View style={styles.buttonGroup}>
-                            <LiquidButton2 
-                                onPress={() => setBackgroundPickerVisible(true)}
-                                title="Chọn Hình Nền"
-                            />
-                        </View>
-                    </View>
-                </BackgroundLiquidGlass>
-
-                {/* ── Backup / Restore Card ── */}
-                <BackgroundLiquidGlass
-                    style={styles.card}
-                    
-                    borderRadius={Radii.xl}>
-                    <View style={styles.cardInner}>
-                        <View style={styles.cardHeader}>
-                            <HardDrive size={20} color={Colors.accentLight} strokeWidth={2} />
-                            <Text style={styles.cardTitle}>Sao lưu & Phục hồi</Text>
-                        </View>
-                        <Text style={styles.cardDesc}>
-                            Xuất toàn bộ ví + giao dịch ra file JSON vào thư mục Downloads. Nhập lại khi cần.
-                        </Text>
-
-                        <View style={styles.buttonGroup}>
-                            <LiquidButton2
-                                onPress={handleExport}
-                                disabled={exporting || !dbAvailable}
-                                title={exporting ? 'Đang xuất...' : 'Xuất dữ liệu'}
-                                icon={<Upload size={18} color={(exporting || !dbAvailable) ? 'rgba(255,255,255,0.4)' : Colors.cyan} strokeWidth={2} />}
-                            />
-
-                            <LiquidButton2
-                                onPress={handleImportPress}
-                                disabled={importing || !dbAvailable}
-                                title={importing ? 'Đang nhập...' : 'Nhập dữ liệu'}
-                                icon={<Download size={18} color={(importing || !dbAvailable) ? 'rgba(255,255,255,0.4)' : Colors.accentLight} strokeWidth={2} />}
-                            />
-                        </View>
-                    </View>
-                </BackgroundLiquidGlass>
-
-                {/* ── Developer Mode Card ── */}
-                <BackgroundLiquidGlass
-                    style={styles.card}
-                    
-                    borderRadius={Radii.xl}>
-                    <View style={styles.cardInner}>
-                        <View style={styles.cardHeader}>
-                            <Code size={20} color={Colors.warning} strokeWidth={2} />
-                            <Text style={styles.cardTitle}>Developer Mode</Text>
-                        </View>
-                        <Text style={styles.cardDesc}>
-                            Bật chế độ nhà phát triển để truy cập công cụ debug.
-                        </Text>
-                        <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Chế độ Developer</Text>
+                {/* Developer */}
+                <AppleListGroup title="Nhà phát triển" footer="Bật chế độ nhà phát triển để truy cập công cụ debug.">
+                    <AppleListRow 
+                        label="Chế độ Developer" 
+                        value={
                             <Switch
                                 value={isDeveloperMode}
                                 onValueChange={toggleDeveloperMode}
-                                trackColor={{
-                                    false: 'rgba(255,255,255,0.12)',
-                                    true: 'rgba(245,158,11,0.4)',
-                                }}
-                                thumbColor={isDeveloperMode ? Colors.warning : 'rgba(255,255,255,0.5)'}
+                                trackColor={{ false: '#39393D', true: Colors.income }}
+                                thumbColor="#FFFFFF"
                             />
-                        </View>
-                    </View>
-                </BackgroundLiquidGlass>
+                        }
+                        isLast 
+                    />
+                </AppleListGroup>
 
-                {/* ── About Card ── */}
-                <BackgroundLiquidGlass
-                    style={styles.card}
-                    
-                    borderRadius={Radii.xl}>
-                    <View style={styles.cardInner}>
-                        <View style={styles.cardHeader}>
-                            <Info size={20} color={Colors.accentLight} strokeWidth={2} />
-                            <Text style={styles.cardTitle}>Về ứng dụng</Text>
-                        </View>
+                {/* Thông tin */}
+                <AppleListGroup title="Thông tin ứng dụng">
+                    <AppleListRow label="Phiên bản" value="20.02.2026.2" />
+                    <AppleListRow label="Nền tảng" value="React Native" />
+                    <AppleListRow label="Số ví" value={totalWallets.toString()} />
+                    <AppleListRow label="Tổng số dư" value={`${totalBalance.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')} ₫`} />
+                    <AppleListRow 
+                        label="Database" 
+                        value={dbAvailable ? 'Hoạt động' : 'Chưa sẵn sàng'} 
+                        valueColor={dbAvailable ? Colors.income : Colors.expense}
+                    />
+                    <AppleListRow 
+                        label="Backup Service" 
+                        value={backupAvailable ? 'Sẵn sàng' : 'Cần rebuild'} 
+                        valueColor={backupAvailable ? Colors.income : Colors.expense}
+                        isLast 
+                    />
+                </AppleListGroup>
 
-                        <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Phiên bản</Text>
-                            <Text style={styles.infoValue}>20.02.2026.2</Text>
-                        </View>
-
-                        <View style={styles.divider} />
-
-                        <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Nền tảng</Text>
-                            <Text style={styles.infoValue}>React Native</Text>
-                        </View>
-                    </View>
-                </BackgroundLiquidGlass>
-
-                <View style={{ height: insets.bottom + 40 }} />
             </ScrollView>
 
             {/* Dialogs */}
@@ -361,7 +283,7 @@ const SettingsScreen: React.FC = () => {
                 visible={backgroundPickerVisible}
                 onClose={() => setBackgroundPickerVisible(false)}
             />
-        </>
+        </View>
     );
 };
 
@@ -370,105 +292,75 @@ const SettingsScreen: React.FC = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingHorizontal: Spacing.lg,
+        backgroundColor: '#000000',
+    },
+    scrollView: {
+        flex: 1,
     },
     content: {
-        paddingBottom: 120,
+        paddingHorizontal: Spacing.md,
     },
-
-    // ── Card ──
-    card: {
-        marginBottom: Spacing.md,
+    largeTitle: {
+        fontSize: 32,
+        fontWeight: 'bold',
+        color: '#FFFFFF',
+        marginBottom: 24,
+        marginTop: 10,
+        paddingHorizontal: Spacing.sm,
     },
-    cardInner: {
-        padding: Spacing.lg,
+    // Group
+    groupContainer: {
+        marginBottom: 24,
     },
-    cardTitle: {
-        fontSize: FontSizes.lg,
-        fontWeight: '700',
-        color: Colors.text,
+    groupTitle: {
+        fontSize: 13,
+        color: '#8E8E93',
+        marginBottom: 6,
+        paddingHorizontal: 16,
     },
-    cardHeader: {
+    groupFooter: {
+        fontSize: 13,
+        color: '#8E8E93',
+        marginTop: 6,
+        paddingHorizontal: 16,
+        lineHeight: 18,
+    },
+    groupBody: {
+        backgroundColor: '#1C1C1E',
+        borderRadius: 10,
+        overflow: 'hidden',
+    },
+    // Row
+    rowWrapper: {
+        backgroundColor: '#1C1C1E',
+    },
+    rowInner: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 10,
-        marginBottom: 12,
-    },
-    cardDesc: {
-        fontSize: FontSizes.md - 1,
-        color: Colors.textSecondary,
-        lineHeight: 20,
-        marginBottom: Spacing.md,
-    },
-
-    // ── Info rows ──
-    infoRow: {
-        flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 10,
+        paddingVertical: 14,
+        paddingHorizontal: 16,
+        minHeight: 44,
     },
-    infoLabel: {
-        fontSize: FontSizes.md,
-        color: Colors.textSecondary,
-        fontWeight: '500',
+    rowPressed: {
+        backgroundColor: '#2C2C2E',
     },
-    infoValue: {
-        fontSize: FontSizes.md,
-        color: 'rgba(255, 255, 255, 0.85)',
-        fontWeight: '600',
+    rowLabel: {
+        fontSize: 17,
+        color: '#FFFFFF',
     },
-    infoValueAccent: {
-        fontSize: FontSizes.md,
-        color: Colors.accentLight,
-        fontWeight: '700',
-    },
-    statusRow: {
+    rowRight: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 6,
     },
-    statusText: {
-        fontWeight: '600',
+    rowValue: {
+        fontSize: 17,
+        color: '#8E8E93',
     },
-    divider: {
-        height: 1,
-        backgroundColor: Colors.divider,
-    },
-
-    // ── Action Buttons ──
-    buttonGroup: {
-        gap: 12,
-    },
-    actionBtn: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 10,
-        paddingVertical: 15,
-        borderRadius: Radii.lg,
-        borderWidth: 1,
-    },
-    exportBtn: {
-        backgroundColor: 'rgba(34, 211, 238, 0.12)',
-        borderColor: 'rgba(34, 211, 238, 0.3)',
-    },
-    exportBtnText: {
-        fontSize: FontSizes.lg - 2,
-        fontWeight: '700',
-        color: Colors.cyan,
-    },
-    importBtn: {
-        backgroundColor: 'rgba(192, 132, 252, 0.12)',
-        borderColor: 'rgba(192, 132, 252, 0.3)',
-    },
-    importBtnText: {
-        fontSize: FontSizes.lg - 2,
-        fontWeight: '700',
-        color: Colors.accentLight,
-    },
-    disabledBtn: {
-        opacity: Colors.disabledOpacity,
+    rowSeparator: {
+        height: StyleSheet.hairlineWidth,
+        backgroundColor: '#38383A',
+        marginLeft: 16,
     },
 });
 
