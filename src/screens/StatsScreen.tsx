@@ -33,7 +33,7 @@ import Svg, { Defs, LinearGradient, Rect, Stop, Text as SvgText } from 'react-na
 import { BlurView } from '@react-native-community/blur';
 import BackgroundLiquidGlass from '../components/BackgroundLiquidGlass';
 import LiquidButton2 from '../components/LiquidButton2';
-import AppleSegmentedControl from '../components/ui/AppleSegmentedControl';
+import LiquidSegmentedControl2 from '../components/LiquidSegmentedControl2';
 import AppleTransactionRow from '../components/ui/AppleTransactionRow';
 import EmptyState2 from '../components/EmptyState2';
 import TransactionDetailOverlay from '../components/TransactionDetailOverlay';
@@ -264,7 +264,7 @@ const SummarySection: React.FC<{
 }> = React.memo(({ totalIn, totalOut }) => {
     const balance = totalIn - totalOut;
     return (
-        <View style={sumStyles.card}>
+        <BackgroundLiquidGlass style={sumStyles.card} borderRadius={24}>
             <View style={sumStyles.inner}>
                 {/* Main Metric - Chênh lệch */}
                 <View style={{ alignItems: 'center', marginBottom: Spacing.md }}>
@@ -305,14 +305,13 @@ const SummarySection: React.FC<{
                     </View>
                 </View>
             </View>
-        </View>
+        </BackgroundLiquidGlass>
     );
 });
 
 const sumStyles = StyleSheet.create({
     card: { 
         marginBottom: Spacing.lg,
-        backgroundColor: '#1C1C1E',
         borderRadius: 24,
     },
     inner: { padding: Spacing.lg, paddingTop: Spacing.xl },
@@ -433,7 +432,7 @@ const BarChart: React.FC<{
     const barRadius = Math.min(barWidth / 2, 8);
 
     return (
-        <View style={chStyles.card}>
+        <BackgroundLiquidGlass style={chStyles.card} borderRadius={24}>
             <View style={chStyles.inner}>
                 <Text style={chStyles.title}>Dòng tiền</Text>
 
@@ -579,14 +578,13 @@ const BarChart: React.FC<{
                     </View>
                 </View>
             </View>
-        </View>
+        </BackgroundLiquidGlass>
     );
 });
 
 const chStyles = StyleSheet.create({
     card: { 
         marginBottom: Spacing.lg,
-        backgroundColor: '#1C1C1E',
         borderRadius: 24,
     },
     inner: { padding: Spacing.lg },
@@ -963,7 +961,7 @@ const StatsScreen: React.FC = () => {
                         />
 
                         {/* Period Selector */}
-                        <AppleSegmentedControl 
+                        <LiquidSegmentedControl2 
                             options={[
                                 { key: 'day', label: 'Hôm nay' },
                                 { key: 'week', label: 'Tuần này' },
