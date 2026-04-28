@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
     },
     label: {
         fontSize: 13,
-        color: 'rgba(235, 235, 245, 0.6)',
+        color: '#FFFFFF',
         marginBottom: 8,
         marginLeft: 4,
         textTransform: 'uppercase',

@@ -20,6 +20,7 @@ import { useStore } from '../store/useStore';
 import { Wallet as WalletIcon, PieChart, Plus } from 'lucide-react-native';
 import BackgroundLiquidGlass from '../components/BackgroundLiquidGlass';
 import WalletModal from '../components/WalletModal';
+import EditWalletModal from '../components/EditWalletModal';
 import WalletCard2 from '../components/WalletCard2';
 import IconButton from '../components/IconButton';
 import EmptyState2 from '../components/EmptyState2';
@@ -41,10 +42,11 @@ const ItemSeparator = () => <View style={styles.separator} />;
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
     const insets = useSafeAreaInsets();
-    const { wallets, addWallet, editWallet, removeWallet, isReady, refreshWallets } = useStore();
+    const { wallets, addWallet, editWallet, adjustWalletBalance, removeWallet, isReady, refreshWallets } = useStore();
 
     // ─── Modal State ──────────────────────────────────────────────────────────
     const [modalVisible, setModalVisible] = useState(false);
+    const [editWalletVisible, setEditWalletVisible] = useState(false);
     const [editingWallet, setEditingWallet] = useState<Wallet | null>(null);
     const [refreshing, setRefreshing] = useState(false);
 
@@ -63,18 +65,30 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
 
     const openEditModal = useCallback((wallet: Wallet) => {
         setEditingWallet(wallet);
-        setModalVisible(true);
+        setEditWalletVisible(true);
     }, []);
 
     const handleSave = useCallback(
         (name: string, initialBalance: number, imageUri?: string | null, icon?: string | null) => {
+            addWallet(name, initialBalance, imageUri, icon);
+        },
+        [addWallet],
+    );
+
+    const handleSaveWalletBalance = useCallback(
+        (name: string, currentBalance: number) => {
             if (editingWallet) {
-                editWallet(editingWallet.id, name, initialBalance, imageUri, icon);
-            } else {
-                addWallet(name, initialBalance, imageUri, icon);
+                adjustWalletBalance(
+                    editingWallet.id,
+                    name,
+                    currentBalance,
+                    editingWallet.current_balance,
+                    editingWallet.initial_balance,
+                    editingWallet.icon
+                );
             }
         },
-        [editingWallet, addWallet, editWallet],
+        [editingWallet, adjustWalletBalance],
     );
 
     const handleDelete = useCallback(() => {
@@ -189,23 +203,24 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
                 }} 
             />
 
-            {/* Create/Edit wallet modal */}
+            {/* Create wallet modal */}
             <WalletModal
                 visible={modalVisible}
                 onClose={() => setModalVisible(false)}
                 onSave={handleSave}
-                onDelete={editingWallet ? handleDelete : undefined}
-                editData={
-                    editingWallet
-                        ? {
-                            name: editingWallet.name,
-                            initialBalance: editingWallet.initial_balance,
-                            imageUri: editingWallet.image_uri,
-                            icon: editingWallet.icon,
-                        }
-                        : null
-                }
+                editData={null}
             />
+
+            {/* Edit wallet modal */}
+            {editingWallet && (
+                <EditWalletModal
+                    visible={editWalletVisible}
+                    onClose={() => setEditWalletVisible(false)}
+                    onSave={handleSaveWalletBalance}
+                    walletName={editingWallet.name}
+                    walletBalance={editingWallet.current_balance}
+                />
+            )}
         </View>
     );
 };

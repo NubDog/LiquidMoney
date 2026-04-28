@@ -17,7 +17,7 @@ import { X } from 'lucide-react-native';
 import { format } from 'date-fns';
 import { animateSheetIn, animateSheetOut } from '../common/animations';
 import AnimatedOverlay from './AnimatedOverlay';
-import BackgroundLiquidGlass from './BackgroundLiquidGlass';
+import AppleCloseButton from './ui/AppleCloseButton';
 
 import { Colors, FontSizes, Shadows, Spacing, Radii } from '../common/theme';
 import type { Transaction } from '../common/types';
@@ -73,17 +73,12 @@ const TransactionDetailOverlay: React.FC<TransactionDetailOverlayProps> = ({
                 <AnimatedOverlay visible={!!visible} onPress={handleClose} />
                 
                 <Animated.View style={[styles.sheetContainer, { transform: [{ translateY }] }]}>
-                    <BackgroundLiquidGlass 
-                        style={styles.sheet}
-                        borderRadius={Radii.xxl}
-                    >
+                    <View style={styles.sheet}>
                         <View style={styles.handleBar} />
                         
                         <View style={styles.header}>
                             <Text style={styles.title}>Chi tiết giao dịch</Text>
-                            <Pressable onPress={handleClose} style={styles.closeBtn}>
-                                <X size={24} color="#FFFFFF" strokeWidth={2.5} />
-                            </Pressable>
+                            <AppleCloseButton onPress={handleClose} size={32} />
                         </View>
 
                         <ScrollView style={styles.scroll}>
@@ -109,7 +104,10 @@ const TransactionDetailOverlay: React.FC<TransactionDetailOverlayProps> = ({
                                     style={[
                                         styles.detailValue,
                                         styles.tagStyle,
-                                        { backgroundColor: isIncome ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)' },
+                                        { 
+                                            backgroundColor: isIncome ? Colors.incomeBg : Colors.expenseBg,
+                                            color: isIncome ? Colors.income : Colors.expense 
+                                        },
                                     ]}>
                                     {isIncome ? 'Thu nhập' : 'Chi tiêu'}
                                 </Text>
@@ -122,7 +120,7 @@ const TransactionDetailOverlay: React.FC<TransactionDetailOverlayProps> = ({
                                 </Text>
                             </View>
                         </ScrollView>
-                    </BackgroundLiquidGlass>
+                    </View>
                 </Animated.View>
             </View>
         </Modal>
@@ -137,6 +135,7 @@ const styles = StyleSheet.create({
     sheetContainer: {
         borderTopLeftRadius: Radii.xxl,
         borderTopRightRadius: Radii.xxl,
+        backgroundColor: '#1C1C1E', // iOS Dark Mode Elevated
         ...Shadows.menu,
     },
     sheet: {
@@ -144,7 +143,6 @@ const styles = StyleSheet.create({
         borderBottomRightRadius: 0,
         borderBottomWidth: 0,
         paddingBottom: 40,
-        maxHeight: '88%',
         paddingTop: 12,
     },
     handleBar: {
@@ -165,17 +163,9 @@ const styles = StyleSheet.create({
         borderBottomColor: 'rgba(255,255,255,0.1)',
     },
     title: {
-        fontSize: FontSizes.xl,
+        fontSize: FontSizes.xl + 2,
         fontWeight: '700',
         color: '#FFFFFF',
-        textShadowColor: 'rgba(0,0,0,0.5)',
-        textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 2,
-    },
-    closeBtn: {
-        padding: 6,
-        backgroundColor: 'rgba(255,255,255,0.1)',
-        borderRadius: Radii.pill,
     },
     scroll: {
         padding: Spacing.xl,
@@ -184,17 +174,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: Spacing.xl,
         marginBottom: Spacing.lg,
-        backgroundColor: 'rgba(255,255,255,0.03)',
+        backgroundColor: '#2C2C2E', // iOS Dark Mode Elevated inner
         borderRadius: Radii.xl,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
     },
     amountNumber: {
         fontSize: 36,
         fontWeight: '800',
-        textShadowColor: 'rgba(0,0,0,0.4)',
-        textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 4,
     },
     detailRow: {
         flexDirection: 'row',
@@ -215,9 +200,9 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
     },
     tagStyle: {
-        paddingHorizontal: Spacing.sm + 2,
-        paddingVertical: 4,
-        borderRadius: Radii.sm,
+        paddingHorizontal: Spacing.md,
+        paddingVertical: 6,
+        borderRadius: 100, // Pill-shape
         overflow: 'hidden',
     },
 });

@@ -19,12 +19,12 @@ export const Colors = {
     cardHeavyBorder: 'rgba(255, 255, 255, 0.12)',
 
     // Semantic
-    income: '#4ade80',
-    incomeBg: 'rgba(74, 222, 128, 0.15)',
-    incomeBorder: 'rgba(74, 222, 128, 0.25)',
-    expense: '#f87171',
-    expenseBg: 'rgba(248, 113, 113, 0.15)',
-    expenseBorder: 'rgba(248, 113, 113, 0.25)',
+    income: '#32D74B', // iOS System Green Dark
+    incomeBg: 'rgba(50, 215, 75, 0.15)',
+    incomeBorder: 'rgba(50, 215, 75, 0.25)',
+    expense: '#FF453A', // iOS System Red Dark
+    expenseBg: 'rgba(255, 69, 58, 0.15)',
+    expenseBorder: 'rgba(255, 69, 58, 0.25)',
 
     // Accents
     accent: '#a855f7',

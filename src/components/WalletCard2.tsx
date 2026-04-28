@@ -40,6 +40,17 @@ const WalletCard2: React.FC<WalletCard2Props> = ({
     // Golden ratio relative sizes for the texts based on card height
     const dynamicBalanceSize = hasDimensions ? Math.min(dimensions.height * 0.18, 42) : 34;
 
+    const displayBalance = (n: number) => {
+        const isNegative = n < 0;
+        const absStr = Math.abs(n).toString();
+        if (absStr.length > 7) {
+            const truncatedStr = absStr.substring(0, 7);
+            const formatted = truncatedStr.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            return (isNegative ? '-' : '') + formatted + '... VND';
+        }
+        return formatVND(n);
+    };
+
     return (
         <View style={[styles.wrapper, style]} onLayout={onLayout}>
             <BackgroundLiquidGlass
@@ -63,8 +74,8 @@ const WalletCard2: React.FC<WalletCard2Props> = ({
                 <View style={styles.balanceContainer}>
                     <Text style={styles.balanceLabel}>Tổng số dư</Text>
                     <View style={styles.balanceRow}>
-                        <Text style={[styles.balanceLarge, { fontSize: dynamicBalanceSize }]}>
-                            {formatVND(balance)}
+                        <Text style={[styles.balanceLarge, { fontSize: dynamicBalanceSize }]} numberOfLines={1} adjustsFontSizeToFit>
+                            {displayBalance(balance)}
                         </Text>
                     </View>
                 </View>

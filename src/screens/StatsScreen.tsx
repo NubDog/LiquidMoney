@@ -34,7 +34,7 @@ import { BlurView } from '@react-native-community/blur';
 import BackgroundLiquidGlass from '../components/BackgroundLiquidGlass';
 import LiquidButton2 from '../components/LiquidButton2';
 import LiquidSegmentedControl2 from '../components/LiquidSegmentedControl2';
-import TransactionRow2 from '../components/TransactionRow2';
+import AppleTransactionRow from '../components/ui/AppleTransactionRow';
 import EmptyState2 from '../components/EmptyState2';
 import TransactionDetailOverlay from '../components/TransactionDetailOverlay';
 import { useStore } from '../store/useStore';
@@ -984,11 +984,14 @@ const StatsScreen: React.FC = () => {
                                     </Text>
                                 </View>
                                 <View style={{ marginTop: Spacing.xs }}>
-                                    {recentTxns.map((tx) => (
-                                        <TransactionRow2
-                                            key={tx.id}
-                                            item={tx}
-                                            onPress={handleViewTransaction}
+                                    {recentTxns.map((item, index) => (
+                                        <AppleTransactionRow
+                                            key={item.id || index}
+                                            item={{
+                                                ...item,
+                                                id: item.id || `stats-tx-${index}`, // Ensure id is defined
+                                            }}
+                                            onPress={() => handleViewTransaction(item)}
                                         />
                                     ))}
                                 </View>

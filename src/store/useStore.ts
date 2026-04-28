@@ -76,11 +76,13 @@ interface StoreActions {
         icon?: string | null,
     ) => void;
 
-    /** Cập nhật tên + số dư hiện tại + icon trực tiếp */
-    editWalletDirect: (
+    /** Thay đổi tên ví và tự động sinh giao dịch điều chỉnh nếu số dư thay đổi */
+    adjustWalletBalance: (
         id: string,
         name: string,
+        newBalance: number,
         currentBalance: number,
+        initialBalance: number,
         icon?: string | null,
     ) => void;
 
@@ -224,21 +226,40 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
         [refreshWallets, currentWallet],
     );
 
-    const editWalletDirect = useCallback(
-        (id: string, name: string, currentBalance: number, icon?: string | null) => {
+    const adjustWalletBalance = useCallback(
+        (
+            id: string,
+            name: string,
+            newBalance: number,
+            currentBalance: number,
+            initialBalance: number,
+            icon?: string | null,
+        ) => {
             if (!isDatabaseAvailable()) {
                 Alert.alert('Database chưa sẵn sàng', 'Cần rebuild native app.');
                 return;
             }
             try {
-                dbUpdateWalletDirect(id, name, currentBalance, icon);
+                // Update name and icon without touching initial_balance
+                dbUpdateWallet(id, name, initialBalance, null, icon);
+                
+                const diff = newBalance - currentBalance;
+                if (diff !== 0) {
+                    const type = diff > 0 ? 'IN' : 'OUT';
+                    const amount = Math.abs(diff);
+                    dbCreateTransaction(id, type, amount, 'Điều chỉnh số dư', null);
+                }
+
                 refreshWallets();
                 if (currentWallet?.id === id) {
                     const updated = getWalletById(id);
                     setCurrentWallet(updated);
+                    // Refresh transactions if we are viewing this wallet
+                    const txs = getTransactionsByWallet(id);
+                    setTransactions(txs);
                 }
             } catch (err) {
-                console.error('[Store] editWalletDirect error:', err);
+                console.error('[Store] adjustWalletBalance error:', err);
             }
         },
         [refreshWallets, currentWallet],
@@ -396,7 +417,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
             refreshWallets,
             addWallet,
             editWallet,
-            editWalletDirect,
+            adjustWalletBalance,
             removeWallet,
             selectWallet,
             refreshTransactions,
@@ -417,7 +438,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
             refreshWallets,
             addWallet,
             editWallet,
-            editWalletDirect,
+            adjustWalletBalance,
             removeWallet,
             selectWallet,
             refreshTransactions,

@@ -8,7 +8,8 @@
  * Example: 1234567 → "1.234.567 ₫"
  */
 export function formatVND(n: number): string {
-    return Math.abs(n)
+    const sign = n < 0 ? '-' : '';
+    return sign + Math.abs(n)
         .toString()
         .replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' VND';
 }
@@ -59,6 +60,6 @@ export function formatFullDate(iso: string): string {
  *          formatVNDSigned(-500000) → "-500.000 VND"
  */
 export function formatVNDSigned(n: number): string {
-    const prefix = n >= 0 ? '+' : '-';
+    const prefix = n > 0 ? '+' : '';
     return `${prefix}${formatVND(n)}`;
 }

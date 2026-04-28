@@ -52,7 +52,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
 }) => {
     const insets = useSafeAreaInsets();
     const [activeTab, setActiveTab] = useState('Thu Nhập');
-    const [amount, setAmount] = useState('');
+    const [amount, setAmount] = useState('0');
     const [description, setDescription] = useState('');
     const [date, setDate] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
@@ -66,7 +66,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
         if (visible) {
             animateSheetIn(translateY).start();
             // Reset state
-            setAmount('');
+            setAmount('0');
             setDescription('');
             setDate(new Date());
             setActiveTab('Thu Nhập');
@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
     },
     label: {
         fontSize: 13,
-        color: 'rgba(235, 235, 245, 0.6)',
+        color: '#FFFFFF',
         marginBottom: 8,
         marginLeft: 4,
         textTransform: 'uppercase',

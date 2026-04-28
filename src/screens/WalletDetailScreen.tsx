@@ -28,7 +28,7 @@ import { ChevronLeft, MoreVertical, Plus } from 'lucide-react-native';
 import BackgroundLiquidGlass from '../components/BackgroundLiquidGlass';
 import LiquidSegmentedControl2 from '../components/LiquidSegmentedControl2';
 import TransactionModal from '../components/TransactionModal';
-import TransactionRow2 from '../components/TransactionRow2';
+import AppleTransactionRow from '../components/ui/AppleTransactionRow';
 import TransactionDetailOverlay from '../components/TransactionDetailOverlay';
 import ConfirmDialog2 from '../components/ConfirmDialog2';
 import EditWalletModal from '../components/EditWalletModal';
@@ -79,7 +79,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
         addTransaction,
         editTransaction,
         removeTransaction,
-        editWalletDirect,
+        adjustWalletBalance,
         removeWallet,
     } = useStore();
 
@@ -198,9 +198,18 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
 
     const handleSaveWallet = useCallback(
         (name: string, currentBalance: number) => {
-            editWalletDirect(walletId, name, currentBalance, currentWallet?.icon);
+            if (currentWallet) {
+                adjustWalletBalance(
+                    walletId, 
+                    name, 
+                    currentBalance, 
+                    currentWallet.current_balance, 
+                    currentWallet.initial_balance, 
+                    currentWallet.icon
+                );
+            }
         },
-        [walletId, editWalletDirect, currentWallet],
+        [walletId, adjustWalletBalance, currentWallet],
     );
 
     // ─── Derived ────────────────────────────────────────────────────────────
@@ -211,7 +220,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
     // ─── Render ─────────────────────────────────────────────────────────────
     const renderItem = useCallback(
         ({ item }: { item: Transaction }) => (
-            <TransactionRow2 item={item} onPress={handleViewTransaction} />
+            <AppleTransactionRow item={item} onPress={handleViewTransaction} />
         ),
         [handleViewTransaction],
     );
