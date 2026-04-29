@@ -10,7 +10,7 @@ import {
     Easing,
 } from 'react-native';
 import { Colors, FontSizes, Radii, Shadows, Spacing } from '../../common/theme';
-import BackgroundLiquidGlass from '../layout/BackgroundLiquidGlass';
+import AppleGlassBackground from '../ui/AppleGlassBackground';
 
 export interface MenuItem {
     id: string;
@@ -126,12 +126,12 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
                         }
                     ]}
                 >
-                    <BackgroundLiquidGlass 
+                    <AppleGlassBackground 
                         style={styles.card}
-                        variant="dense" // Nền đục nhất
+                        variant="chromeMaterial"
                         borderRadius={Radii.xl}
                     >
-                        <View style={styles.itemsContainer}>
+                        <View style={styles.itemsContainer} collapsable={false}>
                             {items.map((item, index) => {
                                 const isLast = index === items.length - 1;
                                 
@@ -163,7 +163,7 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
                                 );
                             })}
                         </View>
-                    </BackgroundLiquidGlass>
+                    </AppleGlassBackground>
                 </Animated.View>
             </View>
         </Modal>

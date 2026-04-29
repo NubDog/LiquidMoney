@@ -15,6 +15,21 @@ export function formatVND(n: number): string {
 }
 
 /**
+ * Format a number as Vietnamese Dong with dot separators,
+ * truncating to max 8 digits. If longer, append "..." before VND.
+ * Example: 123456789 -> "12.345.678... VND"
+ */
+export function formatVNDTruncated(n: number): string {
+    const rawString = Math.abs(Math.round(n)).toString();
+    const sign = n < 0 ? '-' : '';
+    if (rawString.length <= 8) {
+        return sign + rawString.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' VND';
+    }
+    const truncated = rawString.substring(0, 8);
+    return sign + truncated.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + '... VND';
+}
+
+/**
  * Format a number as abbreviated Vietnamese Dong.
  * Examples: 1500000 → "1.5Tr", 50000 → "50K", 999 → "999 ₫"
  */

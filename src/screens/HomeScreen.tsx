@@ -25,7 +25,7 @@ import EditWalletModal from '../components/modals/EditWalletModal';
 import WalletCard2 from '../components/cards/WalletCard2';
 import IconButton from '../components/buttons/IconButton';
 import EmptyState2 from '../components/layout/EmptyState2';
-import { formatVND } from '../common/formatters';
+import { formatVND, formatVNDTruncated } from '../common/formatters';
 import { Colors, FontSizes, Spacing, Radii } from '../common/theme';
 import type { Wallet } from '../common/types';
 
@@ -143,7 +143,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
                         </View>
                         
                         <View collapsable={false}>
-                            <Text style={styles.heroBalance} numberOfLines={1} adjustsFontSizeToFit>{formatVND(totalBalance)}</Text>
+                            <Text style={styles.heroBalance} numberOfLines={1} adjustsFontSizeToFit>{formatVNDTruncated(totalBalance)}</Text>
                         </View>
                         
                         <View style={styles.heroFooter}>

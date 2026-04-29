@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, type ViewStyle, type StyleProp, Platform } from 'react-native';
+import { View, StyleSheet, type ViewStyle, type StyleProp, Platform, type LayoutChangeEvent } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
@@ -15,9 +15,11 @@ interface AppleGlassBackgroundProps {
     variant?: 'light' | 'dark' | 'chromeMaterial' | 'regular' | 'prominent' | 'thinMaterial' | 'material' | 'thickMaterial' | 'ultraThinMaterial';
     borderRadius?: number;
     /**
+    /**
      * Tự động set flex: 1 để fill không gian nếu cần
      */
     fillContainer?: boolean;
+    onLayout?: (e: LayoutChangeEvent) => void;
 }
 
 /**
@@ -33,6 +35,7 @@ const AppleGlassBackground: React.FC<AppleGlassBackgroundProps> = ({
     variant = 'chromeMaterial',
     borderRadius = 20,
     fillContainer = false,
+    onLayout,
 }) => {
     const isDark = variant.toLowerCase().includes('dark');
 
@@ -45,6 +48,7 @@ const AppleGlassBackground: React.FC<AppleGlassBackgroundProps> = ({
                 style
             ]}
             collapsable={false}
+            onLayout={onLayout}
         >
             {/* 
               Lớp Kính Mờ (Blur) 
