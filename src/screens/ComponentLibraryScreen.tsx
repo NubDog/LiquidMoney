@@ -14,37 +14,37 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, Figma, Plus } from 'lucide-react-native';
 
-import LiquidBackground from '../components/LiquidBackground';
+import LiquidBackground from '../components/layout/LiquidBackground';
 
-import LiquidButton2 from '../components/LiquidButton2';
-import LiquidInput from '../components/LiquidInput';
-import LiquidSegmentedControl2 from '../components/LiquidSegmentedControl2';
-import IconButton from '../components/IconButton';
-import AmountInput2 from '../components/AmountInput2';
-import EmptyState2 from '../components/EmptyState2';
-import BackgroundLiquidGlass from '../components/BackgroundLiquidGlass';
-import TransactionRow2 from '../components/TransactionRow2';
-import WalletCard2 from '../components/WalletCard2';
+import LiquidButton2 from '../components/buttons/LiquidButton2';
+import LiquidInput from '../components/inputs/LiquidInput';
+import LiquidSegmentedControl2 from '../components/inputs/LiquidSegmentedControl2';
+import IconButton from '../components/buttons/IconButton';
+import AmountInput2 from '../components/inputs/AmountInput2';
+import EmptyState2 from '../components/layout/EmptyState2';
+import BackgroundLiquidGlass from '../components/layout/BackgroundLiquidGlass';
+import TransactionRow2 from '../components/cards/TransactionRow2';
+import WalletCard2 from '../components/cards/WalletCard2';
 import AppleButton from '../components/ui/AppleButton';
 import AppleTextInput from '../components/ui/AppleTextInput';
 import AppleAmountInput from '../components/ui/AppleAmountInput';
 import AppleTransactionRow from '../components/ui/AppleTransactionRow';
 
 // --- newly imported components ---
-import AnimatedOverlay from '../components/AnimatedOverlay';
-import BackgroundPickerModal from '../components/BackgroundPickerModal';
-import ConfirmDialog2 from '../components/ConfirmDialog2';
-import ConfirmImportDialog2 from '../components/ConfirmImportDialog2';
-import EditWalletModal from '../components/EditWalletModal';
-import InfoDialog from '../components/InfoDialog';
-import LiquidModal from '../components/LiquidModal';
-import PopupMenu from '../components/PopupMenu';
-import TerminalLogModal from '../components/TerminalLogModal';
-import TransactionDetailOverlay from '../components/TransactionDetailOverlay';
-import TransactionFilterBar from '../components/TransactionFilterBar';
-import TransactionModal from '../components/TransactionModal';
-import { WalletDetailSkeleton } from '../components/WalletDetailSkeleton';
-import WalletModal from '../components/WalletModal';
+import AnimatedOverlay from '../components/overlays/AnimatedOverlay';
+import BackgroundPickerModal from '../components/modals/BackgroundPickerModal';
+import ConfirmDialog2 from '../components/modals/ConfirmDialog2';
+import ConfirmImportDialog2 from '../components/modals/ConfirmImportDialog2';
+import EditWalletModal from '../components/modals/EditWalletModal';
+import InfoDialog from '../components/modals/InfoDialog';
+import LiquidModal from '../components/modals/LiquidModal';
+import PopupMenu from '../components/overlays/PopupMenu';
+import TerminalLogModal from '../components/modals/TerminalLogModal';
+import TransactionDetailOverlay from '../components/overlays/TransactionDetailOverlay';
+import TransactionFilterBar from '../components/layout/TransactionFilterBar';
+import TransactionModal from '../components/modals/TransactionModal';
+import { WalletDetailSkeleton } from '../components/layout/WalletDetailSkeleton';
+import WalletModal from '../components/modals/WalletModal';
 
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
 

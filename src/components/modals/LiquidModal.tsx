@@ -1,7 +1,7 @@
 import React from 'react';
 import { Modal, StyleSheet, View, Pressable, type ViewStyle, KeyboardAvoidingView, Platform } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
-import BackgroundLiquidGlass from './BackgroundLiquidGlass';
+import BackgroundLiquidGlass from '../layout/BackgroundLiquidGlass';
 
 interface LiquidModalProps {
     visible: boolean;

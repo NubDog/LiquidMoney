@@ -10,8 +10,8 @@ import {
     TextInputProps,
     Pressable
 } from 'react-native';
-import { FontSizes, Spacing } from '../common/theme';
-import BackgroundLiquidGlass from './BackgroundLiquidGlass';
+import { FontSizes, Spacing } from '../../common/theme';
+import BackgroundLiquidGlass from '../layout/BackgroundLiquidGlass';
 
 interface AmountInput2Props extends Omit<TextInputProps, 'style'> {
     label?: string;

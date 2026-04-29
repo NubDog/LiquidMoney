@@ -18,10 +18,10 @@ import {
     View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import BackgroundLiquidGlass from '../components/BackgroundLiquidGlass';
-import LiquidButton2 from '../components/LiquidButton2';
-import TransactionModal from '../components/TransactionModal';
-import ConfirmDialog2 from '../components/ConfirmDialog2';
+import BackgroundLiquidGlass from '../components/layout/BackgroundLiquidGlass';
+import LiquidButton2 from '../components/buttons/LiquidButton2';
+import TransactionModal from '../components/modals/TransactionModal';
+import ConfirmDialog2 from '../components/modals/ConfirmDialog2';
 import { formatVND, formatFullDate } from '../common/formatters';
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
 import type { Transaction } from '../common/types';

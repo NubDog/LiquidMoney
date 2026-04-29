@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Image } from 'react-native';
-import { useStore } from '../store/useStore';
-import { BACKGROUNDS } from '../assets/img/backgrounds';
+import { useStore } from '../../store/useStore';
+import { BACKGROUNDS } from '../../assets/img/backgrounds';
 
 const LiquidBackground: React.FC = () => {
     const { selectedBackgroundId } = useStore();
@@ -9,7 +9,7 @@ const LiquidBackground: React.FC = () => {
     // Fallback: nếu selectedBackgroundId không có (null), dùng Background.jpg mặc định
     const source = selectedBackgroundId && BACKGROUNDS[selectedBackgroundId] 
         ? BACKGROUNDS[selectedBackgroundId] 
-        : require('../assets/img/Background.jpg');
+        : require('../../assets/img/Background.jpg');
 
     return (
         <View style={styles.container}>

@@ -14,15 +14,15 @@ import {
 } from 'react-native';
 
 import { Easing } from 'react-native';
-import AppleGlassBackground from './ui/AppleGlassBackground';
-import LiquidInput from './LiquidInput';
-import AmountInput2 from './AmountInput2';
-import LiquidButton2 from './LiquidButton2';
-import { animateSheetIn, animateSheetOut } from '../common/animations';
-import AnimatedOverlay from './AnimatedOverlay';
-import AppleCloseButton from './ui/AppleCloseButton';
+import AppleGlassBackground from '../ui/AppleGlassBackground';
+import LiquidInput from '../inputs/LiquidInput';
+import AmountInput2 from '../inputs/AmountInput2';
+import LiquidButton2 from '../buttons/LiquidButton2';
+import { animateSheetIn, animateSheetOut } from '../../common/animations';
+import AnimatedOverlay from '../overlays/AnimatedOverlay';
+import AppleCloseButton from '../ui/AppleCloseButton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Radii, Shadows, Spacing, FontSizes } from '../common/theme';
+import { Radii, Shadows, Spacing, FontSizes } from '../../common/theme';
 
 interface WalletModalProps {
     visible: boolean;

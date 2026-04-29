@@ -18,16 +18,16 @@ import {
 } from 'react-native';
 import { Calendar as CalendarIcon, X } from 'lucide-react-native';
 import { format } from 'date-fns';
-import { animateSheetIn, animateSheetOut } from '../common/animations';
-import AnimatedOverlay from './AnimatedOverlay';
-import AppleButton from './ui/AppleButton';
-import AppleTextInput from './ui/AppleTextInput';
-import AppleAmountInput from './ui/AppleAmountInput';
-import AppleDatePicker from './ui/AppleDatePicker';
-import AppleSegmentedControl from './ui/AppleSegmentedControl';
-import AppleCloseButton from './ui/AppleCloseButton';
+import { animateSheetIn, animateSheetOut } from '../../common/animations';
+import AnimatedOverlay from '../overlays/AnimatedOverlay';
+import AppleButton from '../ui/AppleButton';
+import AppleTextInput from '../ui/AppleTextInput';
+import AppleAmountInput from '../ui/AppleAmountInput';
+import AppleDatePicker from '../ui/AppleDatePicker';
+import AppleSegmentedControl from '../ui/AppleSegmentedControl';
+import AppleCloseButton from '../ui/AppleCloseButton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors, FontSizes, Shadows, Spacing, Radii } from '../common/theme';
+import { Colors, FontSizes, Shadows, Spacing, Radii } from '../../common/theme';
 
 interface TransactionModalProps {
     visible: boolean;

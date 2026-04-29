@@ -31,12 +31,12 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Rect, Stop, Text as SvgText } from 'react-native-svg';
 import { BlurView } from '@react-native-community/blur';
-import BackgroundLiquidGlass from '../components/BackgroundLiquidGlass';
-import LiquidButton2 from '../components/LiquidButton2';
-import LiquidSegmentedControl2 from '../components/LiquidSegmentedControl2';
+import BackgroundLiquidGlass from '../components/layout/BackgroundLiquidGlass';
+import LiquidButton2 from '../components/buttons/LiquidButton2';
+import LiquidSegmentedControl2 from '../components/inputs/LiquidSegmentedControl2';
 import AppleTransactionRow from '../components/ui/AppleTransactionRow';
-import EmptyState2 from '../components/EmptyState2';
-import TransactionDetailOverlay from '../components/TransactionDetailOverlay';
+import EmptyState2 from '../components/layout/EmptyState2';
+import TransactionDetailOverlay from '../components/overlays/TransactionDetailOverlay';
 import { useStore } from '../store/useStore';
 import { isDatabaseAvailable } from '../database/db';
 import type { DailyStat, OverallStat, Transaction, Wallet } from '../database/queries';

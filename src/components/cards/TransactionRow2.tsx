@@ -3,9 +3,9 @@ import { StyleSheet, Text, View } from 'react-native';
 import { ArrowDownRight, ArrowUpRight, Repeat } from 'lucide-react-native';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import { FontSizes, Radii, Spacing } from '../common/theme';
-import type { Transaction } from '../common/types';
-import BackgroundLiquidGlass from './BackgroundLiquidGlass';
+import { FontSizes, Radii, Spacing } from '../../common/theme';
+import type { Transaction } from '../../common/types';
+import BackgroundLiquidGlass from '../layout/BackgroundLiquidGlass';
 
 interface TransactionRowProps {
     item: Transaction;

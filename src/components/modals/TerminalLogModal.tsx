@@ -15,9 +15,9 @@ import {
 } from 'react-native';
 import { X, Copy } from 'lucide-react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { animateSheetIn, animateSheetOut } from '../common/animations';
-import { Colors, FontSizes, Shadows, Spacing } from '../common/theme';
-import BackgroundLiquidGlass from './BackgroundLiquidGlass';
+import { animateSheetIn, animateSheetOut } from '../../common/animations';
+import { Colors, FontSizes, Shadows, Spacing } from '../../common/theme';
+import BackgroundLiquidGlass from '../layout/BackgroundLiquidGlass';
 
 interface TerminalLogModalProps {
     visible: boolean;

@@ -15,12 +15,12 @@ import {
 } from 'react-native';
 import { X } from 'lucide-react-native';
 import { format } from 'date-fns';
-import { animateSheetIn, animateSheetOut } from '../common/animations';
-import AnimatedOverlay from './AnimatedOverlay';
-import AppleCloseButton from './ui/AppleCloseButton';
+import { animateSheetIn, animateSheetOut } from '../../common/animations';
+import AnimatedOverlay from '../overlays/AnimatedOverlay';
+import AppleCloseButton from '../ui/AppleCloseButton';
 
-import { Colors, FontSizes, Shadows, Spacing, Radii } from '../common/theme';
-import type { Transaction } from '../common/types';
+import { Colors, FontSizes, Shadows, Spacing, Radii } from '../../common/theme';
+import type { Transaction } from '../../common/types';
 
 interface TransactionDetailOverlayProps {
     visible?: boolean;

@@ -6,11 +6,11 @@
 import React from 'react';
 import { StyleSheet, Text, View, StyleProp, ViewStyle } from 'react-native';
 import LottieView from 'lottie-react-native';
-import { FontSizes } from '../common/theme';
+import { FontSizes } from '../../common/theme';
 
 const ANIMATIONS = {
-    nodata: require('../assets/Lottie Animation/nodata.json'),
-    noresult: require('../assets/Lottie Animation/No Result Green theme.json'),
+    nodata: require('../../assets/Lottie Animation/nodata.json'),
+    noresult: require('../../assets/Lottie Animation/No Result Green theme.json'),
 } as const;
 
 interface EmptyState2Props {

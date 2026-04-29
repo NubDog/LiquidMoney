@@ -9,8 +9,8 @@ import {
     Dimensions,
     Easing,
 } from 'react-native';
-import { Colors, FontSizes, Radii, Shadows, Spacing } from '../common/theme';
-import BackgroundLiquidGlass from './BackgroundLiquidGlass';
+import { Colors, FontSizes, Radii, Shadows, Spacing } from '../../common/theme';
+import BackgroundLiquidGlass from '../layout/BackgroundLiquidGlass';
 
 export interface MenuItem {
     id: string;

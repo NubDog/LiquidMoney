@@ -11,8 +11,8 @@ import {
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
-import { FontSizes } from '../common/theme';
-import { useWaterDropAnimation } from '../hooks/useWaterDrop';
+import { FontSizes } from '../../common/theme';
+import { useWaterDropAnimation } from '../../hooks/useWaterDrop';
 
 interface Option {
     key: string;

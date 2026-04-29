@@ -19,8 +19,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Code, Database, Bug, Play, TerminalSquare } from 'lucide-react-native';
-import BackgroundLiquidGlass from '../components/BackgroundLiquidGlass';
-import TerminalLogModal from '../components/TerminalLogModal';
+import BackgroundLiquidGlass from '../components/layout/BackgroundLiquidGlass';
+import TerminalLogModal from '../components/modals/TerminalLogModal';
 import { useStore } from '../store/useStore';
 import { generateRandomTransactions, generateRandomWallets, deleteAllData } from '../database/queries';
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';

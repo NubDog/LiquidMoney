@@ -16,9 +16,9 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CheckCircle2, XCircle } from 'lucide-react-native';
-import InfoDialog from '../components/InfoDialog';
-import ConfirmImportDialog2 from '../components/ConfirmImportDialog2';
-import BackgroundPickerModal from '../components/BackgroundPickerModal';
+import InfoDialog from '../components/modals/InfoDialog';
+import ConfirmImportDialog2 from '../components/modals/ConfirmImportDialog2';
+import BackgroundPickerModal from '../components/modals/BackgroundPickerModal';
 import { useStore } from '../store/useStore';
 import { isDatabaseAvailable } from '../database/db';
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';

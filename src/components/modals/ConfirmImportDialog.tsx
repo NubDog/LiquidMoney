@@ -13,10 +13,10 @@ import {
     View,
 } from 'react-native';
 import { AlertTriangle } from 'lucide-react-native';
-import { animateDialogOpen, animateDialogClose } from '../common/animations';
-import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
-import BackgroundLiquidGlass from './BackgroundLiquidGlass';
-import LiquidButton2 from './LiquidButton2';
+import { animateDialogOpen, animateDialogClose } from '../../common/animations';
+import { Colors, FontSizes, Radii, Spacing } from '../../common/theme';
+import BackgroundLiquidGlass from '../layout/BackgroundLiquidGlass';
+import LiquidButton2 from '../buttons/LiquidButton2';
 
 interface ConfirmImportDialogProps {
     visible: boolean;

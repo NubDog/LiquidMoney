@@ -5,8 +5,8 @@
 
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
-import { Spacing, Radii } from '../common/theme';
-import BackgroundLiquidGlass from './BackgroundLiquidGlass';
+import { Spacing, Radii } from '../../common/theme';
+import BackgroundLiquidGlass from '../layout/BackgroundLiquidGlass';
 
 export const WalletDetailSkeleton = () => {
     const pulseAnim = useRef(new Animated.Value(0.3)).current;

@@ -9,9 +9,9 @@ import {
     TouchableOpacity
 } from 'react-native';
 import { Wallet } from 'lucide-react-native';
-import { FontSizes, Shadows, Radii, Spacing } from '../common/theme';
-import { formatVND } from '../common/formatters';
-import AppleGlassBackground from './ui/AppleGlassBackground';
+import { FontSizes, Shadows, Radii, Spacing } from '../../common/theme';
+import { formatVND } from '../../common/formatters';
+import AppleGlassBackground from '../ui/AppleGlassBackground';
 
 interface WalletCard2Props {
     name: string;

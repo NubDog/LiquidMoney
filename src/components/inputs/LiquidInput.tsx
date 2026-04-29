@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Colors } from '../common/theme';
+import { Colors } from '../../common/theme';
 import { StyleSheet, TextInput, View, type TextInputProps, type ViewStyle } from 'react-native';
-import BackgroundLiquidGlass from './BackgroundLiquidGlass';
+import BackgroundLiquidGlass from '../layout/BackgroundLiquidGlass';
 
 interface LiquidInputProps extends TextInputProps {
     containerStyle?: ViewStyle;

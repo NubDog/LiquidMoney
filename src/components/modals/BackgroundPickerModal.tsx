@@ -11,10 +11,10 @@ import {
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
 import { X, CheckCircle2 } from 'lucide-react-native';
-import { BACKGROUNDS, BACKGROUND_KEYS } from '../assets/img/backgrounds';
-import { useStore } from '../store/useStore';
-import IconButton from './IconButton';
-import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
+import { BACKGROUNDS, BACKGROUND_KEYS } from '../../assets/img/backgrounds';
+import { useStore } from '../../store/useStore';
+import IconButton from '../buttons/IconButton';
+import { Colors, FontSizes, Radii, Spacing } from '../../common/theme';
 
 interface BackgroundPickerModalProps {
     visible: boolean;
@@ -69,7 +69,7 @@ const BackgroundPickerModal: React.FC<BackgroundPickerModalProps> = ({
                                 onClose();
                             }}>
                             <Image
-                                source={require('../assets/img/Background.jpg')}
+                                source={require('../../assets/img/Background.jpg')}
                                 style={styles.imageThumb}
                                 resizeMode="cover"
                             />

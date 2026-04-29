@@ -6,8 +6,8 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, Pressable, View } from 'react-native';
 import { Calendar } from 'lucide-react-native';
-import { FontSizes, Spacing, Radii } from '../common/theme';
-import BackgroundLiquidGlass from './BackgroundLiquidGlass';
+import { FontSizes, Spacing, Radii } from '../../common/theme';
+import BackgroundLiquidGlass from '../layout/BackgroundLiquidGlass';
 
 export interface FilterOption {
     id: string;

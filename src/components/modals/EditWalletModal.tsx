@@ -11,10 +11,10 @@ import {
     TextInput,
     View,
 } from 'react-native';
-import { SpringConfigs } from '../common/animations';
-import AppleButton from './ui/AppleButton';
-import AppleTextInput from './ui/AppleTextInput';
-import AppleAmountInput from './ui/AppleAmountInput';
+import { SpringConfigs } from '../../common/animations';
+import AppleButton from '../ui/AppleButton';
+import AppleTextInput from '../ui/AppleTextInput';
+import AppleAmountInput from '../ui/AppleAmountInput';
 
 interface EditWalletModalProps {
     visible: boolean;

@@ -25,18 +25,18 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronLeft, MoreVertical, Plus } from 'lucide-react-native';
 
 // ─── Components ───────────────────────────────────────────────────────────────
-import BackgroundLiquidGlass from '../components/BackgroundLiquidGlass';
-import LiquidSegmentedControl2 from '../components/LiquidSegmentedControl2';
-import TransactionModal from '../components/TransactionModal';
+import AppleGlassBackground from '../components/ui/AppleGlassBackground';
+import LiquidSegmentedControl2 from '../components/inputs/LiquidSegmentedControl2';
+import TransactionModal from '../components/modals/TransactionModal';
 import AppleTransactionRow from '../components/ui/AppleTransactionRow';
-import TransactionDetailOverlay from '../components/TransactionDetailOverlay';
-import ConfirmDialog2 from '../components/ConfirmDialog2';
-import EditWalletModal from '../components/EditWalletModal';
-import PopupMenu from '../components/PopupMenu';
-import IconButton from '../components/IconButton';
-import LiquidBackground from '../components/LiquidBackground';
-import { WalletDetailSkeleton } from '../components/WalletDetailSkeleton';
-import EmptyState2 from '../components/EmptyState2';
+import TransactionDetailOverlay from '../components/overlays/TransactionDetailOverlay';
+import ConfirmDialog2 from '../components/modals/ConfirmDialog2';
+import EditWalletModal from '../components/modals/EditWalletModal';
+import PopupMenu from '../components/overlays/PopupMenu';
+import IconButton from '../components/buttons/IconButton';
+import LiquidBackground from '../components/layout/LiquidBackground';
+import { WalletDetailSkeleton } from '../components/layout/WalletDetailSkeleton';
+import EmptyState2 from '../components/layout/EmptyState2';
 
 // ─── Shared ───────────────────────────────────────────────────────────────────
 import { useStore } from '../store/useStore';
@@ -230,9 +230,8 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
         () => (
             <View>
                 <View collapsable={false}>
-                    <BackgroundLiquidGlass
+                    <AppleGlassBackground
                         style={styles.summaryCard}
-
                         borderRadius={Radii.xxl}>
                         <Text style={styles.walletName}>{wallet?.name || 'Ví'}</Text>
                         <Text style={styles.balanceLabel}>Số dư hiện tại</Text>
@@ -255,7 +254,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
                                 </Text>
                             </View>
                         </View>
-                    </BackgroundLiquidGlass>
+                    </AppleGlassBackground>
                 </View>
 
                 <View style={styles.filterWrapper}>
