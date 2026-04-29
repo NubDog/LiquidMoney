@@ -434,10 +434,7 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
 
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
-            {/* Vibe Layer: Mesh Background drives the Liquid Glass */}
-            <View style={StyleSheet.absoluteFill}>
-                <LiquidBackground />
-            </View>
+
 
             {/* LAYER 1: IMMEDIATE SHELL */}
             <View style={styles.topBar}>
@@ -480,7 +477,7 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#000',
+        backgroundColor: 'transparent',
     },
     topBar: {
         flexDirection: 'row',

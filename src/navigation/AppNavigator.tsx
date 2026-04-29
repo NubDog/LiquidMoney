@@ -210,6 +210,11 @@ const AppNavigator: React.FC = () => {
         outputRange: [width, 0],
     });
 
+    const mainOpacity = walletSlideAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [1, 0],
+    });
+
     // ─── Render ───────────────────────────────────────────────────────────────
 
     return (
@@ -223,6 +228,7 @@ const AppNavigator: React.FC = () => {
                     {
                         width: width * tabCount,
                         transform: [{ translateX: slideAnim }],
+                        opacity: mainOpacity,
                     },
                 ]}>
                 <View style={{ width, height: '100%' }}>
@@ -242,11 +248,14 @@ const AppNavigator: React.FC = () => {
             </Animated.View>
 
             {/* Floating Glass Tab Bar — stays behind Wallet Detail */}
-            <View
+            <Animated.View
                 pointerEvents={activeWalletId ? 'none' : 'box-none'}
                 style={[
                     styles.tabBarContainer,
-                    { paddingBottom: insets.bottom + 20 },
+                    { 
+                        paddingBottom: insets.bottom + 20,
+                        opacity: mainOpacity 
+                    },
                 ]}>
                 <Animated.View
                     style={[
@@ -335,7 +344,7 @@ const AppNavigator: React.FC = () => {
                         })}
                     </View>
                 </Animated.View>
-            </View>
+            </Animated.View>
 
             {/* Wallet Detail — slides in from right using RN Core Animated */}
             <Animated.View
@@ -346,7 +355,6 @@ const AppNavigator: React.FC = () => {
                         transform: [{ translateX: walletTranslateX }],
                         zIndex: 100, // Ensure it covers the tab bar
                         elevation: 100,
-                        backgroundColor: '#000000', // Solid background instead of Mesh 
                     },
                 ]}>
                 {walletDetailRendered && displayWalletId && (
