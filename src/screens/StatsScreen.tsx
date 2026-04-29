@@ -31,7 +31,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Rect, Stop, Text as SvgText } from 'react-native-svg';
 import { BlurView } from '@react-native-community/blur';
-import BackgroundLiquidGlass from '../components/layout/BackgroundLiquidGlass';
+import AppleGlassBackground from '../components/ui/AppleGlassBackground';
 import LiquidButton2 from '../components/buttons/LiquidButton2';
 import LiquidSegmentedControl2 from '../components/inputs/LiquidSegmentedControl2';
 import AppleTransactionRow from '../components/ui/AppleTransactionRow';
@@ -264,7 +264,7 @@ const SummarySection: React.FC<{
 }> = React.memo(({ totalIn, totalOut }) => {
     const balance = totalIn - totalOut;
     return (
-        <BackgroundLiquidGlass style={sumStyles.card} borderRadius={24}>
+        <AppleGlassBackground style={sumStyles.card} borderRadius={24} variant="chromeMaterial">
             <View style={sumStyles.inner}>
                 {/* Main Metric - Chênh lệch */}
                 <View style={{ alignItems: 'center', marginBottom: Spacing.md }}>
@@ -305,7 +305,7 @@ const SummarySection: React.FC<{
                     </View>
                 </View>
             </View>
-        </BackgroundLiquidGlass>
+        </AppleGlassBackground>
     );
 });
 
@@ -432,7 +432,7 @@ const BarChart: React.FC<{
     const barRadius = Math.min(barWidth / 2, 8);
 
     return (
-        <BackgroundLiquidGlass style={chStyles.card} borderRadius={24}>
+        <AppleGlassBackground style={chStyles.card} borderRadius={24} variant="chromeMaterial">
             <View style={chStyles.inner}>
                 <Text style={chStyles.title}>Dòng tiền</Text>
 
@@ -578,7 +578,7 @@ const BarChart: React.FC<{
                     </View>
                 </View>
             </View>
-        </BackgroundLiquidGlass>
+        </AppleGlassBackground>
     );
 });
 

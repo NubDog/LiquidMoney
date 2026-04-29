@@ -14,10 +14,9 @@ import {
 } from 'react-native';
 
 import { Easing } from 'react-native';
-import AppleGlassBackground from '../ui/AppleGlassBackground';
-import LiquidInput from '../inputs/LiquidInput';
-import AmountInput2 from '../inputs/AmountInput2';
-import LiquidButton2 from '../buttons/LiquidButton2';
+import AppleTextInput from '../ui/AppleTextInput';
+import AppleAmountInput from '../ui/AppleAmountInput';
+import AppleButton from '../ui/AppleButton';
 import { animateSheetIn, animateSheetOut } from '../../common/animations';
 import AnimatedOverlay from '../overlays/AnimatedOverlay';
 import AppleCloseButton from '../ui/AppleCloseButton';
@@ -95,12 +94,7 @@ const WalletModal: React.FC<WalletModalProps> = ({
                     style={styles.keyboardView}
                     pointerEvents="box-none">
                     <Animated.View style={[styles.sheetContainer, { transform: [{ translateY }] }]}>
-                        <AppleGlassBackground 
-                            variant="dark" 
-                            borderRadius={Radii.xxl} 
-                            style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
-                            contentContainerStyle={styles.card}
-                        >
+                        <View style={styles.modalContent}>
                             <View style={styles.handleBar} />
                             
                             {/* Header */}
@@ -111,41 +105,32 @@ const WalletModal: React.FC<WalletModalProps> = ({
 
                             {/* Content */}
                             <View style={styles.content}>
-                                <View style={styles.inputGroup}>
-                                    <Text style={styles.label}>Tên ví</Text>
-                                    <LiquidInput
-                                        containerStyle={styles.nameInputContainer}
-                                        style={styles.input}
-                                        value={name}
-                                        onChangeText={setName}
-                                        placeholder="VD: Tiền mặt, Thẻ tín dụng..."
-                                        autoCapitalize="sentences"
-                                        disableBlur={true}
-                                    />
-                                </View>
+                                <AppleTextInput
+                                    label="Tên ví"
+                                    value={name}
+                                    onChangeText={setName}
+                                    placeholder="VD: Tiền mặt, Thẻ tín dụng..."
+                                    autoCapitalize="sentences"
+                                />
 
-                                <View style={styles.inputGroup}>
-                                    <Text style={styles.label}>Số dư ban đầu</Text>
-                                    <AmountInput2
-                                        style={styles.amountInputContainer}
-                                        value={balanceStr}
-                                        onChangeText={handleAmountChange}
-                                        disableBlur={true}
-                                    />
-                                </View>
+                                <AppleAmountInput
+                                    label="Số dư ban đầu"
+                                    value={balanceStr}
+                                    onChangeText={handleAmountChange}
+                                    placeholder="0"
+                                />
 
-                                <LiquidButton2
+                                <AppleButton
                                     title="Tạo Ví"
                                     onPress={handleSave}
                                     disabled={isSaveDisabled}
                                     style={styles.saveBtn}
-                                    disableBlur={true}
                                 />
                                 
                                 {/* Bottom padding to push up content from the screen edge / home indicator */}
                                 <View style={{ height: Math.max(insets.bottom, 48) }} />
                             </View>
-                        </AppleGlassBackground>
+                        </View>
                     </Animated.View>
                 </KeyboardAvoidingView>
             </View>
@@ -167,8 +152,11 @@ const styles = StyleSheet.create({
         width: '100%',
         ...Shadows.menu,
     },
-    card: {
-        // Content wrapper
+    modalContent: {
+        backgroundColor: '#1C1C1E', // Dark mode background
+        borderTopLeftRadius: Radii.xxl,
+        borderTopRightRadius: Radii.xxl,
+        overflow: 'hidden',
     },
     handleBar: {
         width: 44,
@@ -194,27 +182,6 @@ const styles = StyleSheet.create({
     content: {
         paddingHorizontal: Spacing.xl,
         paddingTop: 10,
-    },
-    inputGroup: {
-        marginBottom: 20,
-    },
-    label: {
-        fontSize: 14,
-        color: '#FFFFFF',
-        marginBottom: 8,
-        fontWeight: '500',
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-    },
-    input: {
-        fontSize: 16,
-    },
-    nameInputContainer: {
-        height: 54,
-    },
-    amountInputContainer: {
-        width: '100%',
-        height: 56,
     },
     saveBtn: {
         marginTop: 10,
