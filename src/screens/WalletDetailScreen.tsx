@@ -416,18 +416,25 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
                 if (mounted) {
                     setIsReady(true);
 
-                    // Delay animation by 500ms (0.5s) to allow JS thread to completely finish rendering heavy payload
+                    // Delay animation slightly to allow JS thread to completely finish rendering heavy payload
+                    // Use requestAnimationFrame to perfectly sync with the device's 120Hz V-Sync
                     setTimeout(() => {
                         if (!mounted) return;
-                        Animated.timing(transitionAnim, {
-                            toValue: 1,
-                            useNativeDriver: true,
-                            duration: 400,
-                            easing: Easing.out(Easing.cubic),
-                        }).start(() => {
-                            if (mounted) { setShowContent(true); }
+                        requestAnimationFrame(() => {
+                            Animated.spring(transitionAnim, {
+                                toValue: 1,
+                                useNativeDriver: true,
+                                damping: 20,
+                                stiffness: 140,
+                                mass: 0.8,
+                                // Very low thresholds to keep the animation running smoothly to the very end
+                                restDisplacementThreshold: 0.001,
+                                restSpeedThreshold: 0.001,
+                            }).start(() => {
+                                if (mounted) { setShowContent(true); }
+                            });
                         });
-                    }, 500);
+                    }, 300);
                 }
             } catch (error) {
                 console.error('[WalletDetailScreen] loadContent error:', error);
