@@ -79,7 +79,7 @@ const AppleSegmentedControl: React.FC<AppleSegmentedControlProps> = React.memo((
 
 const styles = StyleSheet.create({
     wrapper: {
-        borderRadius: 16,
+        borderRadius: 999,
         overflow: 'hidden',
         width: '100%',
         backgroundColor: '#2C2C2E', // iOS Dark Mode Elevated
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 2,
-        borderRadius: 10,
+        borderRadius: 999,
     },
     text: {
         fontSize: FontSizes.sm,
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
         top: 6,
         bottom: 6,
         left: 0,
-        borderRadius: 10,
+        borderRadius: 999,
         zIndex: 1,
         // Standard iOS shadow for segmented control indicator
         shadowColor: '#000',
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     indicatorOverlay: {
-        borderRadius: 10,
+        borderRadius: 999,
         backgroundColor: '#48484A', // iOS Dark Mode Light elevated
     },
 });

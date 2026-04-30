@@ -65,13 +65,19 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
     React.useEffect(() => {
         if (visible) {
             animateSheetIn(translateY).start();
-            // Reset state
-            setAmount('');
-            setDescription('');
-            setDate(new Date());
-            setActiveTab('Thu Nhập');
+            if (editData) {
+                setAmount(editData.amount ? editData.amount.toString() : '');
+                setDescription(editData.reason || '');
+                setDate(editData.date ? new Date(editData.date) : new Date());
+                setActiveTab(editData.type === 'IN' ? 'Thu Nhập' : 'Chi Tiêu');
+            } else {
+                setAmount('');
+                setDescription('');
+                setDate(new Date());
+                setActiveTab('Thu Nhập');
+            }
         }
-    }, [visible, translateY]);
+    }, [visible, translateY, editData]);
 
     const handleClose = () => {
         Keyboard.dismiss();
@@ -120,7 +126,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                         <View style={styles.sheet}>
                             <View style={styles.handleBar} />
                             <View style={styles.header}>
-                                <Text style={styles.title}>Giao dịch mới</Text>
+                                <Text style={styles.title}>{editData ? 'Chỉnh sửa giao dịch' : 'Giao dịch mới'}</Text>
                                 <AppleCloseButton onPress={handleClose} size={32} />
                             </View>
 

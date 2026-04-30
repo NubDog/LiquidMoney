@@ -18,6 +18,7 @@ import { format } from 'date-fns';
 import { animateSheetIn, animateSheetOut } from '../../common/animations';
 import AnimatedOverlay from '../overlays/AnimatedOverlay';
 import AppleCloseButton from '../ui/AppleCloseButton';
+import AppleButton from '../ui/AppleButton';
 
 import { Colors, FontSizes, Shadows, Spacing, Radii } from '../../common/theme';
 import type { Transaction } from '../../common/types';
@@ -29,7 +30,7 @@ interface TransactionDetailOverlayProps {
     formatCurrency?: (amount: number, type: string) => string;
     walletName?: string;
     onGoBack?: () => void;
-    onEdit?: (id: string, wId: string, type: "IN" | "OUT", amount: number, reason?: string | null | undefined, imageUri?: string | null | undefined) => void;
+    onEditRequest?: () => void;
     onDelete?: (id: string, wId: string) => void;
 }
 
@@ -38,6 +39,7 @@ const TransactionDetailOverlay: React.FC<TransactionDetailOverlayProps> = ({
     transaction,
     onClose,
     formatCurrency,
+    onEditRequest,
 }) => {
     const translateY = useRef(new Animated.Value(400)).current;
 
@@ -118,6 +120,14 @@ const TransactionDetailOverlay: React.FC<TransactionDetailOverlayProps> = ({
                                 <Text style={styles.detailValue}>
                                     {format(new Date(transaction.created_at), 'dd/MM/yyyy • HH:mm')}
                                 </Text>
+                            </View>
+
+                            <View style={{ marginTop: 24 }}>
+                                <AppleButton
+                                    title="Chỉnh sửa giao dịch"
+                                    onPress={() => onEditRequest?.()}
+                                    variant="primary"
+                                />
                             </View>
                         </ScrollView>
                     </View>

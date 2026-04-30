@@ -144,13 +144,13 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
         [editingTx, walletId, addTransaction, editTransaction],
     );
 
-    const handleEditFromDetail = useCallback(
-        (id: string, wId: string, type: 'IN' | 'OUT', amount: number, reason?: string | null, imageUri?: string | null) => {
-            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-            editTransaction(id, wId, type, amount, reason, imageUri);
-        },
-        [editTransaction],
-    );
+    const handleOpenEditTransaction = useCallback(() => {
+        if (viewingTx) {
+            setEditingTx(viewingTx);
+            setViewingTx(null); // Close detail overlay
+            setModalVisible(true); // Open edit modal
+        }
+    }, [viewingTx]);
 
     const handleDeleteFromDetail = useCallback(
         (id: string, wId: string) => {
@@ -335,6 +335,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
                             amount: editingTx.amount,
                             reason: editingTx.reason,
                             image_uri: editingTx.image_uri,
+                            date: editingTx.created_at,
                         }
                         : null
                 }
@@ -348,7 +349,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
                     walletName={wallet?.name || 'Ví'}
                     onGoBack={handleGoBackFromDetail}
                     onClose={handleGoBackFromDetail}
-                    onEdit={handleEditFromDetail}
+                    onEditRequest={handleOpenEditTransaction}
                     onDelete={handleDeleteFromDetail}
                 />
             )}
