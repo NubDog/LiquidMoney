@@ -20,6 +20,8 @@ import {
     Text,
     View,
     Animated,
+    Easing,
+    Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronLeft, MoreVertical, Plus } from 'lucide-react-native';
@@ -201,11 +203,11 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
         (name: string, currentBalance: number) => {
             if (currentWallet) {
                 adjustWalletBalance(
-                    walletId, 
-                    name, 
-                    currentBalance, 
-                    currentWallet.current_balance, 
-                    currentWallet.initial_balance, 
+                    walletId,
+                    name,
+                    currentBalance,
+                    currentWallet.current_balance,
+                    currentWallet.initial_balance,
                     currentWallet.icon
                 );
             }
@@ -306,6 +308,10 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
                 ListEmptyComponent={listEmpty}
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
+                initialNumToRender={6}
+                maxToRenderPerBatch={5}
+                windowSize={5}
+                removeClippedSubviews={Platform.OS === 'android'}
             />
 
             {/* FAB */}
@@ -408,14 +414,19 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
 
                 if (mounted) {
                     setIsReady(true);
-                    Animated.spring(transitionAnim, {
-                        toValue: 1,
-                        useNativeDriver: true,
-                        friction: 10,
-                        tension: 60,
-                    }).start(() => {
-                        if (mounted) { setShowContent(true); }
-                    });
+
+                    // Delay animation by 500ms (0.5s) to allow JS thread to completely finish rendering heavy payload
+                    setTimeout(() => {
+                        if (!mounted) return;
+                        Animated.timing(transitionAnim, {
+                            toValue: 1,
+                            useNativeDriver: true,
+                            duration: 400,
+                            easing: Easing.out(Easing.cubic),
+                        }).start(() => {
+                            if (mounted) { setShowContent(true); }
+                        });
+                    }, 500);
                 }
             } catch (error) {
                 console.error('[WalletDetailScreen] loadContent error:', error);
@@ -475,6 +486,8 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
                 {!showContent && (
                     <Animated.View
                         pointerEvents="none"
+                        renderToHardwareTextureAndroid={true}
+                        needsOffscreenAlphaCompositing={!showContent}
                         style={[
                             StyleSheet.absoluteFill,
                             {
@@ -490,6 +503,9 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
                 {/* Payload (Entrance Layer) */}
                 {isReady && (
                     <Animated.View
+                        pointerEvents={showContent ? 'auto' : 'none'}
+                        renderToHardwareTextureAndroid={true}
+                        needsOffscreenAlphaCompositing={!showContent}
                         style={[
                             StyleSheet.absoluteFill,
                             {
