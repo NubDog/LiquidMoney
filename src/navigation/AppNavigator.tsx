@@ -130,19 +130,30 @@ const AppNavigator: React.FC = () => {
         if (activeWalletId) {
             // Animation values
             walletSlideAnim.setValue(0);
-            Animated.spring(walletSlideAnim, {
-                toValue: 1,
-                useNativeDriver: true,
-                friction: 12,
-                tension: 65,
-            }).start();
+            requestAnimationFrame(() => {
+                Animated.spring(walletSlideAnim, {
+                    toValue: 1,
+                    useNativeDriver: true,
+                    damping: 22,
+                    stiffness: 140,
+                    mass: 0.8,
+                    restDisplacementThreshold: 0.001,
+                    restSpeedThreshold: 0.001,
+                }).start();
+            });
         } else if (walletDetailRendered) {
-            Animated.timing(walletSlideAnim, {
-                toValue: 0,
-                duration: 250,
-                useNativeDriver: true,
-            }).start(() => {
-                setWalletDetailRendered(false);
+            requestAnimationFrame(() => {
+                Animated.spring(walletSlideAnim, {
+                    toValue: 0,
+                    useNativeDriver: true,
+                    damping: 22,
+                    stiffness: 140,
+                    mass: 0.8,
+                    restDisplacementThreshold: 0.001,
+                    restSpeedThreshold: 0.001,
+                }).start(() => {
+                    setWalletDetailRendered(false);
+                });
             });
         }
     }, [activeWalletId, walletSlideAnim, walletDetailRendered]);
