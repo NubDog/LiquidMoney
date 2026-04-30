@@ -6,7 +6,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { Spacing, Radii } from '../../common/theme';
-import BackgroundLiquidGlass from '../layout/BackgroundLiquidGlass';
+import AppleGlassBackground from '../ui/AppleGlassBackground';
 
 export const WalletDetailSkeleton = () => {
     const pulseAnim = useRef(new Animated.Value(0.3)).current;
@@ -31,10 +31,10 @@ export const WalletDetailSkeleton = () => {
     return (
         <View style={styles.container}>
             {/* Wallet Info Skel */}
-            <BackgroundLiquidGlass style={styles.headerCard} contentContainerStyle={styles.headerCardContent} borderRadius={Radii.xl}>
+            <AppleGlassBackground variant="chromeMaterial" style={styles.headerCard} contentContainerStyle={styles.headerCardContent} borderRadius={Radii.xl}>
                 <Animated.View style={[styles.shimmerBox, { width: 120, height: 20, opacity: pulseAnim }]} />
                 <Animated.View style={[styles.shimmerBox, { width: 200, height: 40, marginTop: 12, opacity: pulseAnim }]} />
-            </BackgroundLiquidGlass>
+            </AppleGlassBackground>
 
             {/* Title Skel */}
             <View style={{ marginTop: Spacing.xxl }}>
@@ -44,7 +44,7 @@ export const WalletDetailSkeleton = () => {
             {/* List Skel */}
             <View style={styles.list}>
                 {[1, 2, 3, 4, 5].map((key) => (
-                    <BackgroundLiquidGlass key={key} style={styles.rowCard} contentContainerStyle={styles.rowCardContent} borderRadius={Radii.lg}>
+                    <AppleGlassBackground variant="chromeMaterial" key={key} style={styles.rowCard} contentContainerStyle={styles.rowCardContent} borderRadius={Radii.lg}>
                         <View style={styles.rowContent}>
                             <Animated.View style={[styles.avatarSkel, { opacity: pulseAnim }]} />
                             <View style={styles.textWrap}>
@@ -53,7 +53,7 @@ export const WalletDetailSkeleton = () => {
                             </View>
                             <Animated.View style={[styles.shimmerBox, { width: 60, height: 20, opacity: pulseAnim }]} />
                         </View>
-                    </BackgroundLiquidGlass>
+                    </AppleGlassBackground>
                 ))}
             </View>
         </View>

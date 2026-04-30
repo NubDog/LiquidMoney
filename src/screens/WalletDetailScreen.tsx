@@ -386,6 +386,7 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
 
     const [isReady, setIsReady] = useState(false);
     const [showContent, setShowContent] = useState(false);
+    const transitionAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
         let mounted = true;
@@ -407,14 +408,20 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
 
                 if (mounted) {
                     setIsReady(true);
-                    setTimeout(() => {
+                    Animated.spring(transitionAnim, {
+                        toValue: 1,
+                        useNativeDriver: true,
+                        friction: 10,
+                        tension: 60,
+                    }).start(() => {
                         if (mounted) { setShowContent(true); }
-                    }, 50);
+                    });
                 }
             } catch (error) {
                 console.error('[WalletDetailScreen] loadContent error:', error);
                 if (mounted) {
                     setIsReady(true);
+                    transitionAnim.setValue(1);
                     setShowContent(true);
                 }
             }
@@ -431,6 +438,15 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
     const handleMenuPress = useCallback(() => {
         menuPressRef.current?.();
     }, []);
+
+    // ─── Pro Max Animation Interpolations ───────────────────────────────────────
+    const skelOpacity = transitionAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 0] });
+    const skelScale = transitionAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 0.95] });
+    const skelTranslateY = transitionAnim.interpolate({ inputRange: [0, 1], outputRange: [0, -15] });
+
+    const payloadOpacity = transitionAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
+    const payloadScale = transitionAnim.interpolate({ inputRange: [0, 1], outputRange: [0.95, 1] });
+    const payloadTranslateY = transitionAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] });
 
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -453,21 +469,44 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
                 </View>
             </View>
 
-            {/* CONTENT: Skeleton → Payload swap */}
-            {!isReady ? (
-                <View style={{ flex: 1 }}>
-                    <WalletDetailSkeleton />
-                </View>
-            ) : (
-                <View style={[styles.payloadContainer, { opacity: showContent ? 1 : 0 }]}>
-                    <WalletPayload
-                        walletId={walletId}
-                        onGoBack={onGoBack}
-                        menuBtnRef={menuBtnRef}
-                        onMenuPressRef={menuPressRef}
-                    />
-                </View>
-            )}
+            {/* CONTENT: Skeleton → Payload Drift & Expand Transition */}
+            <View style={{ flex: 1, position: 'relative' }}>
+                {/* Skeleton (Exit Layer) */}
+                {!showContent && (
+                    <Animated.View
+                        pointerEvents="none"
+                        style={[
+                            StyleSheet.absoluteFill,
+                            {
+                                opacity: skelOpacity,
+                                transform: [{ scale: skelScale }, { translateY: skelTranslateY }]
+                            }
+                        ]}
+                    >
+                        <WalletDetailSkeleton />
+                    </Animated.View>
+                )}
+
+                {/* Payload (Entrance Layer) */}
+                {isReady && (
+                    <Animated.View
+                        style={[
+                            StyleSheet.absoluteFill,
+                            {
+                                opacity: payloadOpacity,
+                                transform: [{ scale: payloadScale }, { translateY: payloadTranslateY }]
+                            }
+                        ]}
+                    >
+                        <WalletPayload
+                            walletId={walletId}
+                            onGoBack={onGoBack}
+                            menuBtnRef={menuBtnRef}
+                            onMenuPressRef={menuPressRef}
+                        />
+                    </Animated.View>
+                )}
+            </View>
         </View>
     );
 };
