@@ -486,8 +486,6 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
                 {!showContent && (
                     <Animated.View
                         pointerEvents="none"
-                        renderToHardwareTextureAndroid={true}
-                        needsOffscreenAlphaCompositing={!showContent}
                         style={[
                             StyleSheet.absoluteFill,
                             {
@@ -504,8 +502,6 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
                 {isReady && (
                     <Animated.View
                         pointerEvents={showContent ? 'auto' : 'none'}
-                        renderToHardwareTextureAndroid={true}
-                        needsOffscreenAlphaCompositing={!showContent}
                         style={[
                             StyleSheet.absoluteFill,
                             {
