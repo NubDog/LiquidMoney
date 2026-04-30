@@ -11,7 +11,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
     Animated,
     BackHandler,
-    Dimensions,
+    PanResponder,
     Pressable,
     StyleSheet,
     Text,
@@ -159,6 +159,49 @@ const AppNavigator: React.FC = () => {
         setActiveWalletId(null);
     }, []);
 
+    // ─── Swipe Navigation ─────────────────────────────────────────────────────
+
+    const activeTabRef = useRef(activeTab);
+    activeTabRef.current = activeTab;
+
+    const tabsRef = useRef(tabs);
+    tabsRef.current = tabs;
+
+    const activeWalletIdRef = useRef(activeWalletId);
+    activeWalletIdRef.current = activeWalletId;
+
+    const panResponder = useMemo(
+        () =>
+            PanResponder.create({
+                onMoveShouldSetPanResponderCapture: (evt, gestureState) => {
+                    // Do not capture if wallet detail is open
+                    if (activeWalletIdRef.current) return false;
+                    
+                    // Only capture horizontal swipes that are long enough
+                    // 25px is enough to detect a deliberate horizontal swipe vs vertical scroll
+                    const isHorizontalSwipe = Math.abs(gestureState.dx) > 25 && Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 1.5;
+                    return isHorizontalSwipe;
+                },
+                onPanResponderRelease: (evt, gestureState) => {
+                    // Threshold distance for changing tab
+                    // 90px ensures it's a deliberate swipe, not too long or too short
+                    const SWIPE_THRESHOLD = 90;
+                    if (gestureState.dx > SWIPE_THRESHOLD) {
+                        // Swiped Right -> Previous Tab
+                        const idx = tabsRef.current.findIndex(t => t.key === activeTabRef.current);
+                        if (idx > 0) setActiveTab(tabsRef.current[idx - 1].key);
+                    } else if (gestureState.dx < -SWIPE_THRESHOLD) {
+                        // Swiped Left -> Next Tab
+                        const idx = tabsRef.current.findIndex(t => t.key === activeTabRef.current);
+                        if (idx < tabsRef.current.length - 1) setActiveTab(tabsRef.current[idx + 1].key);
+                    }
+                },
+                // Handle termination (e.g. if another gesture takes over)
+                onPanResponderTerminate: () => {},
+            }),
+        []
+    );
+
     // ─── Android Back Button ─────────────────────────────────────────────────
     useEffect(() => {
         const onBackPress = () => {
@@ -218,7 +261,7 @@ const AppNavigator: React.FC = () => {
     // ─── Render ───────────────────────────────────────────────────────────────
 
     return (
-        <View style={styles.root}>
+        <View style={styles.root} {...panResponder.panHandlers}>
             <LiquidBackground />
 
             {/* Sliding Container — always rendered */}

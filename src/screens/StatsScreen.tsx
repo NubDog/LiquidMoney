@@ -37,6 +37,7 @@ import LiquidSegmentedControl2 from '../components/inputs/LiquidSegmentedControl
 import AppleTransactionRow from '../components/ui/AppleTransactionRow';
 import EmptyState2 from '../components/layout/EmptyState2';
 import TransactionDetailOverlay from '../components/overlays/TransactionDetailOverlay';
+import TransactionModal from '../components/modals/TransactionModal';
 import { useStore } from '../store/useStore';
 import { isDatabaseAvailable } from '../database/db';
 import type { DailyStat, OverallStat, Transaction, Wallet } from '../database/queries';
@@ -734,6 +735,8 @@ const StatsScreen: React.FC = () => {
 
     const [refreshing, setRefreshing] = useState(false);
     const [viewingTx, setViewingTx] = useState<Transaction | null>(null);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [editingTx, setEditingTx] = useState<Transaction | null>(null);
 
     const { editTransaction, removeTransaction } = useStore();
 
@@ -901,12 +904,24 @@ const StatsScreen: React.FC = () => {
         setViewingTx(null);
     }, []);
 
-    const handleEditFromDetail = useCallback(
-        (id: string, wId: string, type: 'IN' | 'OUT', amount: number, reason?: string | null, imageUri?: string | null) => {
-            editTransaction(id, wId, type, amount, reason, imageUri);
-            loadData(selectedWalletId, period);
+    const handleOpenEditTransaction = useCallback(() => {
+        if (viewingTx) {
+            setEditingTx(viewingTx);
+            setViewingTx(null); // Close detail overlay
+            setModalVisible(true); // Open edit modal
+        }
+    }, [viewingTx]);
+
+    const handleSaveTransaction = useCallback(
+        (type: 'IN' | 'OUT', amount: number, reason?: string | null, imageUri?: string | null) => {
+            if (editingTx) {
+                editTransaction(editingTx.id, editingTx.wallet_id, type, amount, reason, imageUri);
+                setModalVisible(false);
+                setEditingTx(null);
+                loadData(selectedWalletId, period);
+            }
         },
-        [editTransaction, loadData, selectedWalletId, period],
+        [editingTx, editTransaction, loadData, selectedWalletId, period],
     );
 
     const handleDeleteFromDetail = useCallback(
@@ -1017,8 +1032,27 @@ const StatsScreen: React.FC = () => {
                     walletName="Tài khoản" // Adjust if mapping wallet ids
                     onGoBack={() => setViewingTx(null)}
                     onClose={() => setViewingTx(null)}
-                    onEdit={handleEditFromDetail}
+                    onEditRequest={handleOpenEditTransaction}
                     onDelete={handleDeleteFromDetail}
+                />
+                <TransactionModal
+                    visible={modalVisible}
+                    onClose={() => {
+                        setModalVisible(false);
+                        setEditingTx(null);
+                    }}
+                    onSave={handleSaveTransaction}
+                    editData={
+                        editingTx
+                            ? {
+                                type: editingTx.type,
+                                amount: editingTx.amount,
+                                reason: editingTx.reason,
+                                image_uri: editingTx.image_uri,
+                                date: editingTx.created_at,
+                            }
+                            : null
+                    }
                 />
                 </>
             )}
