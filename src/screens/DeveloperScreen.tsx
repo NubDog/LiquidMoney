@@ -19,6 +19,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Code, Database, Bug, TerminalSquare, ChevronRight, Lock, Image as ImageIcon } from 'lucide-react-native';
 import TerminalLogModal from '../components/modals/TerminalLogModal';
+import InteractiveTerminalModal from '../components/modals/InteractiveTerminalModal';
 import BackgroundPickerModal from '../components/modals/BackgroundPickerModal';
 import { useStore } from '../store/useStore';
 import { generateRandomTransactions, generateRandomWallets, deleteAllData } from '../database/queries';
@@ -41,6 +42,9 @@ const DeveloperScreen: React.FC = () => {
     const [showTerminal, setShowTerminal] = useState(false);
     const [logs, setLogs] = useState<string[]>([]);
     const [isComplete, setIsComplete] = useState(false);
+
+    // Interactive Terminal State
+    const [showInteractiveTerminal, setShowInteractiveTerminal] = useState(false);
 
     // Component Library State
     const [showLibrary, setShowLibrary] = useState(false);
@@ -333,13 +337,16 @@ const DeveloperScreen: React.FC = () => {
                         />
                     </View>
 
-                    {/* Placeholders */}
+                    {/* Advanced Tools */}
                     <View style={styles.card}>
-                        <View style={styles.rowCardInner}>
-                            <TerminalSquare size={20} color={Colors.textMuted} strokeWidth={2} />
-                            <Text style={[styles.rowCardTitle, { color: Colors.textMuted }]}>Console & Logs</Text>
-                            <Text style={styles.comingSoon}>Sắp ra mắt</Text>
-                        </View>
+                        <Pressable 
+                            style={({ pressed }) => [styles.rowCardInner, pressed && { opacity: 0.7 }]}
+                            onPress={() => setShowInteractiveTerminal(true)}
+                        >
+                            <TerminalSquare size={20} color={Colors.cyan} strokeWidth={2} />
+                            <Text style={styles.rowCardTitle}>Interactive Console</Text>
+                            <ChevronRight size={20} color={Colors.textMuted} />
+                        </Pressable>
                         <View style={styles.divider} />
                         <View style={[styles.rowCardInner, { marginTop: Spacing.md }]}>
                             <Bug size={20} color={Colors.textMuted} strokeWidth={2} />
@@ -360,6 +367,11 @@ const DeveloperScreen: React.FC = () => {
                 logs={logs}
                 isComplete={isComplete}
                 onClose={closeTerminal}
+            />
+
+            <InteractiveTerminalModal
+                visible={showInteractiveTerminal}
+                onClose={() => setShowInteractiveTerminal(false)}
             />
 
             <ComponentLibraryScreen

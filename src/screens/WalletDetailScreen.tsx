@@ -66,6 +66,7 @@ interface WalletPayloadProps {
     onGoBack: () => void;
     menuBtnRef: React.RefObject<View | null>;
     onMenuPressRef: React.MutableRefObject<(() => void) | null>;
+    isTransitioning: boolean;
 }
 
 const WalletPayload: React.FC<WalletPayloadProps> = ({
@@ -73,6 +74,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
     onGoBack,
     menuBtnRef,
     onMenuPressRef,
+    isTransitioning,
 }) => {
     const {
         currentWallet,
@@ -301,11 +303,11 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
 
             {/* Transaction List */}
             <FlatList
-                data={transactions}
+                data={isTransitioning ? [] : transactions}
                 keyExtractor={item => item.id}
                 renderItem={renderItem}
                 ListHeaderComponent={listHeader}
-                ListEmptyComponent={listEmpty}
+                ListEmptyComponent={isTransitioning ? null : listEmpty}
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
                 initialNumToRender={6}
@@ -393,57 +395,41 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
 
     const [isReady, setIsReady] = useState(false);
     const [showContent, setShowContent] = useState(false);
+    const [isTransitioning, setIsTransitioning] = useState(true);
     const transitionAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
         let mounted = true;
 
-        const load = async () => {
+        const load = () => {
             try {
-                await new Promise<void>(resolve => {
-                    InteractionManager.runAfterInteractions(() => resolve());
-                });
-
-                try {
-                    selectWallet(walletId);
-                    refreshTransactions(walletId);
-                } catch (err) {
-                    console.error('Error in fetchWalletData:', err);
-                }
-
-                await delay(800);
-
-                if (mounted) {
-                    setIsReady(true);
-
-                    // Delay animation slightly to allow JS thread to completely finish rendering heavy payload
-                    // Use requestAnimationFrame to perfectly sync with the device's 120Hz V-Sync
-                    setTimeout(() => {
-                        if (!mounted) return;
-                        requestAnimationFrame(() => {
-                            Animated.spring(transitionAnim, {
-                                toValue: 1,
-                                useNativeDriver: true,
-                                damping: 20,
-                                stiffness: 140,
-                                mass: 0.8,
-                                // Very low thresholds to keep the animation running smoothly to the very end
-                                restDisplacementThreshold: 0.001,
-                                restSpeedThreshold: 0.001,
-                            }).start(() => {
-                                if (mounted) { setShowContent(true); }
-                            });
-                        });
-                    }, 300);
-                }
-            } catch (error) {
-                console.error('[WalletDetailScreen] loadContent error:', error);
-                if (mounted) {
-                    setIsReady(true);
-                    transitionAnim.setValue(1);
-                    setShowContent(true);
-                }
+                selectWallet(walletId);
+                refreshTransactions(walletId);
+            } catch (err) {
+                console.error('Error in fetchWalletData:', err);
             }
+
+            // Immediately mount payload in transition state to prepare layout
+            setIsReady(true);
+
+            InteractionManager.runAfterInteractions(() => {
+                if (!mounted) return;
+
+                requestAnimationFrame(() => {
+                    if (!mounted) return;
+                    Animated.timing(transitionAnim, {
+                        toValue: 1,
+                        useNativeDriver: true,
+                        duration: 250,
+                        easing: Easing.out(Easing.cubic),
+                    }).start(() => {
+                        if (mounted) { 
+                            setIsTransitioning(false);
+                            setShowContent(true); 
+                        }
+                    });
+                });
+            });
         };
 
         load();
@@ -523,6 +509,7 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
                             onGoBack={onGoBack}
                             menuBtnRef={menuBtnRef}
                             onMenuPressRef={menuPressRef}
+                            isTransitioning={isTransitioning}
                         />
                     </Animated.View>
                 )}

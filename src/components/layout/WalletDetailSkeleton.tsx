@@ -16,12 +16,12 @@ export const WalletDetailSkeleton = () => {
             Animated.sequence([
                 Animated.timing(pulseAnim, {
                     toValue: 0.7,
-                    duration: 800,
+                    duration: 250,
                     useNativeDriver: true,
                 }),
                 Animated.timing(pulseAnim, {
                     toValue: 0.3,
-                    duration: 800,
+                    duration: 250,
                     useNativeDriver: true,
                 }),
             ]),

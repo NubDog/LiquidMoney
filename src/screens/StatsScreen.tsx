@@ -642,7 +642,6 @@ const WalletChips: React.FC<{
     selectedId?: string;
     onSelect: (id?: string) => void;
 }> = React.memo(({ wallets, selectedId, onSelect }) => {
-    if (wallets.length <= 1) { return null; }
 
     const activeId = selectedId || 'ALL';
     const items = useMemo(() => {
@@ -670,6 +669,8 @@ const WalletChips: React.FC<{
             }).start();
         }
     }, [activeId, layouts, animX, animW]);
+
+    if (wallets.length <= 1) { return null; }
 
     return (
         <ScrollView 
