@@ -64,7 +64,7 @@ const AppleSegmentedControl: React.FC<AppleSegmentedControlProps> = React.memo((
                 {options.map(option => (
                     <Pressable
                         key={option.key}
-                        style={[styles.tab, { width: tabWidth }]}
+                        style={[styles.tab, { flex: 1 }]}
                         onPress={() => onChange(option.key)}
                     >
                         <Text style={[styles.text, selected === option.key && styles.textActive]}>
