@@ -54,7 +54,25 @@ Trong quá trình thay máu ứng dụng, chúng ta đã đụng phải những 
 
 ---
 
-## 4. Tầm nhìn & Tổng kết
+## 4. Tối ưu hóa Trải nghiệm Người dùng (UX) & Hiệu năng (Performance)
+
+Tiếp nối việc thay đổi ngôn ngữ thiết kế, giai đoạn gần đây tập trung mạnh mẽ vào việc chuốt lại các tương tác (micro-interactions) và tính khả dụng của ứng dụng:
+
+1. **Xử lý triệt để vấn đề Bàn phím (Keyboard UX):**
+   - *Vấn đề*: Trong các Transaction Modals, khi người dùng nhập số tiền hoặc ghi chú, bàn phím (đặc biệt trên iOS) thường xuyên trồi lên che khuất luôn ô input (nhập liệu).
+   - *Giải pháp*: Xây dựng lại cơ chế tương tác với bàn phím (Keyboard push/avoid). Đảm bảo form nhập liệu luôn linh hoạt cuộn hoặc đẩy lên trên vùng an toàn (safe area), giữ cho Input luôn nằm trong tầm nhìn để luồng thao tác không bị đứt đoạn.
+
+2. **Chinh phục giới hạn 120fps cho Animation:**
+   - Để các Dialog/Modal (như `ConfirmImportDialog2`) có cảm giác "cao cấp", các hiệu ứng xuất hiện (entrance) và biến mất (exit) đã được tinh chỉnh lại bằng các hàm nội suy Cubic-easing đặc biệt.
+   - Các chuyển động giờ đây không chỉ mượt mà, không bị khựng (drop frame) mà còn đảm bảo duy trì ổn định ở mức 120fps trên các thiết bị phần cứng hỗ trợ. Mọi thao tác vuốt, chạm đều đem lại phản hồi tức thì và tự nhiên.
+
+3. **Hoàn thiện hệ sinh thái "Liquid Glass Modals":**
+   - Dù xu hướng thiết kế đã phẳng hóa ở nhiều nơi, các lớp Overlay đè lên màn hình (như Modal Background) vẫn cần chiều sâu.
+   - Bổ sung biến thể `modal` cho `BackgroundLiquidGlass` (tối hơn, đậm đặc hơn) thay vì một màu đen đặc. Đồng thời xây dựng logic chống nhòe kép (nesting logic) để xử lý dứt điểm các lỗi "double-blur" (nhòe chồng lên nhau) khi các Component giao diện lồng ghép phức tạp.
+
+---
+
+## 5. Tầm nhìn & Tổng kết
 Hành trình của **LiquidMoney** không chỉ là việc code ra một cái app quản lý chi tiêu. Đó là hành trình của sự **Trưởng thành trong tư duy sản phẩm**:
 - Đi từ **"Sự phô trương kỹ thuật"** (nhồi nhét hiệu ứng bóng bẩy, phức tạp).
 - Đến **"Sự thấu hiểu người dùng"** (đặt hiệu năng, sự rõ ràng, dễ nhìn và trải nghiệm mượt mà lên hàng đầu).

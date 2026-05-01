@@ -108,8 +108,10 @@ const AppNavigator: React.FC = () => {
                 damping: 14,
                 stiffness: 200,
                 useNativeDriver: true,
-            }).start(() => {
-                setShowDevScreen(false);
+            }).start(({ finished }) => {
+                if (finished) {
+                    setShowDevScreen(false);
+                }
             });
         }
     }, [isDeveloperMode, devIconScale]);
@@ -151,8 +153,10 @@ const AppNavigator: React.FC = () => {
                     mass: 0.8,
                     restDisplacementThreshold: 0.001,
                     restSpeedThreshold: 0.001,
-                }).start(() => {
-                    setWalletDetailRendered(false);
+                }).start(({ finished }) => {
+                    if (finished) {
+                        setWalletDetailRendered(false);
+                    }
                 });
             });
         }

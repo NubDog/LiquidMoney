@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, TextInput, TextInputProps, View, ViewStyle } from 'react-native';
+import { StyleSheet, Text, TextInput, TextInputProps, View, ViewStyle, Keyboard } from 'react-native';
 
 interface AppleAmountInputProps extends TextInputProps {
     label?: string;
@@ -10,8 +10,25 @@ const AppleAmountInput: React.FC<AppleAmountInputProps> = ({
     label,
     containerStyle,
     style,
+    onChangeText,
     ...props
 }) => {
+    const handleChangeText = (text: string) => {
+        if (!onChangeText) return;
+        
+        // Lấy riêng các ký tự số
+        const numericValue = text.replace(/[^0-9]/g, '');
+        
+        if (!numericValue) {
+            onChangeText('');
+            return;
+        }
+
+        // Định dạng có dấu chấm cách mỗi 3 số
+        const formatted = parseInt(numericValue, 10).toLocaleString('vi-VN').replace(/,/g, '.');
+        onChangeText(formatted);
+    };
+
     return (
         <View style={[styles.container, containerStyle]}>
             {label && <Text style={styles.label}>{label}</Text>}
@@ -20,6 +37,9 @@ const AppleAmountInput: React.FC<AppleAmountInputProps> = ({
                 placeholderTextColor="rgba(235, 235, 245, 0.3)"
                 keyboardType="numeric"
                 textAlign="center"
+                returnKeyType="done"
+                onSubmitEditing={() => Keyboard.dismiss()}
+                onChangeText={handleChangeText}
                 {...props}
             />
         </View>

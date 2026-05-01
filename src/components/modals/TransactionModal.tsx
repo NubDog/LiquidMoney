@@ -15,6 +15,7 @@ import {
     Text,
     TextInput,
     View,
+    TouchableWithoutFeedback,
 } from 'react-native';
 import { Calendar as CalendarIcon, X } from 'lucide-react-native';
 import { format } from 'date-fns';
@@ -109,6 +110,39 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
         }
     };
 
+    const keyboardOffsetAnim = useRef(new Animated.Value(0)).current;
+
+    React.useEffect(() => {
+        const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+        const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+        const onKeyboardShow = (e: any) => {
+            // Distance from bottom of description input to bottom of modal is approx 220px.
+            // We want the description input to be ~20px above the keyboard.
+            const shiftAmount = Math.max(0, e.endCoordinates.height - 220 + 20);
+            Animated.timing(keyboardOffsetAnim, {
+                toValue: -shiftAmount,
+                duration: e.duration || 250,
+                useNativeDriver: true,
+            }).start();
+        };
+
+        const onKeyboardHide = (e: any) => {
+            Animated.timing(keyboardOffsetAnim, {
+                toValue: 0,
+                duration: e.duration || 250,
+                useNativeDriver: true,
+            }).start();
+        };
+
+        const sub1 = Keyboard.addListener(showEvent, onKeyboardShow);
+        const sub2 = Keyboard.addListener(hideEvent, onKeyboardHide);
+        return () => {
+            sub1.remove();
+            sub2.remove();
+        };
+    }, [keyboardOffsetAnim]);
+
     return (
         <Modal
             visible={visible}
@@ -118,84 +152,94 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
             onRequestClose={handleClose}>
             <View style={styles.container}>
                 <AnimatedOverlay visible={visible} onPress={handleClose} />
-                <KeyboardAvoidingView
-                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                <View
                     style={styles.keyboardView}
                     pointerEvents="box-none">
-                    <Animated.View style={[styles.sheetContainer, { transform: [{ translateY }] }]}>
-                        <View style={styles.sheet}>
-                            <View style={styles.handleBar} />
-                            <View style={styles.header}>
-                                <Text style={styles.title}>{editData ? 'Chỉnh sửa giao dịch' : 'Giao dịch mới'}</Text>
-                                <AppleCloseButton onPress={handleClose} size={32} />
-                            </View>
+                    <Animated.View style={[styles.sheetContainer, { transform: [{ translateY: Animated.add(translateY, keyboardOffsetAnim) }] }]}>
+                        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                            <View style={styles.sheet}>
 
-                            <View style={styles.formContainer}>
-                                <View style={styles.tabsWrapper}>
-                                    <AppleSegmentedControl
-                                        options={[
-                                            { key: 'Thu Nhập', label: 'THU NHẬP' },
-                                            { key: 'Chi Tiêu', label: 'CHI TIÊU' }
-                                        ]}
-                                        selected={activeTab}
-                                        onChange={(val) => setActiveTab(val as string)}
-                                    />
+                                <View style={styles.handleBar} />
+                                <View style={styles.header}>
+                                    <Text style={styles.title}>{editData ? 'Chỉnh sửa giao dịch' : 'Giao dịch mới'}</Text>
+                                    <AppleCloseButton onPress={handleClose} size={32} />
                                 </View>
 
-                                {/* AMOUNT INPUT */}
-                                <AppleAmountInput
-                                    label="Số tiền (₫)"
-                                    value={amount}
-                                    onChangeText={setAmount}
-                                    placeholder="0"
-                                />
+                                <View style={styles.formContainer}>
+                                    <View style={styles.tabsWrapper}>
+                                        <AppleSegmentedControl
+                                            options={[
+                                                { key: 'Thu Nhập', label: 'THU NHẬP' },
+                                                { key: 'Chi Tiêu', label: 'CHI TIÊU' }
+                                            ]}
+                                            selected={activeTab}
+                                            onChange={(val) => setActiveTab(val as string)}
+                                        />
+                                    </View>
 
-                                {/* DESCRIPTION INPUT */}
-                                <AppleTextInput
-                                    label="Mô tả"
-                                    value={description}
-                                    onChangeText={setDescription}
-                                    placeholder="VD: Cà phê sáng..."
-                                    containerStyle={{ marginBottom: Spacing.lg }}
-                                />
-
-                                {/* DATE PICKER */}
-                                <Text style={styles.label}>Thời gian</Text>
-                                <Pressable
-                                    style={styles.datePickerBtn}
-                                    onPress={() => setShowDatePicker(true)}>
-                                    <CalendarIcon size={20} color="rgba(255,255,255,0.7)" />
-                                    <Text style={styles.dateText}>
-                                        {format(date, 'dd/MM/yyyy • HH:mm')}
-                                    </Text>
-                                </Pressable>
-
-                                <AppleDatePicker
-                                    visible={showDatePicker}
-                                    date={date}
-                                    onConfirm={(newDate) => {
-                                        setDate(newDate);
-                                        setShowDatePicker(false);
-                                    }}
-                                    onCancel={() => setShowDatePicker(false)}
-                                />
-
-                                {/* ACTION BUTTON */}
-                                <View style={styles.actionsContainer}>
-                                    <AppleButton
-                                        title="Lưu Giao Dịch"
-                                        onPress={handleSave}
-                                        disabled={isSubmitting}
-                                        style={{ width: '100%' }}
+                                    {/* AMOUNT INPUT */}
+                                    <AppleAmountInput
+                                        label="Số tiền (₫)"
+                                        value={amount}
+                                        onChangeText={setAmount}
+                                        placeholder="0"
                                     />
-                                </View>
-                            </View>
 
-                            {/* Bottom padding to push up content from the screen edge / home indicator */}
-                            <View style={{ height: Math.max(insets.bottom, 48) }} />
-                        </View>
+                                    {/* DESCRIPTION INPUT */}
+                                    <AppleTextInput
+                                        label="Mô tả"
+                                        value={description}
+                                        onChangeText={setDescription}
+                                        placeholder="VD: Cà phê sáng..."
+                                        containerStyle={{ marginBottom: Spacing.lg }}
+                                    />
+
+                                    {/* DATE PICKER */}
+                                    <Text style={styles.label}>Thời gian</Text>
+                                    <Pressable
+                                        style={styles.datePickerBtn}
+                                        onPress={() => setShowDatePicker(true)}>
+                                        <CalendarIcon size={20} color="rgba(255,255,255,0.7)" />
+                                        <Text style={styles.dateText}>
+                                            {format(date, 'dd/MM/yyyy • HH:mm')}
+                                        </Text>
+                                    </Pressable>
+
+                                    <AppleDatePicker
+                                        visible={showDatePicker}
+                                        date={date}
+                                        onConfirm={(newDate) => {
+                                            setDate(newDate);
+                                            setShowDatePicker(false);
+                                        }}
+                                        onCancel={() => setShowDatePicker(false)}
+                                    />
+
+                                    {/* ACTION BUTTONS */}
+                                    <View style={styles.actionButtons}>
+                                        {editData && onDelete && (
+                                            <AppleButton
+                                                title="Xóa"
+                                                variant="secondary"
+                                                onPress={onDelete}
+                                                style={{ flex: 1, marginRight: Spacing.sm }}
+                                            />
+                                        )}
+                                        <AppleButton
+                                            title={editData ? 'Lưu thay đổi' : 'Lưu giao dịch'}
+                                            onPress={handleSave}
+                                            disabled={isSubmitting || !amount || parseInt(amount.replace(/[^0-9]/g, ''), 10) <= 0}
+                                            style={{ flex: 1 }}
+                                        />
+                                    </View>
+                                </View>
+
+                                {/* Bottom padding to push up content from the screen edge / home indicator */}
+                                <View style={{ height: Math.max(insets.bottom, 48) }} />
+                            </View>
+                        </TouchableWithoutFeedback>
                     </Animated.View>
-                </KeyboardAvoidingView>
+                </View>
             </View>
         </Modal>
     );
@@ -267,7 +311,8 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontWeight: '500',
     },
-    actionsContainer: {
+    actionButtons: {
+        flexDirection: 'row',
         paddingTop: Spacing.xl,
     },
 });
