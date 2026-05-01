@@ -17,8 +17,9 @@ import {
     View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Code, Database, Bug, TerminalSquare, ChevronRight } from 'lucide-react-native';
+import { Code, Database, Bug, TerminalSquare, ChevronRight, Lock, Image as ImageIcon } from 'lucide-react-native';
 import TerminalLogModal from '../components/modals/TerminalLogModal';
+import BackgroundPickerModal from '../components/modals/BackgroundPickerModal';
 import { useStore } from '../store/useStore';
 import { generateRandomTransactions, generateRandomWallets, deleteAllData } from '../database/queries';
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
@@ -30,7 +31,7 @@ import AppleTextInput from '../components/ui/AppleTextInput';
 
 const DeveloperScreen: React.FC = () => {
     const insets = useSafeAreaInsets();
-    const { wallets, refreshWallets } = useStore();
+    const { wallets, refreshWallets, isDeveloperMode } = useStore();
 
     const [txCountStr, setTxCountStr] = useState<string>('50');
     const [walletCountStr, setWalletCountStr] = useState<string>('5');
@@ -43,6 +44,9 @@ const DeveloperScreen: React.FC = () => {
 
     // Component Library State
     const [showLibrary, setShowLibrary] = useState(false);
+
+    // Background Picker State
+    const [showBackgroundPicker, setShowBackgroundPicker] = useState(false);
 
     // ─── Actions ────────────────────────────────────────────────────────────
 
@@ -186,6 +190,22 @@ const DeveloperScreen: React.FC = () => {
 
     // ─── Render ─────────────────────────────────────────────────────────────
 
+    if (!isDeveloperMode) {
+        return (
+            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', padding: Spacing.xl }]}>
+                <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(255,255,255,0.05)', alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.lg }}>
+                    <Lock size={32} color={Colors.textMuted} />
+                </View>
+                <Text style={{ fontSize: FontSizes.xl, fontWeight: '700', color: Colors.text, marginBottom: Spacing.sm }}>
+                    Chế độ nhà phát triển bị tắt
+                </Text>
+                <Text style={{ fontSize: FontSizes.md, color: Colors.textMuted, textAlign: 'center', lineHeight: 22 }}>
+                    Vui lòng bật chế độ nhà phát triển trong mục Cài đặt để truy cập các công cụ này.
+                </Text>
+            </View>
+        );
+    }
+
     return (
         <>
             {!showLibrary && (
@@ -276,6 +296,23 @@ const DeveloperScreen: React.FC = () => {
                         </View>
                     </Pressable>
 
+                    {/* Appearance Card */}
+                    <View style={styles.card}>
+                        <View style={styles.cardHeader}>
+                            <ImageIcon size={20} color={Colors.textMuted} strokeWidth={2} />
+                            <Text style={styles.cardTitle}>Hình nền ứng dụng</Text>
+                        </View>
+                        <Text style={styles.cardDesc}>
+                            Thay đổi hình nền hiển thị trong toàn bộ ứng dụng. Tính năng dành cho nhà phát triển.
+                        </Text>
+                        <AppleButton 
+                            title="Chọn hình nền" 
+                            onPress={() => setShowBackgroundPicker(true)} 
+                            variant="primary" 
+                            style={styles.actionButton}
+                        />
+                    </View>
+
                     {/* Wipe Data Card */}
                     <View style={styles.card}>
                         <View style={styles.cardHeader}>
@@ -328,6 +365,11 @@ const DeveloperScreen: React.FC = () => {
             <ComponentLibraryScreen
                 visible={showLibrary}
                 onClose={() => setShowLibrary(false)}
+            />
+
+            <BackgroundPickerModal
+                visible={showBackgroundPicker}
+                onClose={() => setShowBackgroundPicker(false)}
             />
         </>
     );

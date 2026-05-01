@@ -14,7 +14,6 @@ import {
     PanResponder,
     Pressable,
     StyleSheet,
-    Text,
     View,
     useWindowDimensions,
 } from 'react-native';
@@ -22,7 +21,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from '@react-native-community/blur';
 
 import LiquidBackground from '../components/layout/LiquidBackground';
-import BackgroundLiquidGlass from '../components/layout/BackgroundLiquidGlass';
 import HomeScreen from '../screens/HomeScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import StatsScreen from '../screens/StatsScreen';
@@ -55,6 +53,10 @@ const BASE_TABS: TabConfig[] = [
 ];
 
 const DEV_TAB: TabConfig = { key: 'dev', label: 'Dev', icon: Code };
+const ALL_TABS = [...BASE_TABS, DEV_TAB];
+
+const TAB_UNIT_WIDTH = 70;
+const NAVBAR_PADDING = 6;
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -62,13 +64,6 @@ const AppNavigator: React.FC = () => {
     const insets = useSafeAreaInsets();
     const { width, height } = useWindowDimensions();
     const { isDeveloperMode } = useStore();
-
-    // ─── Dynamic Tabs ─────────────────────────────────────────────────────────
-    const [showDevScreen, setShowDevScreen] = useState(isDeveloperMode);
-    const tabs = useMemo(() => {
-        return (isDeveloperMode || showDevScreen) ? [...BASE_TABS, DEV_TAB] : BASE_TABS;
-    }, [isDeveloperMode, showDevScreen]);
-    const tabCount = tabs.length;
 
     // ─── Navigation State ───────────────────────────────────────────────────────
     const [activeTab, setActiveTab] = useState<TabName>('home');
@@ -82,55 +77,50 @@ const AppNavigator: React.FC = () => {
     const walletSlideAnim = useRef(new Animated.Value(0)).current;
     const [walletDetailRendered, setWalletDetailRendered] = useState(false);
 
-    // Dev tab animations
-    const devIconScale = useRef(new Animated.Value(isDeveloperMode ? 1 : 0)).current;
-    const navWidthAnim = useRef(new Animated.Value(0)).current; // will be set in layout
+    // Dev tab expansion (0 to 1)
+    const devExpansionAnim = useRef(new Animated.Value(isDeveloperMode ? 1 : 0)).current; // JS Thread (for width)
+    const devExpansionAnimNative = useRef(new Animated.Value(isDeveloperMode ? 1 : 0)).current; // Native Thread (for transforms)
 
-    // Safety: if dev mode disabled while on Dev tab, go home
+    // Synchronization of Developer Mode logic
     useEffect(() => {
-        if (isDeveloperMode) {
-            setShowDevScreen(true);
-            // Pop-in the dev icon
-            devIconScale.setValue(0);
-            Animated.spring(devIconScale, {
-                toValue: 1,
-                damping: 10,
-                stiffness: 200,
-                useNativeDriver: true,
-            }).start();
-        } else {
-            if (activeTab === 'dev') {
-                setActiveTab('home');
-            }
-            // Shrink dev icon, then unmount
-            Animated.spring(devIconScale, {
-                toValue: 0,
-                damping: 14,
-                stiffness: 200,
-                useNativeDriver: true,
-            }).start(({ finished }) => {
-                if (finished) {
-                    setShowDevScreen(false);
-                }
-            });
+        if (!isDeveloperMode && activeTab === 'dev') {
+            setActiveTab('home');
         }
-    }, [isDeveloperMode, devIconScale]);
+
+        Animated.spring(devExpansionAnim, {
+            toValue: isDeveloperMode ? 1 : 0,
+            damping: 18,
+            stiffness: 200, // 120FPS snappy spring
+            useNativeDriver: false, // Animating width
+        }).start();
+
+        Animated.spring(devExpansionAnimNative, {
+            toValue: isDeveloperMode ? 1 : 0,
+            damping: 18,
+            stiffness: 200, 
+            useNativeDriver: true, // Animating transforms natively
+        }).start();
+    }, [isDeveloperMode, devExpansionAnim, devExpansionAnimNative, activeTab]);
 
     // Trigger tab slide animation
     useEffect(() => {
-        const targetIndex = tabs.findIndex(t => t.key === activeTab);
+        const targetIndex = ALL_TABS.findIndex(t => t.key === activeTab);
+        const idx = targetIndex === -1 ? 0 : targetIndex;
+
         Animated.spring(slideAnim, {
-            toValue: -targetIndex * width,
+            toValue: -idx * width,
             useNativeDriver: true,
-            friction: 14,
-            tension: 60,
+            damping: 22,
+            stiffness: 180,
+            mass: 0.8,
+            restDisplacementThreshold: 0.001,
+            restSpeedThreshold: 0.001,
         }).start();
-    }, [activeTab, width, slideAnim, tabs]);
+    }, [activeTab, width, slideAnim]);
 
     // Trigger slide animation when wallet is selected/deselected
     useEffect(() => {
         if (activeWalletId) {
-            // Animation values
             walletSlideAnim.setValue(0);
             requestAnimationFrame(() => {
                 Animated.spring(walletSlideAnim, {
@@ -179,9 +169,6 @@ const AppNavigator: React.FC = () => {
     const activeTabRef = useRef(activeTab);
     activeTabRef.current = activeTab;
 
-    const tabsRef = useRef(tabs);
-    tabsRef.current = tabs;
-
     const activeWalletIdRef = useRef(activeWalletId);
     activeWalletIdRef.current = activeWalletId;
 
@@ -189,32 +176,24 @@ const AppNavigator: React.FC = () => {
         () =>
             PanResponder.create({
                 onMoveShouldSetPanResponderCapture: (evt, gestureState) => {
-                    // Do not capture if wallet detail is open
                     if (activeWalletIdRef.current) return false;
-                    
-                    // Only capture horizontal swipes that are long enough
-                    // 25px is enough to detect a deliberate horizontal swipe vs vertical scroll
                     const isHorizontalSwipe = Math.abs(gestureState.dx) > 25 && Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 1.5;
                     return isHorizontalSwipe;
                 },
                 onPanResponderRelease: (evt, gestureState) => {
-                    // Threshold distance for changing tab
-                    // 90px ensures it's a deliberate swipe, not too long or too short
                     const SWIPE_THRESHOLD = 90;
                     if (gestureState.dx > SWIPE_THRESHOLD) {
-                        // Swiped Right -> Previous Tab
-                        const idx = tabsRef.current.findIndex(t => t.key === activeTabRef.current);
-                        if (idx > 0) setActiveTab(tabsRef.current[idx - 1].key);
+                        const idx = ALL_TABS.findIndex(t => t.key === activeTabRef.current);
+                        if (idx > 0) setActiveTab(ALL_TABS[idx - 1].key);
                     } else if (gestureState.dx < -SWIPE_THRESHOLD) {
-                        // Swiped Left -> Next Tab
-                        const idx = tabsRef.current.findIndex(t => t.key === activeTabRef.current);
-                        if (idx < tabsRef.current.length - 1) setActiveTab(tabsRef.current[idx + 1].key);
+                        const idx = ALL_TABS.findIndex(t => t.key === activeTabRef.current);
+                        const maxIdx = isDeveloperMode ? 3 : 2;
+                        if (idx < maxIdx) setActiveTab(ALL_TABS[idx + 1].key);
                     }
                 },
-                // Handle termination (e.g. if another gesture takes over)
                 onPanResponderTerminate: () => {},
             }),
-        []
+        [isDeveloperMode]
     );
 
     // ─── Android Back Button ─────────────────────────────────────────────────
@@ -235,32 +214,48 @@ const AppNavigator: React.FC = () => {
         return () => sub.remove();
     }, [activeWalletId, activeTab, goBackFromWallet]);
 
-    // ─── Calculations for Navbar ──────────────────────────────────────────────
+    // ─── Calculations for Navbar (Mathematical Animation) ─────────────────────
 
-    // Navbar dimensions
-    // Navbar dimensions
-    const TAB_UNIT_WIDTH = 70;
-    const NAVBAR_MAX_WIDTH = TAB_UNIT_WIDTH * tabCount + 40;
-    const navbarWidth = Math.min(width * 0.75, NAVBAR_MAX_WIDTH);
-    const navbarPadding = 6;
-    const availableWidth = navbarWidth - navbarPadding * 2;
-    const tabWidth = availableWidth / tabCount;
+    const navWidthStart = Math.min(width * 0.8, TAB_UNIT_WIDTH * 3 + 40);
+    const tabWidthStart = (navWidthStart - NAVBAR_PADDING * 2) / 3;
 
-    // Active Pill Translation
-    const pillTranslateX = slideAnim.interpolate({
-        inputRange: Array.from({ length: tabCount }, (_, i) => -width * (tabCount - 1 - i)),
-        outputRange: Array.from({ length: tabCount }, (_, i) => tabWidth * (tabCount - 1 - i)),
+    const navWidthEnd = Math.min(width * 0.8, TAB_UNIT_WIDTH * 4 + 40);
+    const tabWidthEnd = (navWidthEnd - NAVBAR_PADDING * 2) / 4;
+
+    const navWidthAnim = devExpansionAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [navWidthStart, navWidthEnd]
     });
 
-    // Animate navbar width when tabCount changes
+    const baseTabWidthAnim = devExpansionAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [tabWidthStart, tabWidthEnd]
+    });
+
+    const devTabWidthAnim = devExpansionAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, tabWidthEnd]
+    });
+    
+    // NATIVE interpolations for transforms
+    const baseTabWidthAnimNative = devExpansionAnimNative.interpolate({
+        inputRange: [0, 1],
+        outputRange: [tabWidthStart, tabWidthEnd]
+    });
+
+    // To prevent Animated.divide by 0 during initialization
+    const minusWidth = useRef(new Animated.Value(-width || -1)).current;
     useEffect(() => {
-        Animated.spring(navWidthAnim, {
-            toValue: navbarWidth,
-            damping: 16,
-            stiffness: 180,
-            useNativeDriver: false, // width can't use native driver
-        }).start();
-    }, [navbarWidth, navWidthAnim]);
+        if (width > 0) {
+            minusWidth.setValue(-width);
+        }
+    }, [width, minusWidth]);
+
+    // Math for active pill translation seamlessly reacting to tab width changes
+    // slideAnim: 0 to -3*width
+    // normalizedSlide: 0 to 3
+    const normalizedSlide = Animated.divide(slideAnim, minusWidth);
+    const pillTranslateX = Animated.multiply(normalizedSlide, baseTabWidthAnimNative);
 
     // Wallet slide transforms
     const walletTranslateX = walletSlideAnim.interpolate({
@@ -279,12 +274,12 @@ const AppNavigator: React.FC = () => {
         <View style={styles.root} {...panResponder.panHandlers}>
             <LiquidBackground />
 
-            {/* Sliding Container — always rendered */}
+            {/* Sliding Container — always rendered all 4 screens for flawless memory allocation */}
             <Animated.View
                 style={[
                     styles.screensContainer,
                     {
-                        width: width * tabCount,
+                        width: width * ALL_TABS.length,
                         transform: [{ translateX: slideAnim }],
                         opacity: mainOpacity,
                     },
@@ -298,11 +293,9 @@ const AppNavigator: React.FC = () => {
                 <View style={{ width, height: '100%' }}>
                     <SettingsScreen />
                 </View>
-                {(isDeveloperMode || showDevScreen) && (
-                    <View style={{ width, height: '100%' }}>
-                        <DeveloperScreen />
-                    </View>
-                )}
+                <View style={{ width, height: '100%' }}>
+                    <DeveloperScreen />
+                </View>
             </Animated.View>
 
             {/* Floating Glass Tab Bar — stays behind Wallet Detail */}
@@ -329,22 +322,34 @@ const AppNavigator: React.FC = () => {
                     />
 
                     <View style={styles.tabBarContent}>
-                        {/* Animated Active Pill Background */}
+                        {/* Animated Active Pill Background (Decoupled JS Width and Native TranslateX) */}
                         <Animated.View
-                            style={[
-                                styles.activePill,
-                                {
-                                    width: tabWidth,
-                                    transform: [
-                                        { translateX: pillTranslateX },
-                                    ],
-                                },
-                            ]}
-                        />
+                            style={{
+                                position: 'absolute',
+                                left: 6,
+                                top: 6,
+                                bottom: 6,
+                                width: baseTabWidthAnim, // JS Animation
+                            }}>
+                            <Animated.View
+                                style={[
+                                    styles.activePill,
+                                    {
+                                        position: 'relative',
+                                        left: 0,
+                                        top: 0,
+                                        bottom: 0,
+                                        width: '100%',
+                                        height: '100%',
+                                        transform: [
+                                            { translateX: pillTranslateX }, // Native Animation
+                                        ],
+                                    },
+                                ]}
+                            />
+                        </Animated.View>
 
-                        {tabs.map((tab, index) => {
-                            const isActive = activeTab === tab.key;
-
+                        {ALL_TABS.map((tab, index) => {
                             // Interpolate Scale for Icon
                             const centerValue = index * -width;
                             const scale = slideAnim.interpolate({
@@ -373,29 +378,35 @@ const AppNavigator: React.FC = () => {
                             return (
                                 <Pressable
                                     key={tab.key}
-                                    onPress={() => setActiveTab(tab.key)}
-                                    style={[
-                                        styles.tabItem,
-                                        { width: tabWidth },
-                                    ]}>
+                                    onPress={() => setActiveTab(tab.key)}>
                                     <Animated.View
-                                        style={{
-                                            transform: [
-                                                {
-                                                    scale: isDevTab
-                                                        ? Animated.multiply(scale, devIconScale) as any
-                                                        : scale
-                                                },
-                                            ],
-                                            opacity,
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                        }}>
-                                        <IconComponent
-                                            size={28}
-                                            color="#FFFFFF"
-                                            strokeWidth={2}
-                                        />
+                                        style={[
+                                            styles.tabItem,
+                                            { width: isDevTab ? devTabWidthAnim : baseTabWidthAnim } // JS Animation
+                                        ]}>
+                                        <Animated.View
+                                            style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                transform: [
+                                                    {
+                                                        scale: isDevTab
+                                                            ? Animated.multiply(scale, devExpansionAnimNative) as any // Native
+                                                            : scale
+                                                    },
+                                                ],
+                                                opacity: isDevTab 
+                                                    ? Animated.multiply(opacity, devExpansionAnimNative) as any // Native
+                                                    : opacity,
+                                            }}>
+                                            <IconComponent
+                                                size={28}
+                                                color="#FFFFFF"
+                                                strokeWidth={2}
+                                            />
+                                        </Animated.View>
                                     </Animated.View>
                                 </Pressable>
                             );

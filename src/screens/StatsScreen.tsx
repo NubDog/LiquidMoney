@@ -213,7 +213,9 @@ const skStyles = StyleSheet.create({
 const AnimatedSlidingText: React.FC<{
     text: string;
     style: any;
-}> = React.memo(({ text, style }) => {
+    adjustsFontSizeToFit?: boolean;
+    numberOfLines?: number;
+}> = React.memo(({ text, style, adjustsFontSizeToFit, numberOfLines }) => {
     const [displayText, setDisplayText] = useState(text);
     const animX = useRef(new Animated.Value(0)).current;
     const animOpacity = useRef(new Animated.Value(1)).current;
@@ -253,7 +255,11 @@ const AnimatedSlidingText: React.FC<{
     }, [text, displayText, animX, animOpacity]);
 
     return (
-        <Animated.Text style={[style, { opacity: animOpacity, transform: [{ translateX: animX }] }]}>
+        <Animated.Text 
+            style={[style, { opacity: animOpacity, transform: [{ translateX: animX }] }]}
+            adjustsFontSizeToFit={adjustsFontSizeToFit}
+            numberOfLines={numberOfLines}
+        >
             {displayText}
         </Animated.Text>
     );
@@ -276,6 +282,8 @@ const SummarySection: React.FC<{
                             sumStyles.balanceValue,
                             { color: balance >= 0 ? Colors.income : Colors.expense },
                         ]}
+                        adjustsFontSizeToFit={true}
+                        numberOfLines={1}
                     />
                 </View>
 
@@ -286,22 +294,26 @@ const SummarySection: React.FC<{
                     <View style={sumStyles.col}>
                         <View style={sumStyles.labelRow}>
                             <View style={[sumStyles.dot, { backgroundColor: Colors.income }]} />
-                            <Text style={sumStyles.label}>Thu nhập</Text>
+                            <Text style={sumStyles.label} adjustsFontSizeToFit numberOfLines={1}>Thu nhập</Text>
                         </View>
                         <AnimatedSlidingText
                             text={`+${formatVND(totalIn)}`}
                             style={[sumStyles.value, { color: Colors.income }]}
+                            adjustsFontSizeToFit={true}
+                            numberOfLines={1}
                         />
                     </View>
                     <View style={sumStyles.separator} />
                     <View style={[sumStyles.col, { alignItems: 'flex-end' }]}>
                         <View style={[sumStyles.labelRow, { justifyContent: 'flex-end' }]}>
                             <View style={[sumStyles.dot, { backgroundColor: Colors.expense }]} />
-                            <Text style={sumStyles.label}>Chi tiêu</Text>
+                            <Text style={sumStyles.label} adjustsFontSizeToFit numberOfLines={1}>Chi tiêu</Text>
                         </View>
                         <AnimatedSlidingText
                             text={`-${formatVND(totalOut)}`}
                             style={[sumStyles.value, { color: Colors.expense }]}
+                            adjustsFontSizeToFit={true}
+                            numberOfLines={1}
                         />
                     </View>
                 </View>

@@ -18,7 +18,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CheckCircle2, XCircle } from 'lucide-react-native';
 import InfoDialog from '../components/modals/InfoDialog';
 import ConfirmImportDialog2 from '../components/modals/ConfirmImportDialog2';
-import BackgroundPickerModal from '../components/modals/BackgroundPickerModal';
 import { useStore } from '../store/useStore';
 import { isDatabaseAvailable } from '../database/db';
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
@@ -46,7 +45,6 @@ const SettingsScreen: React.FC = () => {
     }>({ visible: false, title: '', message: '', type: 'success' });
 
     const [confirmImport, setConfirmImport] = useState(false);
-    const [backgroundPickerVisible, setBackgroundPickerVisible] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
 
     // Thông tin tổng quan
@@ -215,18 +213,7 @@ const SettingsScreen: React.FC = () => {
                     </View>
                 </View>
 
-                {/* ── Appearance Card ── */}
-                <View style={styles.card}>
-                    <Text style={styles.cardTitle}>Giao diện</Text>
-                    <Text style={styles.cardDesc}>
-                        Tùy chỉnh hình nền hiển thị trong ứng dụng.
-                    </Text>
-                    <Pressable 
-                        style={styles.actionBtn}
-                        onPress={() => setBackgroundPickerVisible(true)}>
-                        <Text style={styles.actionBtnText}>Chọn hình nền</Text>
-                    </Pressable>
-                </View>
+
 
                 {/* ── Backup / Restore Card ── */}
                 <View style={styles.card}>
@@ -305,11 +292,6 @@ const SettingsScreen: React.FC = () => {
                 visible={confirmImport}
                 onCancel={() => setConfirmImport(false)}
                 onConfirm={handleImportConfirm}
-            />
-
-            <BackgroundPickerModal
-                visible={backgroundPickerVisible}
-                onClose={() => setBackgroundPickerVisible(false)}
             />
         </>
     );

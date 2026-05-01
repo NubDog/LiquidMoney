@@ -63,8 +63,11 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
     const translateY = useRef(new Animated.Value(600)).current;
     const amountInputRef = useRef<TextInput>(null);
 
+    const prevVisible = useRef(false);
+
     React.useEffect(() => {
-        if (visible) {
+        if (visible && !prevVisible.current) {
+            translateY.stopAnimation();
             animateSheetIn(translateY).start();
             if (editData) {
                 setAmount(editData.amount ? editData.amount.toString() : '');
@@ -78,12 +81,14 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                 setActiveTab('Thu Nhập');
             }
         }
+        prevVisible.current = visible;
     }, [visible, translateY, editData]);
 
     const handleClose = () => {
         Keyboard.dismiss();
-        animateSheetOut(translateY, 600, 250).start(({ finished }) => {
-            if (finished) onClose();
+        translateY.stopAnimation();
+        animateSheetOut(translateY, 600, 250).start(() => {
+            onClose();
         });
     };
 

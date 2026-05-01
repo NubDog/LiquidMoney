@@ -38,16 +38,20 @@ const getLogColor = (log: string) => {
 
 const TerminalLogModal: React.FC<TerminalLogModalProps> = ({ visible, onClose, logs, isComplete }) => {
     const translateY = useRef(new Animated.Value(800)).current;
+    const prevVisible = useRef(false);
 
-    useEffect(() => {
-        if (visible) {
+    React.useEffect(() => {
+        if (visible && !prevVisible.current) {
+            translateY.stopAnimation();
             animateSheetIn(translateY).start();
         }
+        prevVisible.current = visible;
     }, [visible, translateY]);
 
     const handleClose = () => {
-        animateSheetOut(translateY, 800, 250).start(({ finished }) => {
-            if (finished) onClose();
+        translateY.stopAnimation();
+        animateSheetOut(translateY, 800, 250).start(() => {
+            onClose();
         });
     };
 

@@ -81,4 +81,22 @@ Mọi quyết định thiết kế giờ đây đều được cân nhắc kỹ 
 
 LiquidMoney đang dần lột xác từ một nguyên mẫu thử nghiệm đầy tính nghệ thuật thành một sản phẩm thực thụ, vững chãi và chuyên nghiệp.
 
+---
+
+## 6. Kiến trúc Toán học cho UI (Mathematical Animations)
+
+Trong hành trình tối ưu hiệu năng và trải nghiệm người dùng, chúng ta đã tiến tới một cấp độ mới: **Animations bằng Toán học nguyên bản (Mathematical Native Animations)**.
+
+1. **Khắc phục lỗi lệch nhịp Navbar (Glitch Root Cause):**
+   - *Vấn đề*: Việc thay đổi mảng số lượng tab động khiến các chuỗi nội suy giá trị (Interpolation) bị gãy ngay lập tức. Cùng với đó là việc trộn lẫn thuộc tính của JS Thread (`width`) và Native Thread (`transform`) trên cùng một thẻ `Animated.View` đã gây ra lỗi Redbox Crash nghiêm trọng.
+   - *Giải pháp*: Viết lại hoàn toàn kiến trúc chuyển cảnh của `AppNavigator`. Áp dụng các phép tính `Animated.divide` và `Animated.multiply` để liên kết đồng bộ hoạt ảnh của thẻ với kích thước động của các phần tử.
+
+2. **Hệ thống Decoupling hoàn hảo cho 120 FPS:**
+   - Xây dựng cấu trúc lồng thẻ (Nested Views) để chia tách rạch ròi: Lớp vỏ ngoài dùng JS Thread để co giãn Layout (`width`), lớp lõi bên trong dùng Native Thread để dịch chuyển đồ họa (`transform`, `opacity`).
+   - *Kết quả*: Khi kích hoạt Developer Mode, Navbar mở rộng mượt mà, Icon Dev lớn dần theo tỷ lệ cực khớp, đem lại cảm giác phản hồi nhanh nhạy đúng chuẩn 120Hz của các dòng flagship hiện đại mà không gặp rớt khung hình (frame drop).
+
+3. **Cấu trúc lại quyền điều khiển Hệ thống (Developer Screen & Appearance):**
+   - Chuyển dời toàn bộ tính năng kiểm soát sâu như đổi Hình nền (Background Picker) khỏi màn hình Settings phổ thông, đưa vào màn hình cách ly Developer Screen.
+   - Cập nhật cơ chế hiển thị hình nền mặc định sang `cover`, loại bỏ bộ làm mờ (cross-fade), đảm bảo hình ảnh đầu ra khi build APK sắc nét nhất và giữ trọn chất lượng gốc.
+
 > *"Đơn giản là đỉnh cao của sự tinh tế."*

@@ -41,17 +41,21 @@ const TransactionDetailOverlay: React.FC<TransactionDetailOverlayProps> = ({
     formatCurrency,
     onEditRequest,
 }) => {
-    const translateY = useRef(new Animated.Value(400)).current;
+    const translateY = useRef(new Animated.Value(600)).current;
+    const prevVisible = useRef(false);
 
     React.useEffect(() => {
-        if (visible) {
-            animateSheetIn(translateY).start(); // Assuming animateModalOpen is now animateSheetIn
+        if (visible && !prevVisible.current) {
+            translateY.stopAnimation();
+            animateSheetIn(translateY).start();
         }
+        prevVisible.current = !!visible;
     }, [visible, translateY]);
 
     const handleClose = () => {
-        animateSheetOut(translateY, 600, 250).start(({ finished }) => { // Assuming animateModalClose is now animateSheetOut
-            if (finished) onClose();
+        translateY.stopAnimation();
+        animateSheetOut(translateY, 600, 250).start(() => {
+            onClose();
         });
     };
 
@@ -125,7 +129,10 @@ const TransactionDetailOverlay: React.FC<TransactionDetailOverlayProps> = ({
                             <View style={{ marginTop: 24 }}>
                                 <AppleButton
                                     title="Chỉnh sửa giao dịch"
-                                    onPress={() => onEditRequest?.()}
+                                    onPress={() => {
+                                        translateY.stopAnimation();
+                                        onEditRequest?.();
+                                    }}
                                     variant="primary"
                                 />
                             </View>

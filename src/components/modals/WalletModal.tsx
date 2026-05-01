@@ -42,18 +42,23 @@ const WalletModal: React.FC<WalletModalProps> = ({
 
     const translateY = useRef(new Animated.Value(600)).current;
 
+    const prevVisible = useRef(false);
+
     useEffect(() => {
-        if (visible) {
+        if (visible && !prevVisible.current) {
+            translateY.stopAnimation();
             animateSheetIn(translateY).start();
             setName('');
             setBalanceStr('');
         }
+        prevVisible.current = visible;
     }, [visible, translateY]);
 
     const handleClose = () => {
         Keyboard.dismiss();
-        animateSheetOut(translateY, 600, 250).start(({ finished }) => {
-            if (finished) onClose();
+        translateY.stopAnimation();
+        animateSheetOut(translateY, 600, 250).start(() => {
+            onClose();
         });
     };
 
