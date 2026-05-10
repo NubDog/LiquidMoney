@@ -20,6 +20,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from '@react-native-community/blur';
 
+import BackgroundLiquidGlass from '../components/layout/BackgroundLiquidGlass';
 import LiquidBackground from '../components/layout/LiquidBackground';
 import HomeScreen from '../screens/HomeScreen';
 import SettingsScreen from '../screens/SettingsScreen';
@@ -317,8 +318,9 @@ const AppNavigator: React.FC = () => {
                         style={styles.blurBackground}
                         blurType="dark"
                         overlayColor="transparent"
-                        blurAmount={50}
-                        reducedTransparencyFallbackColor="#000000"
+                        blurAmount={25}
+                        reducedTransparencyFallbackColor="transparent"
+                        {...{ experimentalBlurMethod: 'dimezisBlurView' } as any}
                     />
 
                     <View style={styles.tabBarContent}>
@@ -464,9 +466,10 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 16 },
         shadowOpacity: 0.4, // Softer shadow for clear glass, but deep enough to float
         shadowRadius: 36,
-        elevation: 12,
         borderRadius: 36,
         overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.08)', // Edge light scattering effect
     },
     blurBackground: {
         ...StyleSheet.absoluteFillObject,
@@ -485,11 +488,6 @@ const styles = StyleSheet.create({
         bottom: 6,
         backgroundColor: 'rgba(255, 255, 255, 0.15)',
         borderRadius: 30,
-        // Shadow projecting onto the blur behind it
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.4,
-        shadowRadius: 8,
     },
     tabItem: {
         height: '100%',
