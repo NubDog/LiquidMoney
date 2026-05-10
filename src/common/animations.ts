@@ -4,7 +4,7 @@
  * used across 6+ modal/dialog components.
  */
 
-import { Animated } from 'react-native';
+import { Animated, Easing } from 'react-native';
 
 // ─── Spring Configs ───────────────────────────────────────────────────────────
 
@@ -49,16 +49,16 @@ export function animateOverlayOut(
 
 // ─── Sheet Animations ─────────────────────────────────────────────────────────
 
-/** Slide sheet in from bottom (translateY → 0) */
 export function animateSheetIn(
     translateY: Animated.Value,
-    config: { damping?: number; stiffness?: number; friction?: number; tension?: number } = SpringConfigs.gentle,
+    config: { duration?: number } = { duration: 350 },
 ): Animated.CompositeAnimation {
-    return Animated.spring(translateY, {
+    // Sử dụng timing thay vì spring để sửa lỗi chạm (touch) trên Android khi animation dùng useNativeDriver
+    // Thời gian sẽ kết thúc chính xác, cho phép nút bấm hoạt động ngay lập tức
+    return Animated.timing(translateY, {
         toValue: 0,
-        restDisplacementThreshold: 5,
-        restSpeedThreshold: 5,
-        ...config,
+        duration: config.duration || 350,
+        easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
     });
 }
@@ -78,16 +78,14 @@ export function animateSheetOut(
 
 // ─── Scale Animations ─────────────────────────────────────────────────────────
 
-/** Scale dialog in (0.85 → 1) with spring */
 export function animateScaleIn(
     scale: Animated.Value,
-    config: { friction?: number; tension?: number } = SpringConfigs.bouncy,
+    config: { duration?: number } = { duration: 250 },
 ): Animated.CompositeAnimation {
-    return Animated.spring(scale, {
+    return Animated.timing(scale, {
         toValue: 1,
-        restDisplacementThreshold: 0.01,
-        restSpeedThreshold: 0.01,
-        ...config,
+        duration: config.duration || 250,
+        easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
     });
 }

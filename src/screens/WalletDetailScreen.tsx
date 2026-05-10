@@ -66,6 +66,7 @@ interface WalletPayloadProps {
     onGoBack: () => void;
     menuBtnRef: React.RefObject<View | null>;
     onMenuPressRef: React.MutableRefObject<(() => void) | null>;
+    onFabPressRef: React.MutableRefObject<(() => void) | null>;
     isTransitioning: boolean;
 }
 
@@ -74,6 +75,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
     onGoBack,
     menuBtnRef,
     onMenuPressRef,
+    onFabPressRef,
     isTransitioning,
 }) => {
     const {
@@ -124,6 +126,11 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
         setEditingTx(null);
         setModalVisible(true);
     }, []);
+
+    useEffect(() => {
+        onFabPressRef.current = handleOpenCreate;
+        return () => { onFabPressRef.current = null; };
+    }, [handleOpenCreate, onFabPressRef]);
 
     const handleViewTransaction = useCallback((tx: Transaction) => {
         setViewingTx(tx);
@@ -316,14 +323,6 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
                 removeClippedSubviews={Platform.OS === 'android'}
             />
 
-            {/* FAB */}
-            <IconButton
-                icon={<Plus strokeWidth={1.5} color="#FFF" size={32} />}
-                size={60}
-                onPress={handleOpenCreate}
-                style={{ position: 'absolute', bottom: 140, right: 20, zIndex: 9999, shadowColor: 'rgba(0, 0, 0, 0.6)', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 1, shadowRadius: 10, elevation: 10 }}
-            />
-
             {/* Transaction Modal */}
             <TransactionModal
                 visible={modalVisible}
@@ -415,20 +414,23 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
             InteractionManager.runAfterInteractions(() => {
                 if (!mounted) return;
 
-                requestAnimationFrame(() => {
+                setTimeout(() => {
                     if (!mounted) return;
-                    Animated.timing(transitionAnim, {
-                        toValue: 1,
-                        useNativeDriver: true,
-                        duration: 250,
-                        easing: Easing.out(Easing.cubic),
-                    }).start(() => {
-                        if (mounted) { 
-                            setIsTransitioning(false);
-                            setShowContent(true); 
-                        }
+                    requestAnimationFrame(() => {
+                        if (!mounted) return;
+                        Animated.timing(transitionAnim, {
+                            toValue: 1,
+                            useNativeDriver: true,
+                            duration: 250,
+                            easing: Easing.out(Easing.cubic),
+                        }).start(() => {
+                            if (mounted) {
+                                setIsTransitioning(false);
+                                setShowContent(true);
+                            }
+                        });
                     });
-                });
+                }, 1000); // Guarantees the skeleton is visible for at least 0.5s
             });
         };
 
@@ -439,9 +441,14 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
 
     const menuBtnRef = useRef<View>(null);
     const menuPressRef = useRef<(() => void) | null>(null);
+    const fabPressRef = useRef<(() => void) | null>(null);
 
     const handleMenuPress = useCallback(() => {
         menuPressRef.current?.();
+    }, []);
+
+    const handleFabPress = useCallback(() => {
+        fabPressRef.current?.();
     }, []);
 
     // ─── Pro Max Animation Interpolations ───────────────────────────────────────
@@ -508,11 +515,20 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
                             onGoBack={onGoBack}
                             menuBtnRef={menuBtnRef}
                             onMenuPressRef={menuPressRef}
+                            onFabPressRef={fabPressRef}
                             isTransitioning={isTransitioning}
                         />
                     </Animated.View>
                 )}
             </View>
+
+            {/* LAYER 4: IMMEDIATE FAB (Independent of Skeleton delay) */}
+            <IconButton
+                icon={<Plus strokeWidth={1.5} color="#FFF" size={32} />}
+                size={60}
+                onPress={handleFabPress}
+                style={{ position: 'absolute', bottom: 140, right: 20, zIndex: 9999, shadowColor: 'rgba(0, 0, 0, 0.6)', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 1, shadowRadius: 10, elevation: 10 }}
+            />
         </View>
     );
 };
