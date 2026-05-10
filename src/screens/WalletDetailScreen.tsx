@@ -495,7 +495,6 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
                 {/* Payload (Entrance Layer) */}
                 {isReady && (
                     <Animated.View
-                        pointerEvents={showContent ? 'auto' : 'none'}
                         style={[
                             StyleSheet.absoluteFill,
                             {

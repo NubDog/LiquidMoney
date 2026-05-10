@@ -40,6 +40,36 @@ const InteractiveTerminalModal: React.FC<InteractiveTerminalModalProps> = ({ vis
     const [inputValue, setInputValue] = useState('');
     const scrollViewRef = useRef<ScrollView>(null);
     const inputRef = useRef<TextInput>(null);
+    const keyboardOffsetAnim = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+        const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+        const onKeyboardShow = (e: any) => {
+            const shiftAmount = Math.max(0, e.endCoordinates.height);
+            Animated.timing(keyboardOffsetAnim, {
+                toValue: -shiftAmount,
+                duration: e.duration || 250,
+                useNativeDriver: true,
+            }).start();
+        };
+
+        const onKeyboardHide = (e: any) => {
+            Animated.timing(keyboardOffsetAnim, {
+                toValue: 0,
+                duration: e.duration || 250,
+                useNativeDriver: true,
+            }).start();
+        };
+
+        const sub1 = Keyboard.addListener(showEvent, onKeyboardShow);
+        const sub2 = Keyboard.addListener(hideEvent, onKeyboardHide);
+        return () => {
+            sub1.remove();
+            sub2.remove();
+        };
+    }, [keyboardOffsetAnim]);
 
     const checkFPS = useCallback(async () => {
         return new Promise<number>((resolve) => {
@@ -143,10 +173,7 @@ const InteractiveTerminalModal: React.FC<InteractiveTerminalModalProps> = ({ vis
             animationType="none"
             statusBarTranslucent
             onRequestClose={handleClose}>
-            <KeyboardAvoidingView 
-                style={styles.root} 
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            >
+            <View style={styles.root} pointerEvents="box-none">
                 <Pressable
                     style={[StyleSheet.absoluteFill, styles.overlay]}
                     onPress={handleClose}
@@ -155,7 +182,7 @@ const InteractiveTerminalModal: React.FC<InteractiveTerminalModalProps> = ({ vis
                 <Animated.View
                     style={[
                         styles.modalContainer,
-                        { transform: [{ translateY }] },
+                        { transform: [{ translateY: Animated.add(translateY, keyboardOffsetAnim) }] },
                     ]}>
                     <View style={styles.sheet}>
                         {/* Grabber */}
@@ -226,7 +253,7 @@ const InteractiveTerminalModal: React.FC<InteractiveTerminalModalProps> = ({ vis
                         </Pressable>
                     </View>
                 </Animated.View>
-            </KeyboardAvoidingView>
+            </View>
         </Modal>
     );
 };

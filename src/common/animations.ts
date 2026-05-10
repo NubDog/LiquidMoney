@@ -56,6 +56,8 @@ export function animateSheetIn(
 ): Animated.CompositeAnimation {
     return Animated.spring(translateY, {
         toValue: 0,
+        restDisplacementThreshold: 5,
+        restSpeedThreshold: 5,
         ...config,
         useNativeDriver: true,
     });
@@ -83,6 +85,8 @@ export function animateScaleIn(
 ): Animated.CompositeAnimation {
     return Animated.spring(scale, {
         toValue: 1,
+        restDisplacementThreshold: 0.01,
+        restSpeedThreshold: 0.01,
         ...config,
         useNativeDriver: true,
     });
