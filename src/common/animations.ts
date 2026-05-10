@@ -112,7 +112,7 @@ export function animateScaleOut(
 export function animateModalOpen(
     overlayOpacity: Animated.Value,
     sheetTranslateY: Animated.Value,
-    config?: { damping?: number; stiffness?: number; friction?: number; tension?: number },
+    config?: { duration?: number },
 ): void {
     Animated.parallel([
         animateOverlayIn(overlayOpacity),

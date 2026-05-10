@@ -14,9 +14,11 @@ import {
 } from 'react-native';
 import { CheckCircle, AlertTriangle } from 'lucide-react-native';
 import { animateDialogOpen, animateDialogClose } from '../../common/animations';
-import { Colors, FontSizes, Radii, Spacing } from '../../common/theme';
-import BackgroundLiquidGlass from '../layout/BackgroundLiquidGlass';
-import LiquidButton2 from '../buttons/LiquidButton2';
+import { BlurView } from '@react-native-community/blur';
+import { Colors, FontSizes, Spacing } from '../../common/theme';
+import AppleButton from '../ui/AppleButton';
+
+const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 
 interface InfoDialogProps {
     visible: boolean;
@@ -54,23 +56,23 @@ const InfoDialog: React.FC<InfoDialogProps> = ({
             statusBarTranslucent
             onRequestClose={handleClose}>
             <View style={styles.root}>
-                <Animated.View
-                    style={[
-                        StyleSheet.absoluteFill,
-                        styles.overlay,
-                        { opacity: overlayOpacity },
-                    ]}
+                {/* Backdrop Layer */}
+                <AnimatedBlurView
+                    style={[StyleSheet.absoluteFill, { zIndex: 0, opacity: overlayOpacity }]}
+                    blurType="dark"
+                    blurAmount={15}
+                    reducedTransparencyFallbackColor="rgba(0,0,0,0.85)"
+                />
+                <Animated.View 
+                    style={[StyleSheet.absoluteFill, { zIndex: 0, backgroundColor: 'rgba(0, 0, 0, 0.45)', opacity: overlayOpacity }]} 
+                    pointerEvents="none" 
                 />
                 <Pressable
                     style={StyleSheet.absoluteFill}
                     onPress={handleClose}
                 />
-                <Animated.View style={[styles.cardContainer, { transform: [{ scale: cardScale }] }]}>
-                    <BackgroundLiquidGlass 
-                        style={styles.card}
-                        
-                        borderRadius={Radii.xxl}
-                    >
+                <Animated.View style={[styles.cardContainer, { transform: [{ scale: cardScale }] }]} pointerEvents="box-none">
+                    <View style={styles.card}>
                         <View style={styles.iconContainer}>
                             {type === 'success' ? (
                                 <CheckCircle size={40} color={Colors.income} strokeWidth={2.5} />
@@ -82,12 +84,14 @@ const InfoDialog: React.FC<InfoDialogProps> = ({
                         <Text style={styles.title}>{title}</Text>
                         <Text style={styles.message}>{message}</Text>
 
-                        <LiquidButton2
-                            title="OK"
-                            onPress={handleClose}
-                            style={styles.okBtn}
-                        />
-                    </BackgroundLiquidGlass>
+                        <View style={{ width: '100%' }}>
+                            <AppleButton
+                                title="OK"
+                                onPress={handleClose}
+                                variant="primary"
+                            />
+                        </View>
+                    </View>
                 </Animated.View>
             </View>
         </Modal>
@@ -101,56 +105,47 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     overlay: {
-        backgroundColor: Colors.overlayHeavy,
+        // Removed, using AnimatedBlurView
     },
     cardContainer: {
-        width: '82%',
-        maxWidth: 340,
+        zIndex: 2,
+        width: '85%',
+        maxWidth: 360,
     },
     card: {
-        padding: Spacing.xxl - 4,
+        backgroundColor: '#1C1C1E', // iOS Dark Mode Elevated
+        borderRadius: 24,
+        padding: Spacing.xl,
         alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.3,
+        shadowRadius: 20,
+        elevation: 15,
     },
     iconContainer: {
         marginBottom: Spacing.md,
         width: 60,
         height: 60,
         borderRadius: 30,
-        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
         alignItems: 'center',
         justifyContent: 'center',
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.2)',
     },
     title: {
-        fontSize: FontSizes.lg + 2,
-        fontWeight: '800',
-        color: '#FFFFFF',
-        marginBottom: Spacing.sm + 2,
-        textAlign: 'center',
-        textShadowColor: 'rgba(0,0,0,0.5)',
-        textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 2,
-    },
-    message: {
-        fontSize: FontSizes.md - 1,
-        color: 'rgba(255, 255, 255, 0.8)',
-        textAlign: 'center',
-        lineHeight: 20,
-        marginBottom: Spacing.xl,
-    },
-    okBtn: {
-        paddingVertical: 12,
-        paddingHorizontal: 40,
-        borderRadius: Radii.md,
-        backgroundColor: 'rgba(34, 211, 238, 0.25)',
-        borderWidth: 1,
-        borderColor: 'rgba(34, 211, 238, 0.45)',
-    },
-    okBtnText: {
-        fontSize: FontSizes.lg - 2,
+        fontSize: FontSizes.xl,
         fontWeight: '700',
         color: '#FFFFFF',
+        marginBottom: Spacing.sm,
+        textAlign: 'center',
+        letterSpacing: -0.3,
+    },
+    message: {
+        fontSize: FontSizes.md,
+        color: 'rgba(235, 235, 245, 0.6)',
+        textAlign: 'center',
+        lineHeight: 22,
+        marginBottom: Spacing.xl,
     },
 });
 
