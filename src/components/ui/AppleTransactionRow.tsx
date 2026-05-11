@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { FontSizes, Radii, Spacing } from '../../common/theme';
 import type { Transaction } from '../../common/types';
+import AppleGlassBackground from './AppleGlassBackground';
 
 interface AppleTransactionRowProps {
     item: Transaction;
@@ -33,50 +34,57 @@ const AppleTransactionRow: React.FC<AppleTransactionRowProps> = ({
     };
 
     return (
-        <Pressable
-            style={({ pressed }) => [
-                styles.container,
-                pressed && styles.pressed
-            ]}
-            onPress={() => onPress?.(item)}
-        >
-            <View style={styles.iconBox}>
-                {getIcon()}
-            </View>
+        <View style={styles.wrapper}>
+            <AppleGlassBackground variant="dark" borderRadius={16} style={styles.glassStyle}>
+                <Pressable
+                    style={({ pressed }) => [
+                        styles.container,
+                        pressed && styles.pressed
+                    ]}
+                    onPress={() => onPress?.(item)}
+                >
+                    <View style={styles.iconBox}>
+                        {getIcon()}
+                    </View>
 
-            <View style={styles.infoBox}>
-                <Text style={styles.description} numberOfLines={1}>
-                    {item.reason || (isIncome ? 'Thu Nhập' : 'Chi Tiêu')}
-                </Text>
-                <Text style={styles.date}>
-                    {format(new Date(item.created_at), 'dd MMM yyyy, HH:mm', { locale: vi })}
-                </Text>
-            </View>
+                    <View style={styles.infoBox}>
+                        <Text style={styles.description} numberOfLines={1}>
+                            {item.reason || (isIncome ? 'Thu Nhập' : 'Chi Tiêu')}
+                        </Text>
+                        <Text style={styles.date}>
+                            {format(new Date(item.created_at), 'dd MMM yyyy, HH:mm', { locale: vi })}
+                        </Text>
+                    </View>
 
-            <View style={styles.amountBox}>
-                <Text style={[styles.amount, { color: isIncome ? '#32D74B' : '#FFFFFF' }]} numberOfLines={1}>
-                    {(isIncome ? '+' : '-') + formatCurrency(item.amount) + ' ₫'}
-                </Text>
-            </View>
-        </Pressable>
+                    <View style={styles.amountBox}>
+                        <Text style={[styles.amount, { color: isIncome ? '#32D74B' : '#FFFFFF' }]} numberOfLines={1}>
+                            {(isIncome ? '+' : '-') + formatCurrency(item.amount) + ' ₫'}
+                        </Text>
+                    </View>
+                </Pressable>
+            </AppleGlassBackground>
+        </View>
     );
 };
 
 // --- Styles ---
 const styles = StyleSheet.create({
+    wrapper: {
+        marginBottom: Spacing.sm,
+        marginHorizontal: Spacing.md,
+    },
+    glassStyle: {
+        width: '100%',
+    },
     container: {
         width: '100%',
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: Spacing.md,
         paddingVertical: 14,
-        marginBottom: Spacing.sm,
-        backgroundColor: 'rgba(255, 255, 255, 0.35)', // Trả lại màu trắng kính cũ nhưng tăng độ đục (opacity 0.35)
-        borderRadius: 16,
     },
     pressed: {
-        opacity: 0.7,
-        backgroundColor: 'rgba(255, 255, 255, 0.25)',
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
     },
     iconBox: {
         width: 44,
