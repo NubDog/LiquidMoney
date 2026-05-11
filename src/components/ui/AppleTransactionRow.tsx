@@ -71,14 +71,12 @@ const styles = StyleSheet.create({
         paddingHorizontal: Spacing.md,
         paddingVertical: 14,
         marginBottom: Spacing.sm,
-        backgroundColor: 'rgba(0, 0, 0, 0.35)', // Nền tối đục hơn để làm nổi bật chữ trắng
+        backgroundColor: 'rgba(255, 255, 255, 0.35)', // Trả lại màu trắng kính cũ nhưng tăng độ đục (opacity 0.35)
         borderRadius: 16,
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.05)',
     },
     pressed: {
         opacity: 0.7,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: 'rgba(255, 255, 255, 0.25)',
     },
     iconBox: {
         width: 44,
