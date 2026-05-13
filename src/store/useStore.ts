@@ -1,17 +1,11 @@
 /**
- * useStore.ts — Global State Management (React Context)
+ * useStore.ts — Global State Management (Zustand v5)
  * Kết nối Database queries ↔ UI
  */
 
-import React, {
-    createContext,
-    useCallback,
-    useContext,
-    useEffect,
-    useMemo,
-    useState,
-} from 'react';
+import React, { useEffect } from 'react';
 import { Alert } from 'react-native';
+import { create } from 'zustand';
 import { initDatabase, isDatabaseAvailable } from '../database/db';
 import {
     getAllWallets,
@@ -56,6 +50,9 @@ interface StoreState {
 }
 
 interface StoreActions {
+    /** Khởi tạo database */
+    initialize: () => void;
+
     /** Load lại danh sách ví từ DB */
     refreshWallets: () => void;
 
@@ -127,271 +124,189 @@ interface StoreActions {
 
 type Store = StoreState & StoreActions;
 
-// ─── Context ──────────────────────────────────────────────────────────────────
+export const useStore = create<Store>((set, get) => ({
+    isReady: false,
+    wallets: [],
+    transactions: [],
+    currentWallet: null,
+    loading: false,
+    isDeveloperMode: true,
+    selectedBackgroundId: null,
 
-const StoreContext = createContext<Store | null>(null);
-
-// ─── Provider Component ───────────────────────────────────────────────────────
-
-export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
-    children,
-}) => {
-    const [isReady, setIsReady] = useState(false);
-    const [wallets, setWallets] = useState<Wallet[]>([]);
-    const [transactions, setTransactions] = useState<Transaction[]>([]);
-    const [currentWallet, setCurrentWallet] = useState<Wallet | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [isDeveloperMode, setIsDeveloperMode] = useState(true);
-    const [selectedBackgroundId, setSelectedBackgroundIdState] = useState<string | null>(null);
-
-    // ─── Khởi tạo Database khi app start ─────────────────────────────────────
-
-    useEffect(() => {
+    initialize: () => {
         try {
             const success = initDatabase();
             if (success) {
                 const allWallets = getAllWallets();
-                setWallets(allWallets);
-                
                 const bgId = getSetting('app_background_id');
-                setSelectedBackgroundIdState(bgId);
+                set({ isReady: true, wallets: allWallets, selectedBackgroundId: bgId });
             } else {
                 console.warn('[Store] DB chưa sẵn sàng — cần rebuild native app.');
+                set({ isReady: true });
             }
         } catch (err) {
             console.error('[Store] Lỗi khởi tạo DB:', err);
+            set({ isReady: true });
         }
-        // Luôn set ready để UI vẫn render được
-        setIsReady(true);
-    }, []);
+    },
 
-    // ─── Wallet Actions ───────────────────────────────────────────────────────
-
-    const refreshWallets = useCallback(() => {
-        if (!isDatabaseAvailable()) {
-            return;
-        }
+    refreshWallets: () => {
+        if (!isDatabaseAvailable()) return;
+        set({ loading: true });
         try {
-            setLoading(true);
             const allWallets = getAllWallets();
-            setWallets(allWallets);
+            set({ wallets: allWallets });
         } catch (err) {
             console.error('[Store] refreshWallets error:', err);
         } finally {
-            setLoading(false);
+            set({ loading: false });
         }
-    }, []);
+    },
 
-    const addWallet = useCallback(
-        (name: string, initialBalance: number, imageUri?: string | null, icon?: string | null) => {
-            if (!isDatabaseAvailable()) {
-                Alert.alert(
-                    'Database chưa sẵn sàng',
-                    'Cần rebuild native app để sử dụng tính năng này.\nnpx react-native run-android',
-                );
-                return;
-            }
-            try {
-                dbCreateWallet(name, initialBalance, imageUri, icon);
-                refreshWallets();
-            } catch (err) {
-                console.error('[Store] addWallet error:', err);
-            }
-        },
-        [refreshWallets],
-    );
+    addWallet: (name, initialBalance, imageUri, icon) => {
+        if (!isDatabaseAvailable()) {
+            Alert.alert(
+                'Database chưa sẵn sàng',
+                'Cần rebuild native app để sử dụng tính năng này.\nnpx react-native run-android',
+            );
+            return;
+        }
+        try {
+            dbCreateWallet(name, initialBalance, imageUri, icon);
+            get().refreshWallets();
+        } catch (err) {
+            console.error('[Store] addWallet error:', err);
+        }
+    },
 
-    const editWallet = useCallback(
-        (
-            id: string,
-            name: string,
-            initialBalance: number,
-            imageUri?: string | null,
-            icon?: string | null,
-        ) => {
-            if (!isDatabaseAvailable()) {
-                Alert.alert('Database chưa sẵn sàng', 'Cần rebuild native app.');
-                return;
+    editWallet: (id, name, initialBalance, imageUri, icon) => {
+        if (!isDatabaseAvailable()) {
+            Alert.alert('Database chưa sẵn sàng', 'Cần rebuild native app.');
+            return;
+        }
+        try {
+            dbUpdateWallet(id, name, initialBalance, imageUri, icon);
+            get().refreshWallets();
+            if (get().currentWallet?.id === id) {
+                const updated = getWalletById(id);
+                set({ currentWallet: updated });
             }
-            try {
-                dbUpdateWallet(id, name, initialBalance, imageUri, icon);
-                refreshWallets();
-                if (currentWallet?.id === id) {
-                    const updated = getWalletById(id);
-                    setCurrentWallet(updated);
-                }
-            } catch (err) {
-                console.error('[Store] editWallet error:', err);
-            }
-        },
-        [refreshWallets, currentWallet],
-    );
+        } catch (err) {
+            console.error('[Store] editWallet error:', err);
+        }
+    },
 
-    const adjustWalletBalance = useCallback(
-        (
-            id: string,
-            name: string,
-            newBalance: number,
-            currentBalance: number,
-            initialBalance: number,
-            icon?: string | null,
-        ) => {
-            if (!isDatabaseAvailable()) {
-                Alert.alert('Database chưa sẵn sàng', 'Cần rebuild native app.');
-                return;
+    adjustWalletBalance: (id, name, newBalance, currentBalance, initialBalance, icon) => {
+        if (!isDatabaseAvailable()) {
+            Alert.alert('Database chưa sẵn sàng', 'Cần rebuild native app.');
+            return;
+        }
+        try {
+            dbUpdateWallet(id, name, initialBalance, null, icon);
+            
+            const diff = newBalance - currentBalance;
+            if (diff !== 0) {
+                const type = diff > 0 ? 'IN' : 'OUT';
+                const amount = Math.abs(diff);
+                dbCreateTransaction(id, type, amount, 'Điều chỉnh số dư', null);
             }
-            try {
-                // Update name and icon without touching initial_balance
-                dbUpdateWallet(id, name, initialBalance, null, icon);
-                
-                const diff = newBalance - currentBalance;
-                if (diff !== 0) {
-                    const type = diff > 0 ? 'IN' : 'OUT';
-                    const amount = Math.abs(diff);
-                    dbCreateTransaction(id, type, amount, 'Điều chỉnh số dư', null);
-                }
 
-                refreshWallets();
-                if (currentWallet?.id === id) {
-                    const updated = getWalletById(id);
-                    setCurrentWallet(updated);
-                    // Refresh transactions if we are viewing this wallet
-                    const txs = getTransactionsByWallet(id);
-                    setTransactions(txs);
-                }
-            } catch (err) {
-                console.error('[Store] adjustWalletBalance error:', err);
+            get().refreshWallets();
+            if (get().currentWallet?.id === id) {
+                const updated = getWalletById(id);
+                const txs = getTransactionsByWallet(id);
+                set({ currentWallet: updated, transactions: txs });
             }
-        },
-        [refreshWallets, currentWallet],
-    );
+        } catch (err) {
+            console.error('[Store] adjustWalletBalance error:', err);
+        }
+    },
 
-    const removeWallet = useCallback(
-        (id: string) => {
-            if (!isDatabaseAvailable()) {
-                Alert.alert('Database chưa sẵn sàng', 'Cần rebuild native app.');
-                return;
+    removeWallet: (id) => {
+        if (!isDatabaseAvailable()) {
+            Alert.alert('Database chưa sẵn sàng', 'Cần rebuild native app.');
+            return;
+        }
+        try {
+            dbDeleteWallet(id);
+            get().refreshWallets();
+            if (get().currentWallet?.id === id) {
+                set({ currentWallet: null, transactions: [] });
             }
-            try {
-                dbDeleteWallet(id);
-                refreshWallets();
-                if (currentWallet?.id === id) {
-                    setCurrentWallet(null);
-                    setTransactions([]);
-                }
-            } catch (err) {
-                console.error('[Store] removeWallet error:', err);
-            }
-        },
-        [refreshWallets, currentWallet],
-    );
+        } catch (err) {
+            console.error('[Store] removeWallet error:', err);
+        }
+    },
 
-    const selectWallet = useCallback((id: string) => {
+    selectWallet: (id) => {
         try {
             const wallet = getWalletById(id);
-            setCurrentWallet(wallet);
-            if (wallet) {
-                const txns = getTransactionsByWallet(id);
-                setTransactions(txns);
-            }
+            const txns = wallet ? getTransactionsByWallet(id) : [];
+            set({ currentWallet: wallet, transactions: txns });
         } catch (err) {
             console.error('[Store] selectWallet error:', err);
         }
-    }, []);
+    },
 
-    // ─── Transaction Actions ──────────────────────────────────────────────────
+    refreshTransactions: (walletId, filterType) => {
+        if (!isDatabaseAvailable()) return;
+        set({ loading: true });
+        try {
+            const txns = getTransactionsByWallet(walletId, filterType);
+            const wallet = getWalletById(walletId);
+            const allWallets = getAllWallets();
+            set({ transactions: txns, currentWallet: wallet, wallets: allWallets });
+        } catch (err) {
+            console.error('[Store] refreshTransactions error:', err);
+        } finally {
+            set({ loading: false });
+        }
+    },
 
-    const refreshTransactions = useCallback(
-        (walletId: string, filterType?: 'IN' | 'OUT') => {
-            if (!isDatabaseAvailable()) {
-                return;
-            }
-            try {
-                setLoading(true);
-                const txns = getTransactionsByWallet(walletId, filterType);
-                setTransactions(txns);
-                const wallet = getWalletById(walletId);
-                setCurrentWallet(wallet);
-                const allWallets = getAllWallets();
-                setWallets(allWallets);
-            } catch (err) {
-                console.error('[Store] refreshTransactions error:', err);
-            } finally {
-                setLoading(false);
-            }
-        },
-        [],
-    );
+    addTransaction: (walletId, type, amount, reason, imageUri, date) => {
+        if (!isDatabaseAvailable()) {
+            Alert.alert('Database chưa sẵn sàng', 'Cần rebuild native app.');
+            return;
+        }
+        try {
+            dbCreateTransaction(walletId, type, amount, reason, imageUri, date);
+            get().refreshTransactions(walletId);
+        } catch (err) {
+            console.error('[Store] addTransaction error:', err);
+        }
+    },
 
-    const addTransaction = useCallback(
-        (
-            walletId: string,
-            type: 'IN' | 'OUT',
-            amount: number,
-            reason?: string | null,
-            imageUri?: string | null,
-            date?: string,
-        ) => {
-            if (!isDatabaseAvailable()) {
-                Alert.alert('Database chưa sẵn sàng', 'Cần rebuild native app.');
-                return;
-            }
-            try {
-                dbCreateTransaction(walletId, type, amount, reason, imageUri, date);
-                refreshTransactions(walletId);
-            } catch (err) {
-                console.error('[Store] addTransaction error:', err);
-            }
-        },
-        [refreshTransactions],
-    );
+    editTransaction: (id, walletId, type, amount, reason, imageUri) => {
+        if (!isDatabaseAvailable()) {
+            Alert.alert('Database chưa sẵn sàng', 'Cần rebuild native app.');
+            return;
+        }
+        try {
+            dbUpdateTransaction(id, walletId, type, amount, reason, imageUri);
+            get().refreshTransactions(walletId);
+        } catch (err) {
+            console.error('[Store] editTransaction error:', err);
+        }
+    },
 
-    const editTransaction = useCallback(
-        (
-            id: string,
-            walletId: string,
-            type: 'IN' | 'OUT',
-            amount: number,
-            reason?: string | null,
-            imageUri?: string | null,
-        ) => {
-            if (!isDatabaseAvailable()) {
-                Alert.alert('Database chưa sẵn sàng', 'Cần rebuild native app.');
-                return;
-            }
-            try {
-                dbUpdateTransaction(id, walletId, type, amount, reason, imageUri);
-                refreshTransactions(walletId);
-            } catch (err) {
-                console.error('[Store] editTransaction error:', err);
-            }
-        },
-        [refreshTransactions],
-    );
+    removeTransaction: (id, walletId) => {
+        if (!isDatabaseAvailable()) {
+            Alert.alert('Database chưa sẵn sàng', 'Cần rebuild native app.');
+            return;
+        }
+        try {
+            dbDeleteTransaction(id);
+            get().refreshTransactions(walletId);
+        } catch (err) {
+            console.error('[Store] removeTransaction error:', err);
+        }
+    },
 
-    const removeTransaction = useCallback(
-        (id: string, walletId: string) => {
-            if (!isDatabaseAvailable()) {
-                Alert.alert('Database chưa sẵn sàng', 'Cần rebuild native app.');
-                return;
-            }
-            try {
-                dbDeleteTransaction(id);
-                refreshTransactions(walletId);
-            } catch (err) {
-                console.error('[Store] removeTransaction error:', err);
-            }
-        },
-        [refreshTransactions],
-    );
+    toggleDeveloperMode: () => {
+        set((state) => ({ isDeveloperMode: !state.isDeveloperMode }));
+    },
 
-    // ─── Settings / Preferences ───────────────────────────────────────────────
-
-    const toggleDeveloperMode = useCallback(() => {
-        setIsDeveloperMode(prev => !prev);
-    }, []);
-
-    const setSelectedBackground = useCallback((id: string | null) => {
+    setSelectedBackground: (id) => {
         if (!isDatabaseAvailable()) return;
         try {
             if (id) {
@@ -399,72 +314,25 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
             } else {
                 setSetting('app_background_id', '');
             }
-            setSelectedBackgroundIdState(id);
+            set({ selectedBackgroundId: id });
         } catch (err) {
             console.error('[Store] setSelectedBackground error:', err);
         }
-    }, []);
+    },
+}));
 
-    // ─── Memoized store value ─────────────────────────────────────────────────
-
-    const store = useMemo<Store>(
-        () => ({
-            isReady,
-            wallets,
-            transactions,
-            currentWallet,
-            loading,
-            isDeveloperMode,
-            selectedBackgroundId,
-            refreshWallets,
-            addWallet,
-            editWallet,
-            adjustWalletBalance,
-            removeWallet,
-            selectWallet,
-            refreshTransactions,
-            addTransaction,
-            editTransaction,
-            removeTransaction,
-            toggleDeveloperMode,
-            setSelectedBackground,
-        }),
-        [
-            isReady,
-            wallets,
-            transactions,
-            currentWallet,
-            loading,
-            isDeveloperMode,
-            selectedBackgroundId,
-            refreshWallets,
-            addWallet,
-            editWallet,
-            adjustWalletBalance,
-            removeWallet,
-            selectWallet,
-            refreshTransactions,
-            addTransaction,
-            editTransaction,
-            removeTransaction,
-            toggleDeveloperMode,
-            setSelectedBackground,
-        ],
-    );
-
-    return React.createElement(StoreContext.Provider, { value: store }, children);
-};
-
-// ─── Hook ─────────────────────────────────────────────────────────────────────
+// ─── Provider Component ───────────────────────────────────────────────────────
 
 /**
- * Hook truy cập global store
- * @throws Error nếu dùng ngoài StoreProvider
+ * Empty Provider for backwards compatibility in App.tsx.
+ * It just runs initialization on mount.
  */
-export function useStore(): Store {
-    const context = useContext(StoreContext);
-    if (!context) {
-        throw new Error('[LiquidMoney] useStore phải được dùng bên trong StoreProvider.');
-    }
-    return context;
-}
+export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
+    children,
+}) => {
+    useEffect(() => {
+        useStore.getState().initialize();
+    }, []);
+
+    return React.createElement(React.Fragment, null, children);
+};

@@ -29,6 +29,10 @@ import AppleButton from '../components/ui/AppleButton';
 import AppleTextInput from '../components/ui/AppleTextInput';
 import AppleAmountInput from '../components/ui/AppleAmountInput';
 import AppleTransactionRow from '../components/ui/AppleTransactionRow';
+import AppleCloseButton from '../components/ui/AppleCloseButton';
+import AppleDatePicker from '../components/ui/AppleDatePicker';
+import AppleGlassBackground from '../components/ui/AppleGlassBackground';
+import AppleSegmentedControl from '../components/ui/AppleSegmentedControl';
 
 // --- newly imported components ---
 import AnimatedOverlay from '../components/overlays/AnimatedOverlay';
@@ -60,6 +64,10 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
     const [segment, setSegment] = useState<'a' | 'b'>('a');
     const [inputValue, setInputValue] = useState('');
     
+    // --- Apple UI State ---
+    const [appleSegment, setAppleSegment] = useState('1');
+    const [showDatePicker, setShowDatePicker] = useState(false);
+
     // --- Modals State ---
     const [activeModal, setActiveModal] = useState<string | null>(null);
     const [filterId, setFilterId] = useState('all');
@@ -136,6 +144,28 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                             item={dummyTransaction} 
                             onPress={() => {}} 
                         />
+                        <AppleSegmentedControl
+                            options={[
+                                { key: '1', label: 'Option 1' },
+                                { key: '2', label: 'Option 2' },
+                            ]}
+                            selected={appleSegment}
+                            onChange={setAppleSegment}
+                        />
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+                            <Text style={{ color: '#FFF' }}>Apple Close Button:</Text>
+                            <AppleCloseButton onPress={() => {}} />
+                        </View>
+                        <AppleButton 
+                            title="Show Apple Date Picker" 
+                            onPress={() => setShowDatePicker(true)} 
+                            variant="primary"
+                        />
+                        <AppleGlassBackground variant="dark" style={{ padding: Spacing.md }}>
+                            <Text style={{ color: '#FFF', textAlign: 'center' }}>
+                                Apple Glass Background (dark)
+                            </Text>
+                        </AppleGlassBackground>
                     </View>
                 </Section>
 
@@ -342,6 +372,13 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
             <AnimatedOverlay 
                 visible={false} 
                 onPress={() => {}}
+            />
+
+            <AppleDatePicker
+                visible={showDatePicker}
+                date={new Date()}
+                onConfirm={() => setShowDatePicker(false)}
+                onCancel={() => setShowDatePicker(false)}
             />
 
         </View>

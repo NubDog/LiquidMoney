@@ -13,6 +13,7 @@ import { BlurView } from '@react-native-community/blur';
 import { X, CheckCircle2 } from 'lucide-react-native';
 import { BACKGROUNDS, BACKGROUND_KEYS } from '../../assets/img/backgrounds';
 import { useStore } from '../../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import IconButton from '../buttons/IconButton';
 import { Colors, FontSizes, Radii, Spacing } from '../../common/theme';
 
@@ -25,7 +26,10 @@ const BackgroundPickerModal: React.FC<BackgroundPickerModalProps> = ({
     visible,
     onClose,
 }) => {
-    const { selectedBackgroundId, setSelectedBackground } = useStore();
+    const { selectedBackgroundId, setSelectedBackground } = useStore(useShallow(state => ({
+        selectedBackgroundId: state.selectedBackgroundId,
+        setSelectedBackground: state.setSelectedBackground
+    })));
 
     if (!visible) return null;
 

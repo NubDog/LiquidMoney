@@ -34,40 +34,45 @@ const AppleTransactionRow: React.FC<AppleTransactionRowProps> = ({
     };
 
     return (
-        <AppleGlassBackground borderRadius={16} style={styles.glassWrapper}>
-            <Pressable
-                style={({ pressed }) => [
-                    styles.container,
-                    pressed && styles.pressed
-                ]}
-                onPress={() => onPress?.(item)}
-            >
-                <View style={styles.iconBox}>
-                    {getIcon()}
-                </View>
+        <View style={styles.wrapper}>
+            <AppleGlassBackground variant="light" borderRadius={16} style={styles.glassStyle}>
+                <Pressable
+                    style={({ pressed }) => [
+                        styles.container,
+                        pressed && styles.pressed
+                    ]}
+                    onPress={() => onPress?.(item)}
+                >
+                    <View style={styles.iconBox}>
+                        {getIcon()}
+                    </View>
 
-                <View style={styles.infoBox}>
-                    <Text style={styles.description} numberOfLines={1}>
-                        {item.reason || (isIncome ? 'Thu Nhập' : 'Chi Tiêu')}
-                    </Text>
-                    <Text style={styles.date}>
-                        {format(new Date(item.created_at), 'dd MMM yyyy, HH:mm', { locale: vi })}
-                    </Text>
-                </View>
+                    <View style={styles.infoBox}>
+                        <Text style={styles.description} numberOfLines={1}>
+                            {item.reason || (isIncome ? 'Thu Nhập' : 'Chi Tiêu')}
+                        </Text>
+                        <Text style={styles.date}>
+                            {format(new Date(item.created_at), 'dd MMM yyyy, HH:mm', { locale: vi })}
+                        </Text>
+                    </View>
 
-                <View style={styles.amountBox}>
-                    <Text style={[styles.amount, { color: isIncome ? '#32D74B' : '#FFFFFF' }]} numberOfLines={1}>
-                        {(isIncome ? '+' : '-') + formatCurrency(item.amount) + ' ₫'}
-                    </Text>
-                </View>
-            </Pressable>
-        </AppleGlassBackground>
+                    <View style={styles.amountBox}>
+                        <Text style={[styles.amount, { color: isIncome ? '#32D74B' : '#FFFFFF' }]} numberOfLines={1}>
+                            {(isIncome ? '+' : '-') + formatCurrency(item.amount) + ' ₫'}
+                        </Text>
+                    </View>
+                </Pressable>
+            </AppleGlassBackground>
+        </View>
     );
 };
 
+// --- Styles ---
 const styles = StyleSheet.create({
-    glassWrapper: {
+    wrapper: {
         marginBottom: Spacing.sm,
+    },
+    glassStyle: {
         width: '100%',
     },
     container: {
@@ -78,7 +83,7 @@ const styles = StyleSheet.create({
         paddingVertical: 14,
     },
     pressed: {
-        backgroundColor: 'rgba(255, 255, 255, 0.15)', // Sáng hơn khi bấm
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
     },
     iconBox: {
         width: 44,

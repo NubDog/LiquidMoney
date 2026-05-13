@@ -19,6 +19,7 @@ import { CheckCircle2, XCircle } from 'lucide-react-native';
 import InfoDialog from '../components/modals/InfoDialog';
 import ConfirmDialog2 from '../components/modals/ConfirmDialog2';
 import { useStore } from '../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { isDatabaseAvailable } from '../database/db';
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
 
@@ -32,7 +33,12 @@ function isBackupAvailable(): boolean {
 
 const SettingsScreen: React.FC = () => {
     const insets = useSafeAreaInsets();
-    const { wallets, refreshWallets, isDeveloperMode, toggleDeveloperMode } = useStore();
+    const { wallets, refreshWallets, isDeveloperMode, toggleDeveloperMode } = useStore(useShallow(state => ({
+        wallets: state.wallets,
+        refreshWallets: state.refreshWallets,
+        isDeveloperMode: state.isDeveloperMode,
+        toggleDeveloperMode: state.toggleDeveloperMode
+    })));
     const [exporting, setExporting] = useState(false);
     const [importing, setImporting] = useState(false);
 

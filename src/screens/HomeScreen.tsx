@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { Wallet as WalletIcon, PieChart, Plus } from 'lucide-react-native';
 import BackgroundLiquidGlass from '../components/layout/BackgroundLiquidGlass';
 import AppleGlassBackground from '../components/ui/AppleGlassBackground';
@@ -43,7 +44,15 @@ const ItemSeparator = () => <View style={styles.separator} />;
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
     const insets = useSafeAreaInsets();
-    const { wallets, addWallet, editWallet, adjustWalletBalance, removeWallet, isReady, refreshWallets } = useStore();
+    const { wallets, addWallet, editWallet, adjustWalletBalance, removeWallet, isReady, refreshWallets } = useStore(useShallow(state => ({
+        wallets: state.wallets,
+        addWallet: state.addWallet,
+        editWallet: state.editWallet,
+        adjustWalletBalance: state.adjustWalletBalance,
+        removeWallet: state.removeWallet,
+        isReady: state.isReady,
+        refreshWallets: state.refreshWallets,
+    })));
 
     // ─── Modal State ──────────────────────────────────────────────────────────
     const [modalVisible, setModalVisible] = useState(false);

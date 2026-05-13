@@ -64,7 +64,7 @@ const NAVBAR_PADDING = 6;
 const AppNavigator: React.FC = () => {
     const insets = useSafeAreaInsets();
     const { width, height } = useWindowDimensions();
-    const { isDeveloperMode } = useStore();
+    const isDeveloperMode = useStore(state => state.isDeveloperMode);
 
     // ─── Navigation State ───────────────────────────────────────────────────────
     const [activeTab, setActiveTab] = useState<TabName>('home');

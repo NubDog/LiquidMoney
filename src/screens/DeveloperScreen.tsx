@@ -22,6 +22,7 @@ import TerminalLogModal from '../components/modals/TerminalLogModal';
 import InteractiveTerminalModal from '../components/modals/InteractiveTerminalModal';
 import BackgroundPickerModal from '../components/modals/BackgroundPickerModal';
 import { useStore } from '../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { generateRandomTransactions, generateRandomWallets, deleteAllData } from '../database/queries';
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
 import ComponentLibraryScreen from './ComponentLibraryScreen';
@@ -32,7 +33,11 @@ import AppleTextInput from '../components/ui/AppleTextInput';
 
 const DeveloperScreen: React.FC = () => {
     const insets = useSafeAreaInsets();
-    const { wallets, refreshWallets, isDeveloperMode } = useStore();
+    const { wallets, refreshWallets, isDeveloperMode } = useStore(useShallow(state => ({
+        wallets: state.wallets,
+        refreshWallets: state.refreshWallets,
+        isDeveloperMode: state.isDeveloperMode
+    })));
 
     const [txCountStr, setTxCountStr] = useState<string>('50');
     const [walletCountStr, setWalletCountStr] = useState<string>('5');

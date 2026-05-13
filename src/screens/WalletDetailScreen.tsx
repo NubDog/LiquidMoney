@@ -42,6 +42,7 @@ import EmptyState2 from '../components/layout/EmptyState2';
 
 // ─── Shared ───────────────────────────────────────────────────────────────────
 import { useStore } from '../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { formatVND } from '../common/formatters';
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
 import type { Transaction } from '../common/types';
@@ -87,7 +88,16 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
         removeTransaction,
         adjustWalletBalance,
         removeWallet,
-    } = useStore();
+    } = useStore(useShallow(state => ({
+        currentWallet: state.currentWallet,
+        transactions: state.transactions,
+        refreshTransactions: state.refreshTransactions,
+        addTransaction: state.addTransaction,
+        editTransaction: state.editTransaction,
+        removeTransaction: state.removeTransaction,
+        adjustWalletBalance: state.adjustWalletBalance,
+        removeWallet: state.removeWallet,
+    })));
 
     // ─── State ──────────────────────────────────────────────────────────────
     const [filterIndex, setFilterIndex] = useState(0);
@@ -390,7 +400,10 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
     onGoBack,
 }) => {
     const insets = useSafeAreaInsets();
-    const { selectWallet, refreshTransactions } = useStore();
+    const { selectWallet, refreshTransactions } = useStore(useShallow(state => ({
+        selectWallet: state.selectWallet,
+        refreshTransactions: state.refreshTransactions
+    })));
 
     const [isReady, setIsReady] = useState(false);
     const [showContent, setShowContent] = useState(false);

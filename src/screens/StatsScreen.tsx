@@ -39,6 +39,7 @@ import EmptyState2 from '../components/layout/EmptyState2';
 import TransactionDetailOverlay from '../components/overlays/TransactionDetailOverlay';
 import TransactionModal from '../components/modals/TransactionModal';
 import { useStore } from '../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { isDatabaseAvailable } from '../database/db';
 import type { DailyStat, OverallStat, Transaction, Wallet } from '../database/queries';
 import { formatVND, formatVNDShort } from '../common/formatters';
@@ -751,7 +752,10 @@ const StatsScreen: React.FC = () => {
     const [modalVisible, setModalVisible] = useState(false);
     const [editingTx, setEditingTx] = useState<Transaction | null>(null);
 
-    const { editTransaction, removeTransaction } = useStore();
+    const { editTransaction, removeTransaction } = useStore(useShallow(state => ({
+        editTransaction: state.editTransaction,
+        removeTransaction: state.removeTransaction
+    })));
 
     // ── Load data ──────────────────────────────────────────────────────────
     const loadData = useCallback((wId?: string, p: Period = 'day') => {

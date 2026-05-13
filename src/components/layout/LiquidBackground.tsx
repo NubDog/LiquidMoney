@@ -4,7 +4,7 @@ import { useStore } from '../../store/useStore';
 import { BACKGROUNDS } from '../../assets/img/backgrounds';
 
 const LiquidBackground: React.FC = () => {
-    const { selectedBackgroundId } = useStore();
+    const selectedBackgroundId = useStore(state => state.selectedBackgroundId);
     
     // Fallback: nếu selectedBackgroundId không có (null), dùng Background_0.jpg mặc định
     const source = selectedBackgroundId && BACKGROUNDS[selectedBackgroundId] 
