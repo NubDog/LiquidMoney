@@ -19,12 +19,12 @@ import LiquidBackground from '../components/layout/LiquidBackground';
 import LiquidButton2 from '../components/buttons/LiquidButton2';
 import LiquidInput from '../components/inputs/LiquidInput';
 import LiquidSegmentedControl2 from '../components/inputs/LiquidSegmentedControl2';
-import IconButton from '../components/buttons/IconButton';
+
 import AmountInput2 from '../components/inputs/AmountInput2';
 import EmptyState2 from '../components/layout/EmptyState2';
 import BackgroundLiquidGlass from '../components/layout/BackgroundLiquidGlass';
 import TransactionRow2 from '../components/cards/TransactionRow2';
-import WalletCard2 from '../components/cards/WalletCard2';
+
 import AppleButton from '../components/ui/AppleButton';
 import AppleTextInput from '../components/ui/AppleTextInput';
 import AppleAmountInput from '../components/ui/AppleAmountInput';
@@ -33,6 +33,8 @@ import AppleCloseButton from '../components/ui/AppleCloseButton';
 import AppleDatePicker from '../components/ui/AppleDatePicker';
 import AppleGlassBackground from '../components/ui/AppleGlassBackground';
 import AppleSegmentedControl from '../components/ui/AppleSegmentedControl';
+import AppleWalletCard from '../components/ui/AppleWalletCard';
+import AppleIconButton from '../components/ui/AppleIconButton';
 
 // --- newly imported components ---
 import AnimatedOverlay from '../components/overlays/AnimatedOverlay';
@@ -122,6 +124,7 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                 {/* --- EXISTING SECTIONS --- */}
                 <Section title="Apple UI Kit (New & Fast)">
                     <View style={{ gap: Spacing.md }}>
+                        <AppleWalletCard name="MAIN WALLET" balance={1000000} />
                         <AppleButton 
                             title="Primary Button" 
                             onPress={() => {}} 
@@ -155,6 +158,18 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
                             <Text style={{ color: '#FFF' }}>Apple Close Button:</Text>
                             <AppleCloseButton onPress={() => {}} />
+                        </View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+                            <Text style={{ color: '#FFF' }}>Apple Icon Button:</Text>
+                            <AppleIconButton 
+                                icon={<Plus size={20} color="#FFF" />} 
+                                onPress={() => {}} 
+                            />
+                            <AppleIconButton 
+                                icon={<Figma size={20} color="#000" />} 
+                                backgroundColor="#FFF"
+                                onPress={() => {}} 
+                            />
                         </View>
                         <AppleButton 
                             title="Show Apple Date Picker" 
@@ -201,11 +216,6 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                     <LiquidButton2 title="Disabled Button" disabled onPress={() => {}} />
                 </Section>
 
-                <Section title="IconButton">
-                    <View style={styles.row}>
-                        <IconButton icon={<Plus strokeWidth={1.5} color="#FFF" size={32} />} size={60} onPress={() => { }} />
-                    </View>
-                </Section>
 
                 <Section title="LiquidSegmentedControl2">
                     <LiquidSegmentedControl2
@@ -243,13 +253,7 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                     </BackgroundLiquidGlass>
                 </Section>
 
-                <Section title="WalletCard2">
-                    <WalletCard2
-                        name={dummyWallet.name}
-                        balance={dummyWallet.balance}
-                        onPress={() => { }}
-                    />
-                </Section>
+
 
                 <Section title="TransactionRow">
                     <TransactionRow2 item={dummyTransaction} onPress={() => { }} />

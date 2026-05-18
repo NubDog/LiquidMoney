@@ -23,8 +23,8 @@ import BackgroundLiquidGlass from '../components/layout/BackgroundLiquidGlass';
 import AppleGlassBackground from '../components/ui/AppleGlassBackground';
 import WalletModal from '../components/modals/WalletModal';
 import EditWalletModal from '../components/modals/EditWalletModal';
-import WalletCard2 from '../components/cards/WalletCard2';
-import IconButton from '../components/buttons/IconButton';
+import AppleWalletCard from '../components/ui/AppleWalletCard';
+import AppleIconButton from '../components/ui/AppleIconButton';
 import EmptyState2 from '../components/layout/EmptyState2';
 import { formatVND, formatVNDTruncated } from '../common/formatters';
 import { Colors, FontSizes, Spacing, Radii } from '../common/theme';
@@ -111,7 +111,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
 
     const renderWalletItem = useCallback(
         ({ item }: { item: Wallet }) => (
-            <WalletCard2
+            <AppleWalletCard
                 name={item.name}
                 balance={item.current_balance}
                 onPress={() => onNavigateToWallet?.(item.id)}
@@ -156,15 +156,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
                         </View>
                         
                         <View style={styles.heroFooter}>
-                            <AppleGlassBackground
-                                variant="chromeMaterial"
-                                borderRadius={9999}
-                                style={styles.badge}
-                                contentContainerStyle={styles.badgeContent}
-                            >
-                                <WalletIcon size={16} color="#FFFFFF" strokeWidth={2.5} />
+                            <View style={styles.badge}>
+                                <WalletIcon size={14} color="#FFFFFF" strokeWidth={2.5} />
                                 <Text style={styles.badgeText}>{wallets.length} ví hoạt động</Text>
-                            </AppleGlassBackground>
+                            </View>
                         </View>
                     </View>
                 )}
@@ -201,7 +196,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
             />
 
             {/* Add Wallet Button */}
-            <IconButton 
+            <AppleIconButton 
                 icon={<Plus strokeWidth={1.5} color="#FFF" size={32} />}
                 size={60}
                 onPress={openCreateModal} 
@@ -296,19 +291,18 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     badge: {
-        borderRadius: 9999,
-    },
-    badgeContent: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 8,
+        backgroundColor: 'rgba(255, 255, 255, 0.15)', // Flat translucent Apple style
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 9999,
     },
     badgeText: {
-        marginLeft: 8,
+        marginLeft: 6,
         color: '#FFFFFF',
-        fontSize: FontSizes.md,
-        fontWeight: '700',
+        fontSize: 14,
+        fontWeight: '600',
     },
     separator: {
         height: 14,

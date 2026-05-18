@@ -35,7 +35,7 @@ import TransactionDetailOverlay from '../components/overlays/TransactionDetailOv
 import ConfirmDialog2 from '../components/modals/ConfirmDialog2';
 import EditWalletModal from '../components/modals/EditWalletModal';
 import PopupMenu from '../components/overlays/PopupMenu';
-import IconButton from '../components/buttons/IconButton';
+import AppleIconButton from '../components/ui/AppleIconButton';
 import LiquidBackground from '../components/layout/LiquidBackground';
 import { WalletDetailSkeleton } from '../components/layout/WalletDetailSkeleton';
 import EmptyState2 from '../components/layout/EmptyState2';
@@ -479,12 +479,12 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
 
             {/* LAYER 1: IMMEDIATE SHELL */}
             <View style={styles.topBar}>
-                <IconButton onPress={onGoBack} style={styles.backBtn} size={42} icon={<ChevronLeft size={24} color={Colors.text} />} />
+                <AppleIconButton onPress={onGoBack} style={styles.backBtn} size={42} icon={<ChevronLeft size={24} color={Colors.text} />} />
 
                 <View style={{ flex: 1 }} />
 
                 <View ref={menuBtnRef} collapsable={false}>
-                    <IconButton
+                    <AppleIconButton
                         onPress={handleMenuPress}
                         style={[styles.menuBtn, !isReady && { opacity: 0.5 }]}
                         disabled={!isReady}
@@ -536,7 +536,7 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
             </View>
 
             {/* LAYER 4: IMMEDIATE FAB (Independent of Skeleton delay) */}
-            <IconButton
+            <AppleIconButton
                 icon={<Plus strokeWidth={1.5} color="#FFF" size={32} />}
                 size={60}
                 onPress={handleFabPress}
