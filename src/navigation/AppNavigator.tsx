@@ -11,6 +11,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
     Animated,
     BackHandler,
+    Easing,
     PanResponder,
     Pressable,
     StyleSheet,
@@ -108,14 +109,11 @@ const AppNavigator: React.FC = () => {
         const targetIndex = ALL_TABS.findIndex(t => t.key === activeTab);
         const idx = targetIndex === -1 ? 0 : targetIndex;
 
-        Animated.spring(slideAnim, {
+        Animated.timing(slideAnim, {
             toValue: -idx * width,
             useNativeDriver: true,
-            damping: 22,
-            stiffness: 180,
-            mass: 0.8,
-            restDisplacementThreshold: 0.001,
-            restSpeedThreshold: 0.001,
+            duration: 150, // Super fast instant snap
+            easing: Easing.out(Easing.cubic),
         }).start();
     }, [activeTab, width, slideAnim]);
 
