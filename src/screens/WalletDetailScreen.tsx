@@ -407,27 +407,21 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
 
             // Immediately mount payload in transition state to prepare layout
             setIsReady(true);
+            setIsTransitioning(false); // Load FlatList items immediately
 
-            InteractionManager.runAfterInteractions(() => {
+            requestAnimationFrame(() => {
                 if (!mounted) return;
-
-                setTimeout(() => {
-                    if (!mounted) return;
-                    requestAnimationFrame(() => {
-                        if (!mounted) return;
-                        Animated.timing(transitionAnim, {
-                            toValue: 1,
-                            useNativeDriver: true,
-                            duration: 250,
-                            easing: Easing.out(Easing.cubic),
-                        }).start(() => {
-                            if (mounted) {
-                                setIsTransitioning(false);
-                                setShowContent(true);
-                            }
-                        });
-                    });
-                }, 1000); // Guarantees the skeleton is visible for at least 0.5s
+                
+                Animated.timing(transitionAnim, {
+                    toValue: 1,
+                    useNativeDriver: true,
+                    duration: 150, // Super fast transition
+                    easing: Easing.out(Easing.cubic),
+                }).start(() => {
+                    if (mounted) {
+                        setShowContent(true);
+                    }
+                });
             });
         };
 
