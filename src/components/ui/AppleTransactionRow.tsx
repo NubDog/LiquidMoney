@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { FontSizes, Radii, Spacing } from '../../common/theme';
 import type { Transaction } from '../../common/types';
-import AppleGlassBackground from './AppleGlassBackground';
+
 
 interface AppleTransactionRowProps {
     item: Transaction;
@@ -35,7 +35,7 @@ const AppleTransactionRow: React.FC<AppleTransactionRowProps> = ({
 
     return (
         <View style={styles.wrapper}>
-            <AppleGlassBackground variant="light" borderRadius={16} style={styles.glassStyle}>
+            <View style={styles.cardStyle}>
                 <Pressable
                     style={({ pressed }) => [
                         styles.container,
@@ -62,7 +62,7 @@ const AppleTransactionRow: React.FC<AppleTransactionRowProps> = ({
                         </Text>
                     </View>
                 </Pressable>
-            </AppleGlassBackground>
+            </View>
         </View>
     );
 };
@@ -72,8 +72,13 @@ const styles = StyleSheet.create({
     wrapper: {
         marginBottom: Spacing.sm,
     },
-    glassStyle: {
+    cardStyle: {
         width: '100%',
+        backgroundColor: '#1C1C1E', // Pure black / Dark elevated
+        borderRadius: 16,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: 'rgba(255, 255, 255, 0.05)',
+        overflow: 'hidden',
     },
     container: {
         width: '100%',
@@ -83,7 +88,7 @@ const styles = StyleSheet.create({
         paddingVertical: 14,
     },
     pressed: {
-        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
     },
     iconBox: {
         width: 44,

@@ -28,17 +28,18 @@ import { ChevronLeft, MoreVertical, Plus } from 'lucide-react-native';
 
 // ─── Components ───────────────────────────────────────────────────────────────
 import AppleGlassBackground from '../components/ui/AppleGlassBackground';
-import LiquidSegmentedControl2 from '../components/inputs/LiquidSegmentedControl2';
+import AppleSegmentedControl from '../components/ui/AppleSegmentedControl';
 import TransactionModal from '../components/modals/TransactionModal';
 import AppleTransactionRow from '../components/ui/AppleTransactionRow';
 import TransactionDetailOverlay from '../components/overlays/TransactionDetailOverlay';
 import ConfirmDialog2 from '../components/modals/ConfirmDialog2';
 import EditWalletModal from '../components/modals/EditWalletModal';
-import PopupMenu from '../components/overlays/PopupMenu';
+import ApplePopupMenu from '../components/ui/ApplePopupMenu';
 import AppleIconButton from '../components/ui/AppleIconButton';
 import LiquidBackground from '../components/layout/LiquidBackground';
 import { WalletDetailSkeleton } from '../components/layout/WalletDetailSkeleton';
-import EmptyState2 from '../components/layout/EmptyState2';
+import AppleEmptyState from '../components/ui/AppleEmptyState';
+import AppleSummaryCard from '../components/ui/AppleSummaryCard';
 
 // ─── Shared ───────────────────────────────────────────────────────────────────
 import { useStore } from '../store/useStore';
@@ -251,35 +252,18 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
         () => (
             <View>
                 <View collapsable={false}>
-                    <AppleGlassBackground
+                    <AppleSummaryCard
+                        walletName={wallet?.name || 'Ví'}
+                        currentBalance={wallet?.current_balance || 0}
+                        initialBalance={wallet?.initial_balance || 0}
+                        balanceDiff={balanceDiff}
+                        diffColor={diffColor}
                         style={styles.summaryCard}
-                        borderRadius={Radii.xxl}>
-                        <Text style={styles.walletName}>{wallet?.name || 'Ví'}</Text>
-                        <Text style={styles.balanceLabel}>Số dư hiện tại</Text>
-                        <Text style={styles.balanceAmount}>
-                            {formatVND(wallet?.current_balance || 0)}
-                        </Text>
-
-                        <View collapsable={false} style={styles.balanceRow}>
-                            <View style={styles.balanceCol}>
-                                <Text style={styles.smallLabel}>Ban đầu</Text>
-                                <Text style={styles.smallValue}>
-                                    {formatVND(wallet?.initial_balance || 0)}
-                                </Text>
-                            </View>
-                            <View style={styles.balanceCol}>
-                                <Text style={styles.smallLabel}>Chênh lệch</Text>
-                                <Text style={[styles.smallValue, { color: diffColor }]}>
-                                    {balanceDiff >= 0 ? '+' : ''}
-                                    {formatVND(balanceDiff)}
-                                </Text>
-                            </View>
-                        </View>
-                    </AppleGlassBackground>
+                    />
                 </View>
 
                 <View style={styles.filterWrapper}>
-                    <LiquidSegmentedControl2
+                    <AppleSegmentedControl
                         options={FILTER_OPTIONS}
                         selected={filterIndex.toString()}
                         onChange={handleFilterChange}
@@ -296,7 +280,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
 
     const listEmpty = useMemo(
         () => (
-            <EmptyState2
+            <AppleEmptyState
                 animation="noresult"
                 title="Chưa có giao dịch"
                 subtitle="Nhấn nút + để tạo giao dịch đầu tiên"
@@ -308,7 +292,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
     return (
         <>
             {/* Popup Menu */}
-            <PopupMenu
+            <ApplePopupMenu
                 visible={menuVisible}
                 onClose={() => setMenuVisible(false)}
                 items={[
@@ -576,52 +560,6 @@ const styles = StyleSheet.create({
     summaryCard: {
         marginBottom: Spacing.xl,
         overflow: 'hidden',
-    },
-    walletName: {
-        fontSize: FontSizes.lg + 2,
-        fontWeight: '700',
-        color: Colors.text,
-        marginHorizontal: Spacing.lg,
-        marginTop: Spacing.md,
-        backgroundColor: 'transparent',
-    },
-    balanceLabel: {
-        fontSize: FontSizes.sm,
-        color: Colors.textSecondary,
-        marginTop: 12,
-        marginHorizontal: Spacing.lg,
-    },
-    balanceAmount: {
-        fontSize: FontSizes.title,
-        fontWeight: '800',
-        color: Colors.text,
-        marginHorizontal: Spacing.lg,
-        marginTop: 2,
-        letterSpacing: -1,
-        backgroundColor: 'transparent',
-        textShadowColor: 'transparent',
-        textShadowRadius: 0,
-    },
-    balanceRow: {
-        flexDirection: 'row',
-        marginTop: Spacing.md,
-        marginBottom: Spacing.lg,
-        marginHorizontal: Spacing.lg,
-        gap: Spacing.md,
-    },
-    balanceCol: {
-        flex: 1,
-    },
-    smallLabel: {
-        fontSize: FontSizes.xs + 1,
-        color: Colors.textMuted,
-        marginBottom: 2,
-    },
-    smallValue: {
-        fontSize: FontSizes.md,
-        fontWeight: '600',
-        color: 'rgba(255, 255, 255, 0.85)',
-        backgroundColor: 'transparent',
     },
 
     // ── Filter ──
