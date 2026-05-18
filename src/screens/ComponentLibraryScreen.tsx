@@ -16,14 +16,7 @@ import { X, Figma, Plus } from 'lucide-react-native';
 
 import LiquidBackground from '../components/layout/LiquidBackground';
 
-import LiquidButton2 from '../components/buttons/LiquidButton2';
-import LiquidInput from '../components/inputs/LiquidInput';
-import LiquidSegmentedControl2 from '../components/inputs/LiquidSegmentedControl2';
 
-import AmountInput2 from '../components/inputs/AmountInput2';
-import EmptyState2 from '../components/layout/EmptyState2';
-import BackgroundLiquidGlass from '../components/layout/BackgroundLiquidGlass';
-import TransactionRow2 from '../components/cards/TransactionRow2';
 
 import AppleButton from '../components/ui/AppleButton';
 import AppleTextInput from '../components/ui/AppleTextInput';
@@ -31,7 +24,6 @@ import AppleAmountInput from '../components/ui/AppleAmountInput';
 import AppleTransactionRow from '../components/ui/AppleTransactionRow';
 import AppleCloseButton from '../components/ui/AppleCloseButton';
 import AppleDatePicker from '../components/ui/AppleDatePicker';
-import AppleGlassBackground from '../components/ui/AppleGlassBackground';
 import AppleSegmentedControl from '../components/ui/AppleSegmentedControl';
 import AppleWalletCard from '../components/ui/AppleWalletCard';
 import AppleIconButton from '../components/ui/AppleIconButton';
@@ -39,14 +31,10 @@ import AppleIconButton from '../components/ui/AppleIconButton';
 // --- newly imported components ---
 import AnimatedOverlay from '../components/overlays/AnimatedOverlay';
 import BackgroundPickerModal from '../components/modals/BackgroundPickerModal';
-import ConfirmDialog2 from '../components/modals/ConfirmDialog2';
 import EditWalletModal from '../components/modals/EditWalletModal';
 import InfoDialog from '../components/modals/InfoDialog';
-import LiquidModal from '../components/modals/LiquidModal';
-import PopupMenu from '../components/overlays/PopupMenu';
 import TerminalLogModal from '../components/modals/TerminalLogModal';
 import TransactionDetailOverlay from '../components/overlays/TransactionDetailOverlay';
-import TransactionFilterBar from '../components/layout/TransactionFilterBar';
 import TransactionModal from '../components/modals/TransactionModal';
 import { WalletDetailSkeleton } from '../components/layout/WalletDetailSkeleton';
 import WalletModal from '../components/modals/WalletModal';
@@ -176,107 +164,11 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                             onPress={() => setShowDatePicker(true)} 
                             variant="primary"
                         />
-                        <AppleGlassBackground variant="dark" style={{ padding: Spacing.md }}>
-                            <Text style={{ color: '#FFF', textAlign: 'center' }}>
-                                Apple Glass Background (dark)
-                            </Text>
-                        </AppleGlassBackground>
+
                     </View>
                 </Section>
 
-                <Section title="BackgroundLiquidGlass (VIP Pro Max)">
-                    <BackgroundLiquidGlass>
-                        <Text style={{ color: '#fff', textAlign: 'center', padding: 16 }}>
-                            Default Background Wrapper
-                        </Text>
-                    </BackgroundLiquidGlass>
-                    <View style={{ height: 16 }} />
-                    <BackgroundLiquidGlass onPress={() => {}}>
-                        <Text style={{ color: '#fff', textAlign: 'center', padding: 16, fontWeight: 'bold' }}>
-                            Interactive Wrapper (Press Me)
-                        </Text>
-                    </BackgroundLiquidGlass>
-                    <View style={{ height: 16 }} />
-                    <BackgroundLiquidGlass disabled onPress={() => {}}>
-                        <Text style={{ color: '#fff', textAlign: 'center', padding: 16, opacity: 0.6 }}>
-                            Disabled Background Wrapper
-                        </Text>
-                    </BackgroundLiquidGlass>
-                    <View style={{ height: 16 }} />
-                    <BackgroundLiquidGlass variant="dense">
-                        <Text style={{ color: '#fff', textAlign: 'center', padding: 16, fontWeight: '500' }}>
-                            Dense Background Wrapper
-                        </Text>
-                    </BackgroundLiquidGlass>
-                </Section>
 
-                <Section title="LiquidButton2 (Apple Glass)">
-                    <LiquidButton2 title="Main Button" onPress={() => {}} />
-                    <View style={{ height: Spacing.md }} />
-                    <LiquidButton2 title="Disabled Button" disabled onPress={() => {}} />
-                </Section>
-
-
-                <Section title="LiquidSegmentedControl2">
-                    <LiquidSegmentedControl2
-                        options={[
-                            { key: 'a', label: 'Lựa chọn A' },
-                            { key: 'b', label: 'B' },
-                        ]}
-                        selected={segment}
-                        onChange={(val) => setSegment(val as 'a' | 'b')}
-                    />
-                </Section>
-
-                <Section title="LiquidInput & AmountInput">
-                    <LiquidInput
-                        value={inputValue}
-                        onChangeText={setInputValue}
-                        placeholder="Nhập nội dung tĩnh..."
-                    />
-                    <View style={{ height: Spacing.md }} />
-                    <AmountInput2
-                        value={inputValue}
-                        onChangeText={setInputValue}
-                    />
-                </Section>
-
-                <Section title="LiquidCard (Intensities)">
-                    <BackgroundLiquidGlass style={styles.cardItem}>
-                        <Text style={styles.cardText}>Light Intensity</Text>
-                    </BackgroundLiquidGlass>
-                    <BackgroundLiquidGlass style={styles.cardItem}>
-                        <Text style={styles.cardText}>Medium Intensity</Text>
-                    </BackgroundLiquidGlass>
-                    <BackgroundLiquidGlass style={styles.cardItem}>
-                        <Text style={styles.cardText}>Heavy Intensity</Text>
-                    </BackgroundLiquidGlass>
-                </Section>
-
-
-
-                <Section title="TransactionRow">
-                    <TransactionRow2 item={dummyTransaction} onPress={() => { }} />
-                    <TransactionRow2 item={{ ...dummyTransaction, type: 'IN', amount: 1000000, reason: 'Lương' }} onPress={() => { }} />
-                </Section>
-
-                <Section title="EmptyState2">
-                    <EmptyState2
-                        animation="nodata"
-                        title="Data Not Found"
-                        subtitle="This is an empty state component."
-                    />
-                </Section>
-
-
-
-                <Section title="TransactionFilterBar">
-                    <TransactionFilterBar 
-                        options={dummyFilterOptions}
-                        activeFilterId={filterId}
-                        onSelectFilter={setFilterId}
-                    />
-                </Section>
 
                 <Section title="WalletDetailSkeleton">
                     <WalletDetailSkeleton />
@@ -285,16 +177,11 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                 {/* Modals Triggers */}
                 <Section title="Modals & Dialogs">
                     <View style={{ gap: Spacing.md }}>
-                        <LiquidButton2 title="Open BackgroundPickerModal" onPress={() => setActiveModal('BackgroundPickerModal')} />
-                        <LiquidButton2 title="Open ConfirmDialog2" onPress={() => setActiveModal('ConfirmDialog2')} />
-                        <LiquidButton2 title="Open EditWalletModal" onPress={() => setActiveModal('EditWalletModal')} />
-                        <LiquidButton2 title="Open InfoDialog" onPress={() => setActiveModal('InfoDialog')} />
-                        <LiquidButton2 title="Open LiquidModal" onPress={() => setActiveModal('LiquidModal')} />
-                        <LiquidButton2 title="Open PopupMenu" onPress={() => setActiveModal('PopupMenu')} />
-                        <LiquidButton2 title="Open TerminalLogModal" onPress={() => setActiveModal('TerminalLogModal')} />
-                        <LiquidButton2 title="Open TransactionDetailOverlay" onPress={() => setActiveModal('TransactionDetailOverlay')} />
-                        <LiquidButton2 title="Open TransactionModal" onPress={() => setActiveModal('TransactionModal')} />
-                        <LiquidButton2 title="Open WalletModal" onPress={() => setActiveModal('WalletModal')} />
+
+                        <AppleButton title="Open TerminalLogModal" onPress={() => setActiveModal('TerminalLogModal')} />
+                        <AppleButton title="Open TransactionDetailOverlay" onPress={() => setActiveModal('TransactionDetailOverlay')} />
+                        <AppleButton title="Open TransactionModal" onPress={() => setActiveModal('TransactionModal')} />
+                        <AppleButton title="Open WalletModal" onPress={() => setActiveModal('WalletModal')} />
                     </View>
                 </Section>
 
@@ -306,16 +193,6 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                 visible={activeModal === 'BackgroundPickerModal'}
                 onClose={() => setActiveModal(null)}
             />
-
-            <ConfirmDialog2
-                visible={activeModal === 'ConfirmDialog2'}
-                title="Xác nhận"
-                message="Bạn có chắc chắn muốn thực hiện hành động này?"
-                onCancel={() => setActiveModal(null)}
-                onConfirm={() => setActiveModal(null)}
-            />
-
-
 
             <EditWalletModal
                 visible={activeModal === 'EditWalletModal'}
@@ -333,21 +210,7 @@ const ComponentLibraryScreen: React.FC<ComponentLibraryScreenProps> = ({
                 type="success"
             />
 
-            <LiquidModal
-                visible={activeModal === 'LiquidModal'}
-                onClose={() => setActiveModal(null)}
-            >
-                <View style={{ padding: 20 }}>
-                    <Text style={{ color: '#fff', textAlign: 'center' }}>Nội dung Liquid Modal Tùy Chỉnh</Text>
-                </View>
-            </LiquidModal>
 
-            <PopupMenu
-                visible={activeModal === 'PopupMenu'}
-                onClose={() => setActiveModal(null)}
-                items={[{ id: '1', label: 'Option 1', onPress: () => setActiveModal(null) }]}
-                anchor={{ x: 100, y: 100 }}
-            />
 
             <TerminalLogModal
                 visible={activeModal === 'TerminalLogModal'}

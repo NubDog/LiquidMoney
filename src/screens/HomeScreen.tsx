@@ -19,13 +19,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import { Wallet as WalletIcon, PieChart, Plus } from 'lucide-react-native';
-import BackgroundLiquidGlass from '../components/layout/BackgroundLiquidGlass';
-import AppleGlassBackground from '../components/ui/AppleGlassBackground';
+import AppleEmptyState from '../components/ui/AppleEmptyState';
 import WalletModal from '../components/modals/WalletModal';
 import EditWalletModal from '../components/modals/EditWalletModal';
 import AppleWalletCard from '../components/ui/AppleWalletCard';
 import AppleIconButton from '../components/ui/AppleIconButton';
-import EmptyState2 from '../components/layout/EmptyState2';
 import { formatVND, formatVNDTruncated } from '../common/formatters';
 import { Colors, FontSizes, Spacing, Radii } from '../common/theme';
 import type { Wallet } from '../common/types';
@@ -127,11 +125,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
 
     const emptyState = useMemo(
         () => (
-            <EmptyState2
+            <AppleEmptyState
                 animation="nodata"
                 title="Chưa có ví nào"
                 subtitle="Nhấn nút + bên dưới để tạo ví đầu tiên"
-                animationSize={150}
             />
         ),
         [],
@@ -170,6 +167,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
 
     // ─── Render ───────────────────────────────────────────────────────────────
 
+    const handleRefresh = useCallback(() => {
+        setRefreshing(true);
+        refreshWallets();
+        setTimeout(() => setRefreshing(false), 300);
+    }, [refreshWallets]);
+
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
             <FlatList
@@ -181,14 +184,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
                 ItemSeparatorComponent={ItemSeparator}
+                initialNumToRender={6}
+                maxToRenderPerBatch={5}
+                windowSize={5}
+                removeClippedSubviews={true}
                 refreshControl={
                     <RefreshControl
                         refreshing={refreshing}
-                        onRefresh={() => {
-                            setRefreshing(true);
-                            refreshWallets();
-                            setTimeout(() => setRefreshing(false), 300);
-                        }}
+                        onRefresh={handleRefresh}
                         tintColor="rgba(255,255,255,0.3)"
                         colors={['#22d3ee']}
                     />

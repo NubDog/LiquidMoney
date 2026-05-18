@@ -27,7 +27,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronLeft, MoreVertical, Plus } from 'lucide-react-native';
 
 // ─── Components ───────────────────────────────────────────────────────────────
-import AppleGlassBackground from '../components/ui/AppleGlassBackground';
+
 import AppleSegmentedControl from '../components/ui/AppleSegmentedControl';
 import TransactionModal from '../components/modals/TransactionModal';
 import AppleTransactionRow from '../components/ui/AppleTransactionRow';
