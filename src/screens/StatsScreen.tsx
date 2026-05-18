@@ -29,13 +29,13 @@ import {
     View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Defs, LinearGradient, Rect, Stop, Text as SvgText } from 'react-native-svg';
-import { BlurView } from '@react-native-community/blur';
-import AppleGlassBackground from '../components/ui/AppleGlassBackground';
-import LiquidButton2 from '../components/buttons/LiquidButton2';
-import LiquidSegmentedControl2 from '../components/inputs/LiquidSegmentedControl2';
+import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
+import AppleStatsSummaryCard from '../components/ui/AppleStatsSummaryCard';
+import AppleBarChart, { ChartDataPoint } from '../components/ui/AppleBarChart';
+import AppleWalletChips from '../components/ui/AppleWalletChips';
+import AppleSegmentedControl from '../components/ui/AppleSegmentedControl';
+import AppleEmptyState from '../components/ui/AppleEmptyState';
 import AppleTransactionRow from '../components/ui/AppleTransactionRow';
-import EmptyState2 from '../components/layout/EmptyState2';
 import TransactionDetailOverlay from '../components/overlays/TransactionDetailOverlay';
 import TransactionModal from '../components/modals/TransactionModal';
 import { useStore } from '../store/useStore';
@@ -43,17 +43,10 @@ import { useShallow } from 'zustand/react/shallow';
 import { isDatabaseAvailable } from '../database/db';
 import type { DailyStat, OverallStat, Transaction, Wallet } from '../database/queries';
 import { formatVND, formatVNDShort } from '../common/formatters';
-import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type Period = 'day' | 'week';
-
-interface ChartDataPoint {
-    label: string;
-    income: number;
-    expense: number;
-}
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -173,6 +166,8 @@ const skStyles = StyleSheet.create({
     summaryCard: {
         backgroundColor: '#1C1C1E',
         borderRadius: 24,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: 'rgba(255,255,255,0.1)',
         padding: Spacing.lg,
         paddingTop: Spacing.xl,
         marginBottom: Spacing.lg,
@@ -188,6 +183,8 @@ const skStyles = StyleSheet.create({
     chartCard: {
         backgroundColor: '#1C1C1E',
         borderRadius: 24,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: 'rgba(255,255,255,0.1)',
         padding: Spacing.lg,
         marginBottom: Spacing.lg,
     },
@@ -207,518 +204,7 @@ const skStyles = StyleSheet.create({
     txItemLeft: { flex: 1, marginRight: 12 },
 });
 
-// (PeriodSelector removed in favor of LiquidSegmentedControl)
-
-// ─── Summary Section ──────────────────────────────────────────────────────────
-
-const AnimatedSlidingText: React.FC<{
-    text: string;
-    style: any;
-    adjustsFontSizeToFit?: boolean;
-    numberOfLines?: number;
-}> = React.memo(({ text, style, adjustsFontSizeToFit, numberOfLines }) => {
-    const [displayText, setDisplayText] = useState(text);
-    const animX = useRef(new Animated.Value(0)).current;
-    const animOpacity = useRef(new Animated.Value(1)).current;
-
-    useEffect(() => {
-        if (text === displayText) return;
-
-        Animated.parallel([
-            Animated.timing(animX, {
-                toValue: -20,
-                duration: 150,
-                useNativeDriver: true,
-            }),
-            Animated.timing(animOpacity, {
-                toValue: 0,
-                duration: 150,
-                useNativeDriver: true,
-            }),
-        ]).start(() => {
-            setDisplayText(text);
-            animX.setValue(-20);
-            
-            Animated.parallel([
-                Animated.timing(animX, {
-                    toValue: 0,
-                    duration: 300,
-                    easing: Easing.out(Easing.back(1.5)),
-                    useNativeDriver: true,
-                }),
-                Animated.timing(animOpacity, {
-                    toValue: 1,
-                    duration: 300,
-                    useNativeDriver: true,
-                }),
-            ]).start();
-        });
-    }, [text, displayText, animX, animOpacity]);
-
-    return (
-        <Animated.Text 
-            style={[style, { opacity: animOpacity, transform: [{ translateX: animX }] }]}
-            adjustsFontSizeToFit={adjustsFontSizeToFit}
-            numberOfLines={numberOfLines}
-        >
-            {displayText}
-        </Animated.Text>
-    );
-});
-
-const SummarySection: React.FC<{
-    totalIn: number;
-    totalOut: number;
-}> = React.memo(({ totalIn, totalOut }) => {
-    const balance = totalIn - totalOut;
-    return (
-        <AppleGlassBackground style={sumStyles.card} borderRadius={24} variant="chromeMaterial">
-            <View style={sumStyles.inner}>
-                {/* Main Metric - Chênh lệch */}
-                <View style={{ alignItems: 'center', marginBottom: Spacing.md }}>
-                    <Text style={sumStyles.balanceLabel}>Chênh lệch</Text>
-                    <AnimatedSlidingText
-                        text={`${balance >= 0 ? '+' : '-'}${formatVND(Math.abs(balance))}`}
-                        style={[
-                            sumStyles.balanceValue,
-                            { color: balance >= 0 ? Colors.income : Colors.expense },
-                        ]}
-                        adjustsFontSizeToFit={true}
-                        numberOfLines={1}
-                    />
-                </View>
-
-                <View style={sumStyles.divider} />
-
-                {/* Secondary Metrics - Thu / Chi */}
-                <View style={sumStyles.row}>
-                    <View style={sumStyles.col}>
-                        <View style={sumStyles.labelRow}>
-                            <View style={[sumStyles.dot, { backgroundColor: Colors.income }]} />
-                            <Text style={sumStyles.label} adjustsFontSizeToFit numberOfLines={1}>Thu nhập</Text>
-                        </View>
-                        <AnimatedSlidingText
-                            text={`+${formatVND(totalIn)}`}
-                            style={[sumStyles.value, { color: Colors.income }]}
-                            adjustsFontSizeToFit={true}
-                            numberOfLines={1}
-                        />
-                    </View>
-                    <View style={sumStyles.separator} />
-                    <View style={[sumStyles.col, { alignItems: 'flex-end' }]}>
-                        <View style={[sumStyles.labelRow, { justifyContent: 'flex-end' }]}>
-                            <View style={[sumStyles.dot, { backgroundColor: Colors.expense }]} />
-                            <Text style={sumStyles.label} adjustsFontSizeToFit numberOfLines={1}>Chi tiêu</Text>
-                        </View>
-                        <AnimatedSlidingText
-                            text={`-${formatVND(totalOut)}`}
-                            style={[sumStyles.value, { color: Colors.expense }]}
-                            adjustsFontSizeToFit={true}
-                            numberOfLines={1}
-                        />
-                    </View>
-                </View>
-            </View>
-        </AppleGlassBackground>
-    );
-});
-
-const sumStyles = StyleSheet.create({
-    card: { 
-        marginBottom: Spacing.lg,
-        borderRadius: 24,
-    },
-    inner: { padding: Spacing.lg, paddingTop: Spacing.xl },
-    row: { flexDirection: 'row', alignItems: 'flex-start' },
-    col: { flex: 1 },
-    labelRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 },
-    dot: { width: 8, height: 8, borderRadius: 4 },
-    label: { fontSize: FontSizes.sm, fontWeight: '500', color: 'rgba(255, 255, 255, 0.6)' },
-    separator: {
-        width: 1,
-        backgroundColor: 'rgba(255, 255, 255, 0.08)',
-        alignSelf: 'stretch',
-        marginHorizontal: Spacing.md,
-    },
-    value: { fontSize: FontSizes.lg + 2, fontWeight: '700', letterSpacing: -0.5 },
-    divider: {
-        height: 1,
-        backgroundColor: 'rgba(255, 255, 255, 0.08)',
-        marginVertical: Spacing.md,
-    },
-    balanceLabel: {
-        fontSize: FontSizes.sm,
-        fontWeight: '600',
-        color: 'rgba(255, 255, 255, 0.5)',
-        marginBottom: 8,
-    },
-    balanceValue: { fontSize: 40, fontWeight: '800', letterSpacing: -1 },
-});
-
-// ─── Bar Chart — Values on top, no grid lines ─────────────────────────────────
-
-const BarChart: React.FC<{
-    data: ChartDataPoint[];
-    period: Period;
-}> = React.memo(({ data, period }) => {
-    // Hold displayed data to animate old data OUT before swapping to new data IN
-    const [displayData, setDisplayData] = useState(data);
-
-    // Scale animation for bars dropping and growing
-    const barScale = useRef(new Animated.Value(0)).current;
-    
-    // Fade animation for X-axis labels to transition smoothly
-    const labelsFade = useRef(new Animated.Value(0)).current;
-
-    useEffect(() => {
-        // Run initial mount animation
-        Animated.parallel([
-            Animated.spring(barScale, {
-                toValue: 1,
-                damping: 14,
-                stiffness: 120,
-                useNativeDriver: true,
-            }),
-            Animated.timing(labelsFade, {
-                toValue: 1,
-                duration: 400,
-                useNativeDriver: true,
-            })
-        ]).start();
-    }, []);
-
-    useEffect(() => {
-        if (data === displayData) return;
-
-        // Sequence: Drop down -> Swap -> Grow up
-        Animated.parallel([
-            Animated.timing(barScale, {
-                toValue: 0,
-                duration: 250,
-                easing: Easing.in(Easing.cubic),
-                useNativeDriver: true,
-            }),
-            Animated.timing(labelsFade, {
-                toValue: 0,
-                duration: 250,
-                useNativeDriver: true,
-            })
-        ]).start(() => {
-            // Swap data
-            setDisplayData(data);
-            
-            // Wait a tiny bit to ensure JS paints the swap, then grow up gracefully
-            setTimeout(() => {
-                Animated.parallel([
-                    Animated.spring(barScale, {
-                        toValue: 1,
-                        damping: 14,
-                        stiffness: 110,
-                        useNativeDriver: true,
-                    }),
-                    Animated.timing(labelsFade, {
-                        toValue: 1,
-                        duration: 350,
-                        useNativeDriver: true,
-                    })
-                ]).start();
-            }, 50);
-        });
-    }, [data, barScale, labelsFade]);
-
-    const maxVal = Math.max(
-        ...displayData.map(d => Math.max(d.income, d.expense)),
-        1,
-    );
-
-    const hasData = displayData.some(d => d.income > 0 || d.expense > 0);
-
-    const groupCount = displayData.length;
-    const groupWidth = CHART_WIDTH / groupCount;
-    // Derive period from data length (2 for day, 7 for week)
-    const isDayView = groupCount <= 2;
-    const barGap = isDayView ? 16 : 4;
-    const maxBarWidth = isDayView ? 60 : 18;
-    const barWidth = Math.min(
-        Math.max(Math.floor((groupWidth - barGap * 3) / 2), 10),
-        maxBarWidth,
-    );
-    const barRadius = Math.min(barWidth / 2, 8);
-
-    return (
-        <AppleGlassBackground style={chStyles.card} borderRadius={24} variant="chromeMaterial">
-            <View style={chStyles.inner}>
-                <Text style={chStyles.title}>Dòng tiền</Text>
-
-                <View style={{ height: CHART_HEIGHT, position: 'relative' }}>
-                    {!hasData ? (
-                        <Animated.View style={[chStyles.emptyChart, { opacity: labelsFade }]}>
-                            <Text style={chStyles.emptyText}>Chưa có dữ liệu</Text>
-                        </Animated.View>
-                    ) : (
-                        <>
-                            {/* BARS STATIC SVG BACKGROUND DEFINITIONS & X-AXIS LABELS */}
-                            <Animated.View style={{ position: 'absolute', top: 0, left: 0, opacity: labelsFade }}>
-                                <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
-                                    {/* Only Render X-Axis Labels Here to Prevent Distortion */}
-                                    {displayData.map((d, i) => {
-                                        const cx = i * groupWidth + groupWidth / 2;
-                                        return (
-                                            <SvgText
-                                                key={`lbl-${i}`}
-                                                x={cx}
-                                                y={CHART_HEIGHT - 4}
-                                                fontSize={11}
-                                                fill="rgba(255,255,255,0.40)"
-                                                fontWeight="600"
-                                                textAnchor="middle">
-                                                {d.label}
-                                            </SvgText>
-                                        );
-                                    })}
-                                </Svg>
-                            </Animated.View>
-
-                            {/* BARS & VALUE LABELS (SCALING LAYER) */}
-                            <Animated.View style={{
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
-                                transform: [{ scaleY: barScale }],
-                                transformOrigin: 'bottom',
-                            }}>
-                                <Svg width={CHART_WIDTH} height={CHART_HEIGHT - X_LABEL_HEIGHT}>
-                                    <Defs>
-                                        <LinearGradient id="incG" x1="0" y1="0" x2="0" y2="1">
-                                            <Stop offset="0" stopColor={Colors.income} stopOpacity="1" />
-                                            <Stop offset="1" stopColor={Colors.income} stopOpacity="0.3" />
-                                        </LinearGradient>
-                                        <LinearGradient id="expG" x1="0" y1="0" x2="0" y2="1">
-                                            <Stop offset="0" stopColor={Colors.expense} stopOpacity="1" />
-                                            <Stop offset="1" stopColor={Colors.expense} stopOpacity="0.3" />
-                                        </LinearGradient>
-                                    </Defs>
-
-                                    {displayData.map((d, i) => {
-                                        const cx = i * groupWidth + groupWidth / 2;
-                                        
-                                        // For Day view, group 0 is 'Thu', group 1 is 'Chi'.
-                                        // For Week view, each group is a day and has BOTH.
-                                        const shouldRenderIn = isDayView ? d.label === 'Thu' : true;
-                                        const shouldRenderOut = isDayView ? d.label === 'Chi' : true;
-
-                                        const rawInH = maxVal > 0 ? (d.income / maxVal) * BAR_AREA_HEIGHT : 0;
-                                        const rawOutH = maxVal > 0 ? (d.expense / maxVal) * BAR_AREA_HEIGHT : 0;
-                                        
-                                        // Always render a minimum 4px bar if it should exist, even for 0 values.
-                                        const inH = shouldRenderIn ? Math.max(rawInH, 4) : 0;
-                                        const outH = shouldRenderOut ? Math.max(rawOutH, 4) : 0;
-
-                                        // In Day view, since there's only 1 bar per group, center it.
-                                        // In Week view, always keep Income left and Expense right.
-                                        const inBarX = isDayView ? cx - barWidth / 2 : cx - barWidth - barGap / 2;
-                                        const outBarX = isDayView ? cx - barWidth / 2 : cx + barGap / 2;
-                                        
-                                        // Ensure labels and bars exist rigidly inside the frame
-                                        const inBarY = VALUE_LABEL_HEIGHT + BAR_AREA_HEIGHT - inH;
-                                        const outBarY = VALUE_LABEL_HEIGHT + BAR_AREA_HEIGHT - outH;
-
-                                        return (
-                                            <React.Fragment key={`bar-${i}`}>
-                                                {shouldRenderIn && (
-                                                    <>
-                                                        <SvgText
-                                                            x={inBarX + barWidth / 2}
-                                                            y={inBarY - 6}
-                                                            fontSize={10}
-                                                            fill={Colors.income}
-                                                            fontWeight="700"
-                                                            textAnchor="middle"
-                                                            opacity={d.income === 0 ? 0.3 : 0.9}>
-                                                            {formatVNDShort(d.income)}
-                                                        </SvgText>
-                                                        <Rect
-                                                            x={inBarX}
-                                                            y={inBarY}
-                                                            width={barWidth}
-                                                            height={inH}
-                                                            rx={barRadius}
-                                                            fill="url(#incG)"
-                                                            opacity={d.income === 0 ? 0.2 : 1}
-                                                        />
-                                                    </>
-                                                )}
-                                                {shouldRenderOut && (
-                                                    <>
-                                                        <SvgText
-                                                            x={outBarX + barWidth / 2}
-                                                            y={outBarY - 6}
-                                                            fontSize={10}
-                                                            fill={Colors.expense}
-                                                            fontWeight="700"
-                                                            textAnchor="middle"
-                                                            opacity={d.expense === 0 ? 0.3 : 0.8}>
-                                                            {formatVNDShort(d.expense)}
-                                                        </SvgText>
-                                                        <Rect
-                                                            x={outBarX}
-                                                            y={outBarY}
-                                                            width={barWidth}
-                                                            height={outH}
-                                                            rx={barRadius}
-                                                            fill="url(#expG)"
-                                                            opacity={d.expense === 0 ? 0.2 : 1}
-                                                        />
-                                                    </>
-                                                )}
-                                            </React.Fragment>
-                                        );
-                                    })}
-                                </Svg>
-                            </Animated.View>
-                        </>
-                    )}
-                </View>
-
-                {/* Legend */}
-                <View style={chStyles.legend}>
-                    <View style={chStyles.legendItem}>
-                        <View style={[chStyles.legendDot, { backgroundColor: Colors.income }]} />
-                        <Text style={chStyles.legendText}>Thu</Text>
-                    </View>
-                    <View style={chStyles.legendItem}>
-                        <View style={[chStyles.legendDot, { backgroundColor: Colors.expense }]} />
-                        <Text style={chStyles.legendText}>Chi</Text>
-                    </View>
-                </View>
-            </View>
-        </AppleGlassBackground>
-    );
-});
-
-const chStyles = StyleSheet.create({
-    card: { 
-        marginBottom: Spacing.lg,
-        borderRadius: 24,
-    },
-    inner: { padding: Spacing.lg },
-    title: {
-        fontSize: FontSizes.md,
-        fontWeight: '700',
-        color: 'rgba(255, 255, 255, 0.6)',
-        marginBottom: Spacing.md,
-    },
-    emptyChart: {
-        height: CHART_HEIGHT,
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'absolute',
-        width: '100%',
-        top: 0,
-    },
-    emptyText: {
-        fontSize: FontSizes.sm,
-        color: 'rgba(255, 255, 255, 0.20)',
-        fontWeight: '500',
-    },
-    legend: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: Spacing.lg,
-        marginTop: Spacing.md,
-    },
-    legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-    legendDot: { width: 8, height: 8, borderRadius: 4 },
-    legendText: {
-        fontSize: FontSizes.xs + 1,
-        color: 'rgba(255, 255, 255, 0.40)',
-        fontWeight: '500',
-    },
-});
-
-// ─── Wallet Filter Chips ──────────────────────────────────────────────────────
-
-const WalletChips: React.FC<{
-    wallets: Wallet[];
-    selectedId?: string;
-    onSelect: (id?: string) => void;
-}> = React.memo(({ wallets, selectedId, onSelect }) => {
-
-    const activeId = selectedId || 'ALL';
-    const items = useMemo(() => {
-        return [{ id: 'ALL', name: 'Tất cả' }, ...wallets];
-    }, [wallets]);
-
-    const [layouts, setLayouts] = useState<Record<string, { x: number, width: number }>>({});
-    const animX = useRef(new Animated.Value(0)).current;
-    const animW = useRef(new Animated.Value(0)).current;
-
-    useEffect(() => {
-        const layout = layouts[activeId];
-        if (layout) {
-            Animated.spring(animX, {
-                toValue: layout.x,
-                useNativeDriver: false,
-                friction: 12,
-                tension: 100,
-            }).start();
-            Animated.spring(animW, {
-                toValue: layout.width,
-                useNativeDriver: false,
-                friction: 12,
-                tension: 100,
-            }).start();
-        }
-    }, [activeId, layouts, animX, animW]);
-
-    if (wallets.length <= 1) { return null; }
-
-    return (
-        <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false} 
-            style={wcStyles.scrollWrapper} 
-            contentContainerStyle={wcStyles.container}
-        >
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-                {items.map(w => {
-                    const isSelected = activeId === w.id;
-                    return (
-                        <Pressable 
-                            key={w.id} 
-                            onPress={() => onSelect(w.id === 'ALL' ? undefined : w.id)}
-                            style={[
-                                wcStyles.chip,
-                                { backgroundColor: isSelected ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)' }
-                            ]}
-                        >
-                            <Text style={[
-                                wcStyles.chipText,
-                                { color: isSelected ? '#FFFFFF' : 'rgba(255,255,255,0.5)' }
-                            ]}>
-                                {w.name}
-                            </Text>
-                        </Pressable>
-                    );
-                })}
-            </View>
-        </ScrollView>
-    );
-});
-
-const wcStyles = StyleSheet.create({
-    scrollWrapper: { flexGrow: 0, marginBottom: Spacing.lg },
-    container: { },
-    chip: {
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        borderRadius: 20,
-    },
-    chipText: {
-        fontSize: FontSizes.sm,
-        fontWeight: '600',
-    },
-});
+// (Components extracted to src/components/ui/)
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
@@ -986,14 +472,14 @@ const StatsScreen: React.FC = () => {
                         <Text style={s.pageTitle}>Thống kê</Text>
 
                         {/* Wallet Filter */}
-                        <WalletChips
+                        <AppleWalletChips
                             wallets={wallets}
                             selectedId={selectedWalletId}
                             onSelect={setSelectedWalletId}
                         />
 
                         {/* Period Selector */}
-                        <LiquidSegmentedControl2 
+                        <AppleSegmentedControl 
                             options={[
                                 { key: 'day', label: 'Hôm nay' },
                                 { key: 'week', label: 'Tuần này' },
@@ -1004,13 +490,13 @@ const StatsScreen: React.FC = () => {
                         />
 
                         {/* Summary */}
-                        <SummarySection
+                        <AppleStatsSummaryCard
                             totalIn={periodTotalIn}
                             totalOut={periodTotalOut}
                         />
 
                         {/* Chart */}
-                        <BarChart data={chartData} period={period} />
+                        <AppleBarChart data={chartData} period={period} />
 
                         {/* Recent Transactions */}
                         {recentTxns.length > 0 ? (
@@ -1035,7 +521,7 @@ const StatsScreen: React.FC = () => {
                                 </View>
                             </>
                         ) : (
-                            <EmptyState2
+                            <AppleEmptyState
                                 animation="nodata"
                                 title="Chưa có giao dịch"
                                 subtitle="Tạo giao dịch trong mục Ví tiền để xem thống kê"
