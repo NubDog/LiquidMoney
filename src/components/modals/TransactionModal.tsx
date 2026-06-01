@@ -58,7 +58,8 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
     const [description, setDescription] = useState('');
     const [date, setDate] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
-    const [toWalletId, setToWalletId] = useState(''); // Not fully wired, placeholder
+    // [TODO/FUTURE] Feature: Chuyển tiền giữa các ví (Transfer money between wallets)
+    // const [toWalletId, setToWalletId] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const translateY = useRef(new Animated.Value(600)).current;
@@ -128,7 +129,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
             <View style={styles.container}>
                 <AnimatedOverlay visible={visible} onPress={handleClose} />
                 <KeyboardAvoidingView
-                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
                     style={styles.keyboardView}
                     pointerEvents="box-none">
                     <Animated.View style={[styles.sheetContainer, { flexShrink: 1, maxHeight: '90%', transform: [{ translateY }] }]}>

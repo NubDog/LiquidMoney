@@ -17,7 +17,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CheckCircle2, XCircle } from 'lucide-react-native';
 import InfoDialog from '../components/modals/InfoDialog';
-import ConfirmDialog2 from '../components/modals/ConfirmDialog2';
+import ConfirmDialog from '../components/modals/ConfirmDialog';
 import { useStore } from '../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import { isDatabaseAvailable } from '../database/db';
@@ -294,7 +294,7 @@ const SettingsScreen: React.FC = () => {
                 type={infoDialog.type}
             />
 
-            <ConfirmDialog2
+            <ConfirmDialog
                 visible={confirmImport}
                 title="Nhập dữ liệu"
                 message="Dữ liệu hiện tại sẽ bị GHI ĐÈ bởi dữ liệu trong file backup. Bạn có chắc chắn muốn tiếp tục?"

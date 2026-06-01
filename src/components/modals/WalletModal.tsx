@@ -99,7 +99,7 @@ const WalletModal: React.FC<WalletModalProps> = ({
                 <AnimatedOverlay visible={visible} onPress={handleClose} />
 
                 <KeyboardAvoidingView
-                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
                     style={styles.keyboardView}
                     pointerEvents="box-none">
                     <Animated.View style={[styles.sheetContainer, { flexShrink: 1, maxHeight: '90%', transform: [{ translateY }] }]}>

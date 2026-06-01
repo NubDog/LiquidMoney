@@ -32,7 +32,7 @@ import AppleSegmentedControl from '../components/ui/AppleSegmentedControl';
 import TransactionModal from '../components/modals/TransactionModal';
 import AppleTransactionRow from '../components/ui/AppleTransactionRow';
 import TransactionDetailOverlay from '../components/overlays/TransactionDetailOverlay';
-import ConfirmDialog2 from '../components/modals/ConfirmDialog2';
+import ConfirmDialog from '../components/modals/ConfirmDialog';
 import EditWalletModal from '../components/modals/EditWalletModal';
 import ApplePopupMenu from '../components/ui/ApplePopupMenu';
 import AppleIconButton from '../components/ui/AppleIconButton';
@@ -359,7 +359,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
             />
 
             {/* Delete Confirm Dialog */}
-            <ConfirmDialog2
+            <ConfirmDialog
                 visible={deleteDialogVisible}
                 title="Xóa ví"
                 message={`Bạn có chắc muốn xóa ví "${wallet?.name || ''}"?\nToàn bộ giao dịch sẽ bị xóa vĩnh viễn.`}

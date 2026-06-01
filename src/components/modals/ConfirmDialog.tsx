@@ -8,7 +8,7 @@ import { FontSizes, Spacing, Radii, Colors } from '../../common/theme';
 
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 
-export interface ConfirmDialog2Props {
+export interface ConfirmDialogProps {
     visible: boolean;
     title?: string;
     message?: string;
@@ -19,7 +19,7 @@ export interface ConfirmDialog2Props {
     isDestructive?: boolean;
 }
 
-const ConfirmDialog2: React.FC<ConfirmDialog2Props> = ({
+const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     visible,
     title = 'Xác nhận',
     message = 'Bạn có chắc chắn muốn thực hiện hành động này?',
@@ -185,4 +185,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default ConfirmDialog2;
+export default ConfirmDialog;

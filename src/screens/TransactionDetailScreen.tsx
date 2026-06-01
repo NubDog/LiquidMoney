@@ -21,7 +21,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BackgroundLiquidGlass from '../components/layout/BackgroundLiquidGlass';
 import LiquidButton2 from '../components/buttons/LiquidButton2';
 import TransactionModal from '../components/modals/TransactionModal';
-import ConfirmDialog2 from '../components/modals/ConfirmDialog2';
+import ConfirmDialog from '../components/modals/ConfirmDialog';
 import { formatVND, formatFullDate } from '../common/formatters';
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
 import type { Transaction } from '../common/types';
@@ -241,7 +241,7 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
             />
 
             {/* Delete Confirm Dialog */}
-            <ConfirmDialog2
+            <ConfirmDialog
                 visible={deleteDialogVisible}
                 title="Xóa giao dịch"
                 message="Bạn có chắc muốn xóa giao dịch này? Hành động này không thể hoàn tác."
