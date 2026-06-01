@@ -54,19 +54,19 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
                 Animated.parallel([
                     Animated.timing(opacityAnim, {
                         toValue: 1,
-                        duration: 150,
+                        duration: 400,
                         easing: Easing.out(Easing.cubic),
                         useNativeDriver: true,
                     }),
                     Animated.timing(scaleAnim, {
                         toValue: 1,
-                        duration: 250,
+                        duration: 400,
                         easing: Easing.out(Easing.back(1.2)),
                         useNativeDriver: true,
                     }),
                     Animated.timing(translateYAnim, {
                         toValue: 0,
-                        duration: 250,
+                        duration: 400,
                         easing: Easing.out(Easing.back(1.2)),
                         useNativeDriver: true,
                     }),
@@ -77,17 +77,17 @@ const PopupMenu: React.FC<PopupMenuProps> = ({
             Animated.parallel([
                 Animated.timing(opacityAnim, {
                     toValue: 0,
-                    duration: 150,
+                    duration: 400,
                     useNativeDriver: true,
                 }),
                 Animated.timing(scaleAnim, {
                     toValue: 0.8,
-                    duration: 150,
+                    duration: 400,
                     useNativeDriver: true,
                 }),
                 Animated.timing(translateYAnim, {
                     toValue: -10,
-                    duration: 150,
+                    duration: 400,
                     useNativeDriver: true,
                 }),
             ]).start(() => {

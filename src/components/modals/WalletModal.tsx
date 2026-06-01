@@ -11,7 +11,8 @@ import {
     Animated,
     Keyboard,
     TouchableOpacity,
-    TouchableWithoutFeedback
+    TouchableWithoutFeedback,
+    ScrollView
 } from 'react-native';
 
 import { Easing } from 'react-native';
@@ -55,37 +56,7 @@ const WalletModal: React.FC<WalletModalProps> = ({
         prevVisible.current = visible;
     }, [visible, translateY]);
 
-    const keyboardOffsetAnim = useRef(new Animated.Value(0)).current;
-
-    useEffect(() => {
-        const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-        const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-
-        const onKeyboardShow = (e: any) => {
-            // Push the modal up so the input is visible. We subtract a bit so it doesn't push too far up.
-            const shiftAmount = Math.max(0, e.endCoordinates.height - 40);
-            Animated.timing(keyboardOffsetAnim, {
-                toValue: -shiftAmount,
-                duration: e.duration || 250,
-                useNativeDriver: true,
-            }).start();
-        };
-
-        const onKeyboardHide = (e: any) => {
-            Animated.timing(keyboardOffsetAnim, {
-                toValue: 0,
-                duration: e.duration || 250,
-                useNativeDriver: true,
-            }).start();
-        };
-
-        const sub1 = Keyboard.addListener(showEvent, onKeyboardShow);
-        const sub2 = Keyboard.addListener(hideEvent, onKeyboardHide);
-        return () => {
-            sub1.remove();
-            sub2.remove();
-        };
-    }, [keyboardOffsetAnim]);
+    // Native Keyboard Avoidance + ScrollView will handle everything smoothly.
 
     const handleClose = () => {
         Keyboard.dismiss();
@@ -127,12 +98,19 @@ const WalletModal: React.FC<WalletModalProps> = ({
             <View style={styles.container}>
                 <AnimatedOverlay visible={visible} onPress={handleClose} />
 
-                <View
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                     style={styles.keyboardView}
                     pointerEvents="box-none">
-                    <Animated.View style={[styles.sheetContainer, { transform: [{ translateY: Animated.add(translateY, keyboardOffsetAnim) }] }]}>
-                        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                            <View style={styles.modalContent}>
+                    <Animated.View style={[styles.sheetContainer, { flexShrink: 1, maxHeight: '90%', transform: [{ translateY }] }]}>
+                        <ScrollView
+                            bounces={false}
+                            showsVerticalScrollIndicator={true}
+                            keyboardShouldPersistTaps="handled"
+                            contentContainerStyle={{ flexGrow: 1 }}
+                        >
+                            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                                <View style={styles.modalContent}>
                             <View style={styles.handleBar} />
                             
                             {/* Header */}
@@ -170,8 +148,9 @@ const WalletModal: React.FC<WalletModalProps> = ({
                             </View>
                         </View>
                         </TouchableWithoutFeedback>
+                        </ScrollView>
                     </Animated.View>
-                </View>
+                </KeyboardAvoidingView>
             </View>
         </Modal>
     );

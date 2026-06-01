@@ -6,6 +6,7 @@ export const BACKGROUNDS: Record<string, any> = {
     'Background_1': require('./Background_1.jpg'),
     'Background_2': require('./Background_2.jpg'),
     'Background_3': require('./Background_3.jpg'),
+    'Background_Card': require('./Background_Card.jpg'),
     'Background': require('./Background.jpg'),
 };
 

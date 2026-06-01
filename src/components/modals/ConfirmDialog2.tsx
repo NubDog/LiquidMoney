@@ -37,14 +37,14 @@ const ConfirmDialog2: React.FC<ConfirmDialog2Props> = ({
             setIsRendered(true);
             Animated.timing(animValue, {
                 toValue: 1,
-                duration: 250,
+                duration: 400,
                 easing: Easing.out(Easing.cubic),
                 useNativeDriver: true,
             }).start();
         } else {
             Animated.timing(animValue, {
                 toValue: 0,
-                duration: 200,
+                duration: 400,
                 easing: Easing.in(Easing.cubic),
                 useNativeDriver: true,
             }).start(() => {

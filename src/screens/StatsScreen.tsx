@@ -325,7 +325,7 @@ const StatsScreen: React.FC = () => {
                         setShowContent(true);
                         Animated.timing(contentOpacity, {
                             toValue: 1,
-                            duration: 300,
+                            duration: 400,
                             useNativeDriver: true,
                         }).start();
                     }

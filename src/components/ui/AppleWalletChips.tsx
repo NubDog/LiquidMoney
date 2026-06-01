@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useMemo } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { FontSizes, Spacing } from '../../common/theme';
 import type { Wallet } from '../../database/queries';
 
@@ -14,28 +14,6 @@ const AppleWalletChips: React.FC<AppleWalletChipsProps> = React.memo(({ wallets,
     const items = useMemo(() => {
         return [{ id: 'ALL', name: 'Tất cả' }, ...wallets];
     }, [wallets]);
-
-    const [layouts, setLayouts] = useState<Record<string, { x: number, width: number }>>({});
-    const animX = useRef(new Animated.Value(0)).current;
-    const animW = useRef(new Animated.Value(0)).current;
-
-    useEffect(() => {
-        const layout = layouts[activeId];
-        if (layout) {
-            Animated.spring(animX, {
-                toValue: layout.x,
-                useNativeDriver: false,
-                friction: 12,
-                tension: 100,
-            }).start();
-            Animated.spring(animW, {
-                toValue: layout.width,
-                useNativeDriver: false,
-                friction: 12,
-                tension: 100,
-            }).start();
-        }
-    }, [activeId, layouts, animX, animW]);
 
     if (wallets.length <= 1) { return null; }
 

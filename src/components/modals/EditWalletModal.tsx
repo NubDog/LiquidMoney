@@ -10,7 +10,8 @@ import {
     Text,
     TextInput,
     View,
-    TouchableWithoutFeedback
+    TouchableWithoutFeedback,
+    ScrollView
 } from 'react-native';
 import { SpringConfigs } from '../../common/animations';
 import AppleButton from '../ui/AppleButton';
@@ -47,74 +48,39 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
     const opacityAnim = useRef(new Animated.Value(0)).current;
     const [shouldRender, setShouldRender] = useState(false);
 
-    const keyboardOffsetAnim = useRef(new Animated.Value(0)).current;
+    // Native Keyboard Avoidance + ScrollView will handle everything smoothly.
 
     useEffect(() => {
         if (visible) {
             setShouldRender(true);
             setName(walletName);
             setBalanceStr(formatCurrency(walletBalance.toString()));
-            
-            // Animate after mount
-            requestAnimationFrame(() => {
-                Animated.parallel([
-                    Animated.spring(sheetTranslateY, {
-                        toValue: 0,
-                        ...SpringConfigs.gentle,
-                        restDisplacementThreshold: 5,
-                        restSpeedThreshold: 5,
-                        useNativeDriver: true,
-                    }),
-                    Animated.timing(opacityAnim, {
-                        toValue: 1,
-                        duration: 250,
-                        useNativeDriver: true,
-                    })
-                ]).start();
-            });
+            Animated.parallel([
+                Animated.timing(sheetTranslateY, {
+                    toValue: 0,
+                    duration: 400,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(opacityAnim, {
+                    toValue: 1,
+                    duration: 400,
+                    useNativeDriver: true,
+                })
+            ]).start();
         }
-    }, [visible, walletName, walletBalance, sheetTranslateY, opacityAnim]);
-
-    useEffect(() => {
-        const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-        const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-
-        const onKeyboardShow = (e: any) => {
-            const shiftAmount = Math.max(0, e.endCoordinates.height - 40);
-            Animated.timing(keyboardOffsetAnim, {
-                toValue: -shiftAmount,
-                duration: e.duration || 250,
-                useNativeDriver: true,
-            }).start();
-        };
-
-        const onKeyboardHide = (e: any) => {
-            Animated.timing(keyboardOffsetAnim, {
-                toValue: 0,
-                duration: e.duration || 250,
-                useNativeDriver: true,
-            }).start();
-        };
-
-        const sub1 = Keyboard.addListener(showEvent, onKeyboardShow);
-        const sub2 = Keyboard.addListener(hideEvent, onKeyboardHide);
-        return () => {
-            sub1.remove();
-            sub2.remove();
-        };
-    }, [keyboardOffsetAnim]);
+    }, [visible, sheetTranslateY, opacityAnim]);
 
     const handleClose = useCallback(() => {
         Keyboard.dismiss();
         Animated.parallel([
             Animated.timing(sheetTranslateY, {
                 toValue: 600,
-                duration: 250,
+                duration: 400,
                 useNativeDriver: true,
             }),
             Animated.timing(opacityAnim, {
                 toValue: 0,
-                duration: 250,
+                duration: 400,
                 useNativeDriver: true,
             })
         ]).start(({ finished }) => {
@@ -156,12 +122,19 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
                     }} />
                 </Animated.View>
 
-                <View
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                     style={styles.keyboardView}
                     pointerEvents="box-none">
-                    <Animated.View style={[styles.sheetContainer, { transform: [{ translateY: Animated.add(sheetTranslateY, keyboardOffsetAnim) }] }]}>
-                        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                            <View style={styles.sheet}>
+                    <Animated.View style={[styles.sheetContainer, { flexShrink: 1, maxHeight: '90%', transform: [{ translateY: sheetTranslateY }] }]}>
+                        <ScrollView
+                            bounces={false}
+                            showsVerticalScrollIndicator={true}
+                            keyboardShouldPersistTaps="handled"
+                            contentContainerStyle={{ flexGrow: 1 }}
+                        >
+                            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                                <View style={styles.sheet}>
                                 {/* Drag Handle */}
                             <View style={styles.handleBar} />
 
@@ -207,10 +180,11 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
 
                             {/* Bottom padding to push up content from the screen edge / home indicator */}
                             <View style={styles.bottomSpace} />
-                        </View>
+                            </View>
                         </TouchableWithoutFeedback>
+                        </ScrollView>
                     </Animated.View>
-                </View>
+                </KeyboardAvoidingView>
             </View>
         </Modal>
     );

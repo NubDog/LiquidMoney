@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, StyleProp, ViewStyle, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, StyleProp, ViewStyle, TouchableOpacity, Image } from 'react-native';
 import { FontSizes, Radii, Spacing } from '../../common/theme';
 
 interface AppleWalletCardProps {
@@ -21,20 +21,29 @@ const AppleWalletCard: React.FC<AppleWalletCardProps> = ({
     const formattedBalance = Math.floor(balance).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
     return (
-        <TouchableOpacity 
+        <TouchableOpacity
             style={[styles.container, style]}
             onPress={onPress}
             onLongPress={onLongPress}
             activeOpacity={0.9}
             disabled={!onPress && !onLongPress}
         >
+            {/* Background Image Container */}
+            <View style={[StyleSheet.absoluteFillObject, { alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }]}>
+                <Image
+                    source={require('../../assets/img/Background_Card.jpg')}
+                    style={{ width: '100%', height: '100%' }}
+                    resizeMode="cover"
+                />
+            </View>
+
             {/* Apple-style minimalist curved highlight */}
             <View style={styles.appleCurve} />
             <View style={styles.gradientHighlight} />
-            
+
             <View style={styles.content}>
                 <Text style={styles.name}>{name.toUpperCase()}</Text>
-                
+
                 <View style={styles.balanceContainer}>
                     <Text style={styles.balanceSign}>$</Text>
                     <Text style={styles.balanceAmount} numberOfLines={1} adjustsFontSizeToFit>
@@ -49,7 +58,7 @@ const AppleWalletCard: React.FC<AppleWalletCardProps> = ({
 const styles = StyleSheet.create({
     container: {
         width: '100%',
-        aspectRatio: 1.8, // Slightly wider to reduce vertical distance naturally
+        aspectRatio: 2.2, // Tighter aspect ratio to make it less tall
         backgroundColor: '#0A0A0C', // Deep premium black
         borderRadius: Radii.xl,
         borderWidth: 1,

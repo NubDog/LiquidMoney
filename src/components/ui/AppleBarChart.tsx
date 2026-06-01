@@ -59,13 +59,13 @@ const AppleBarChart: React.FC<AppleBarChartProps> = React.memo(({ data, period }
         Animated.parallel([
             Animated.timing(barScale, {
                 toValue: 0,
-                duration: 250,
+                duration: 400,
                 easing: Easing.in(Easing.cubic),
                 useNativeDriver: true,
             }),
             Animated.timing(labelsFade, {
                 toValue: 0,
-                duration: 250,
+                duration: 400,
                 useNativeDriver: true,
             })
         ]).start(() => {
@@ -83,7 +83,7 @@ const AppleBarChart: React.FC<AppleBarChartProps> = React.memo(({ data, period }
                     }),
                     Animated.timing(labelsFade, {
                         toValue: 1,
-                        duration: 350,
+                        duration: 400,
                         useNativeDriver: true,
                     })
                 ]).start();

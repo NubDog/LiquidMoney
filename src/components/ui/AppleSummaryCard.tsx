@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, StyleProp, ViewStyle, Platform } from 'react-native';
+import { StyleSheet, Text, View, StyleProp, ViewStyle, Platform, Image } from 'react-native';
 import { Colors, FontSizes, Radii, Spacing } from '../../common/theme';
 import { formatVND } from '../../common/formatters';
 
@@ -22,6 +22,13 @@ const AppleSummaryCard: React.FC<AppleSummaryCardProps> = ({
 }) => {
     return (
         <View style={[styles.container, style]}>
+            <View style={[StyleSheet.absoluteFillObject, { borderRadius: Radii.xxl, overflow: 'hidden' }]}>
+                <Image
+                    source={require('../../assets/img/Background_Card.jpg')}
+                    style={{ width: '100%', height: '100%' }}
+                    resizeMode="cover"
+                />
+            </View>
             <Text style={styles.walletName}>{walletName}</Text>
             
             <Text style={styles.balanceLabel}>Số dư hiện tại</Text>
@@ -50,7 +57,6 @@ const AppleSummaryCard: React.FC<AppleSummaryCardProps> = ({
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: '#1C1C1E', // Apple Dark Mode Elevated Card
         borderRadius: Radii.xxl,
         paddingTop: Spacing.xl,
         paddingBottom: Spacing.xl,

@@ -415,7 +415,7 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
                 Animated.timing(transitionAnim, {
                     toValue: 1,
                     useNativeDriver: true,
-                    duration: 150, // Super fast transition
+                    duration: 400, // Super fast transition
                     easing: Easing.out(Easing.cubic),
                 }).start(() => {
                     if (mounted) {

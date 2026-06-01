@@ -19,12 +19,12 @@ const AnimatedSlidingText: React.FC<{
         Animated.parallel([
             Animated.timing(animX, {
                 toValue: -20,
-                duration: 150,
+                duration: 400,
                 useNativeDriver: true,
             }),
             Animated.timing(animOpacity, {
                 toValue: 0,
-                duration: 150,
+                duration: 400,
                 useNativeDriver: true,
             }),
         ]).start(() => {
@@ -34,13 +34,13 @@ const AnimatedSlidingText: React.FC<{
             Animated.parallel([
                 Animated.timing(animX, {
                     toValue: 0,
-                    duration: 300,
+                    duration: 400,
                     easing: Easing.out(Easing.back(1.5)),
                     useNativeDriver: true,
                 }),
                 Animated.timing(animOpacity, {
                     toValue: 1,
-                    duration: 300,
+                    duration: 400,
                     useNativeDriver: true,
                 }),
             ]).start();

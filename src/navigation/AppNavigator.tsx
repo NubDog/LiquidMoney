@@ -11,7 +11,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
     Animated,
     BackHandler,
-    Easing,
     PanResponder,
     Pressable,
     StyleSheet,
@@ -20,6 +19,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from '@react-native-community/blur';
+import { Easing } from 'react-native';
 
 
 import LiquidBackground from '../components/layout/LiquidBackground';
@@ -89,17 +89,17 @@ const AppNavigator: React.FC = () => {
             setActiveTab('home');
         }
 
-        Animated.spring(devExpansionAnim, {
+        Animated.timing(devExpansionAnim, {
             toValue: isDeveloperMode ? 1 : 0,
-            damping: 18,
-            stiffness: 200, // 120FPS snappy spring
+            duration: 400,
+            easing: Easing.out(Easing.cubic),
             useNativeDriver: false, // Animating width
         }).start();
 
-        Animated.spring(devExpansionAnimNative, {
+        Animated.timing(devExpansionAnimNative, {
             toValue: isDeveloperMode ? 1 : 0,
-            damping: 18,
-            stiffness: 200, 
+            duration: 400,
+            easing: Easing.out(Easing.cubic),
             useNativeDriver: true, // Animating transforms natively
         }).start();
     }, [isDeveloperMode, devExpansionAnim, devExpansionAnimNative, activeTab]);
@@ -111,9 +111,9 @@ const AppNavigator: React.FC = () => {
 
         Animated.timing(slideAnim, {
             toValue: -idx * width,
-            useNativeDriver: true,
-            duration: 150, // Super fast instant snap
+            duration: 400,
             easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
         }).start();
     }, [activeTab, width, slideAnim]);
 
@@ -122,26 +122,20 @@ const AppNavigator: React.FC = () => {
         if (activeWalletId) {
             walletSlideAnim.setValue(0);
             requestAnimationFrame(() => {
-                Animated.spring(walletSlideAnim, {
+                Animated.timing(walletSlideAnim, {
                     toValue: 1,
                     useNativeDriver: true,
-                    damping: 22,
-                    stiffness: 140,
-                    mass: 0.8,
-                    restDisplacementThreshold: 0.001,
-                    restSpeedThreshold: 0.001,
+                    duration: 400,
+                    easing: Easing.out(Easing.cubic),
                 }).start();
             });
         } else if (walletDetailRendered) {
             requestAnimationFrame(() => {
-                Animated.spring(walletSlideAnim, {
+                Animated.timing(walletSlideAnim, {
                     toValue: 0,
                     useNativeDriver: true,
-                    damping: 22,
-                    stiffness: 140,
-                    mass: 0.8,
-                    restDisplacementThreshold: 0.001,
-                    restSpeedThreshold: 0.001,
+                    duration: 400,
+                    easing: Easing.out(Easing.cubic),
                 }).start(({ finished }) => {
                     if (finished) {
                         setWalletDetailRendered(false);

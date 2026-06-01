@@ -16,6 +16,7 @@ import {
     TextInput,
     View,
     TouchableWithoutFeedback,
+    ScrollView,
 } from 'react-native';
 import { Calendar as CalendarIcon, X } from 'lucide-react-native';
 import { format } from 'date-fns';
@@ -115,38 +116,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
         }
     };
 
-    const keyboardOffsetAnim = useRef(new Animated.Value(0)).current;
-
-    React.useEffect(() => {
-        const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-        const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-
-        const onKeyboardShow = (e: any) => {
-            // Distance from bottom of description input to bottom of modal is approx 220px.
-            // We want the description input to be ~20px above the keyboard.
-            const shiftAmount = Math.max(0, e.endCoordinates.height - 220 + 20);
-            Animated.timing(keyboardOffsetAnim, {
-                toValue: -shiftAmount,
-                duration: e.duration || 250,
-                useNativeDriver: true,
-            }).start();
-        };
-
-        const onKeyboardHide = (e: any) => {
-            Animated.timing(keyboardOffsetAnim, {
-                toValue: 0,
-                duration: e.duration || 250,
-                useNativeDriver: true,
-            }).start();
-        };
-
-        const sub1 = Keyboard.addListener(showEvent, onKeyboardShow);
-        const sub2 = Keyboard.addListener(hideEvent, onKeyboardHide);
-        return () => {
-            sub1.remove();
-            sub2.remove();
-        };
-    }, [keyboardOffsetAnim]);
+    // Native Keyboard Avoidance + ScrollView will handle everything smoothly.
 
     return (
         <Modal
@@ -157,12 +127,19 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
             onRequestClose={handleClose}>
             <View style={styles.container}>
                 <AnimatedOverlay visible={visible} onPress={handleClose} />
-                <View
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                     style={styles.keyboardView}
                     pointerEvents="box-none">
-                    <Animated.View style={[styles.sheetContainer, { transform: [{ translateY: Animated.add(translateY, keyboardOffsetAnim) }] }]}>
-                        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                            <View style={styles.sheet}>
+                    <Animated.View style={[styles.sheetContainer, { flexShrink: 1, maxHeight: '90%', transform: [{ translateY }] }]}>
+                        <ScrollView
+                            bounces={false}
+                            showsVerticalScrollIndicator={true}
+                            keyboardShouldPersistTaps="handled"
+                            contentContainerStyle={{ flexGrow: 1 }}
+                        >
+                            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                                <View style={styles.sheet}>
 
                                 <View style={styles.handleBar} />
                                 <View style={styles.header}>
@@ -243,8 +220,9 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                                 <View style={{ height: Math.max(insets.bottom, 48) }} />
                             </View>
                         </TouchableWithoutFeedback>
+                        </ScrollView>
                     </Animated.View>
-                </View>
+                </KeyboardAvoidingView>
             </View>
         </Modal>
     );

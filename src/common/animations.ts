@@ -26,7 +26,7 @@ export const SpringConfigs = {
 /** Fade overlay in (opacity 0 → 1) */
 export function animateOverlayIn(
     opacity: Animated.Value,
-    duration: number = 300,
+    duration: number = 400,
 ): Animated.CompositeAnimation {
     return Animated.timing(opacity, {
         toValue: 1,
@@ -38,7 +38,7 @@ export function animateOverlayIn(
 /** Fade overlay out (opacity → 0) */
 export function animateOverlayOut(
     opacity: Animated.Value,
-    duration: number = 200,
+    duration: number = 400,
 ): Animated.CompositeAnimation {
     return Animated.timing(opacity, {
         toValue: 0,
@@ -51,13 +51,13 @@ export function animateOverlayOut(
 
 export function animateSheetIn(
     translateY: Animated.Value,
-    config: { duration?: number } = { duration: 350 },
+    config: { duration?: number } = { duration: 400 },
 ): Animated.CompositeAnimation {
     // Sử dụng timing thay vì spring để sửa lỗi chạm (touch) trên Android khi animation dùng useNativeDriver
     // Thời gian sẽ kết thúc chính xác, cho phép nút bấm hoạt động ngay lập tức
     return Animated.timing(translateY, {
         toValue: 0,
-        duration: config.duration || 350,
+        duration: config.duration || 400,
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
     });
@@ -67,7 +67,7 @@ export function animateSheetIn(
 export function animateSheetOut(
     translateY: Animated.Value,
     toValue: number = 400,
-    duration: number = 250,
+    duration: number = 400,
 ): Animated.CompositeAnimation {
     return Animated.timing(translateY, {
         toValue,
@@ -80,11 +80,11 @@ export function animateSheetOut(
 
 export function animateScaleIn(
     scale: Animated.Value,
-    config: { duration?: number } = { duration: 250 },
+    config: { duration?: number } = { duration: 400 },
 ): Animated.CompositeAnimation {
     return Animated.timing(scale, {
         toValue: 1,
-        duration: config.duration || 250,
+        duration: config.duration || 400,
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
     });
@@ -94,7 +94,7 @@ export function animateScaleIn(
 export function animateScaleOut(
     scale: Animated.Value,
     toValue: number = 0.85,
-    duration: number = 150,
+    duration: number = 400,
 ): Animated.CompositeAnimation {
     return Animated.timing(scale, {
         toValue,
@@ -149,7 +149,7 @@ export function animateDialogOpen(
     overlayOpacity.setValue(0);
     scale.setValue(0.85);
     Animated.parallel([
-        animateOverlayIn(overlayOpacity, 200),
+        animateOverlayIn(overlayOpacity, 400),
         animateScaleIn(scale),
     ]).start();
 }
@@ -164,7 +164,7 @@ export function animateDialogClose(
     onComplete?: () => void,
 ): void {
     Animated.parallel([
-        animateOverlayOut(overlayOpacity, 150),
+        animateOverlayOut(overlayOpacity, 400),
         animateScaleOut(scale),
     ]).start(({ finished }) => {
         if (finished) { onComplete?.(); }

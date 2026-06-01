@@ -28,7 +28,6 @@ const AmountInput2: React.FC<AmountInput2Props> = ({
     ...props
 }) => {
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-    const [isFocused, setIsFocused] = useState(false);
     const inputRef = useRef<TextInput>(null);
 
     const onLayout = (event: LayoutChangeEvent) => {
@@ -88,17 +87,8 @@ const AmountInput2: React.FC<AmountInput2Props> = ({
                             keyboardType="numeric"
                             cursorColor="#FFFFFF"
                             selectionColor="rgba(255, 255, 255, 0.3)"
-                            pointerEvents="none"
                             value={displayValue}
                             onChangeText={handleChangeText}
-                            onFocus={(e) => {
-                                setIsFocused(true);
-                                props.onFocus?.(e);
-                            }}
-                            onBlur={(e) => {
-                                setIsFocused(false);
-                                props.onBlur?.(e);
-                            }}
                             {...props}
                         />
                     </Pressable>
@@ -140,7 +130,9 @@ const styles = StyleSheet.create({
         width: '100%',
         color: '#FFFFFF',
         fontWeight: '700',
-        textAlign: 'center',
+        textAlign: 'left',
+        padding: 0,
+        margin: 0,
     },
 });
 
