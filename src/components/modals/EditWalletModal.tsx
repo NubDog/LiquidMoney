@@ -11,8 +11,10 @@ import {
     TextInput,
     View,
     TouchableWithoutFeedback,
-    ScrollView
+    ScrollView,
+    Image
 } from 'react-native';
+import { launchImageLibrary } from 'react-native-image-picker';
 import { SpringConfigs } from '../../common/animations';
 import AppleButton from '../ui/AppleButton';
 import AppleTextInput from '../ui/AppleTextInput';
@@ -21,9 +23,10 @@ import AppleAmountInput from '../ui/AppleAmountInput';
 interface EditWalletModalProps {
     visible: boolean;
     onClose: () => void;
-    onSave: (name: string, currentBalance: number) => void;
+    onSave: (name: string, currentBalance: number, imageUri: string | null) => void;
     walletName: string;
     walletBalance: number;
+    walletImageUri?: string | null;
 }
 
 const formatCurrency = (val: string) => {
@@ -40,9 +43,11 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
     onSave,
     walletName,
     walletBalance,
+    walletImageUri
 }) => {
     const [name, setName] = useState(walletName);
     const [balanceStr, setBalanceStr] = useState(formatCurrency(walletBalance.toString()));
+    const [imageUri, setImageUri] = useState<string | null>(walletImageUri || null);
 
     const sheetTranslateY = useRef(new Animated.Value(600)).current;
     const opacityAnim = useRef(new Animated.Value(0)).current;
@@ -55,6 +60,7 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
             setShouldRender(true);
             setName(walletName);
             setBalanceStr(formatCurrency(walletBalance.toString()));
+            setImageUri(walletImageUri || null);
             Animated.parallel([
                 Animated.timing(sheetTranslateY, {
                     toValue: 0,
@@ -95,9 +101,26 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
         const trimmedName = name.trim();
         if (!trimmedName) { return; }
         const balance = parseInt(balanceStr.replace(/[^0-9-]/g, ''), 10) || 0;
-        onSave(trimmedName, balance);
+        onSave(trimmedName, balance, imageUri);
         handleClose();
-    }, [name, balanceStr, onSave, handleClose]);
+    }, [name, balanceStr, imageUri, onSave, handleClose]);
+
+    const handlePickImage = useCallback(async () => {
+        try {
+            const result = await launchImageLibrary({
+                mediaType: 'photo',
+                quality: 0.8,
+            });
+            if (result.assets && result.assets.length > 0) {
+                const uri = result.assets[0].uri;
+                if (uri) {
+                    setImageUri(uri);
+                }
+            }
+        } catch (error) {
+            console.error('Lỗi khi chọn ảnh:', error);
+        }
+    }, []);
 
     const handleBalanceChange = (text: string) => {
         setBalanceStr(formatCurrency(text));
@@ -160,6 +183,36 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
                                     onChangeText={handleBalanceChange}
                                     placeholder="0"
                                 />
+
+                                {/* Chọn ảnh nền */}
+                                <View style={{ marginTop: 24, alignItems: 'center' }}>
+                                    <Text style={{ color: 'rgba(235, 235, 245, 0.6)', marginBottom: 12, fontWeight: '500' }}>Ảnh nền ví</Text>
+                                    <Pressable 
+                                        style={{ 
+                                            width: '100%', 
+                                            height: 120, 
+                                            borderRadius: 16, 
+                                            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                            borderWidth: 1,
+                                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                                            overflow: 'hidden',
+                                            justifyContent: 'center',
+                                            alignItems: 'center'
+                                        }} 
+                                        onPress={handlePickImage}
+                                    >
+                                        {imageUri ? (
+                                            <Image source={{ uri: imageUri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+                                        ) : (
+                                            <Text style={{ color: '#0A84FF', fontSize: 16, fontWeight: '600' }}>+ Đổi ảnh nền</Text>
+                                        )}
+                                    </Pressable>
+                                    {imageUri && (
+                                        <Pressable style={{ marginTop: 12 }} onPress={() => setImageUri(null)}>
+                                            <Text style={{ color: '#FF453A', fontSize: 14 }}>Xóa ảnh</Text>
+                                        </Pressable>
+                                    )}
+                                </View>
                             </View>
                             
                             {/* Actions (Bottom) */}

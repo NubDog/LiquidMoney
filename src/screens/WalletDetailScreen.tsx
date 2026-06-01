@@ -220,15 +220,29 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
     }, [walletId, removeWallet, onGoBack]);
 
     const handleSaveWallet = useCallback(
-        (name: string, currentBalance: number) => {
+        async (name: string, currentBalance: number, imageUri: string | null) => {
             if (currentWallet) {
+                let finalImageUri = currentWallet.image_uri;
+                if (imageUri !== undefined && imageUri !== currentWallet.image_uri) {
+                    const { imageService } = require('../services/imageService');
+                    if (imageUri) {
+                        finalImageUri = await imageService.saveImageToLocal(imageUri);
+                    } else {
+                        finalImageUri = null;
+                    }
+                    if (currentWallet.image_uri) {
+                        await imageService.deleteLocalImage(currentWallet.image_uri);
+                    }
+                }
+
                 adjustWalletBalance(
                     walletId,
                     name,
                     currentBalance,
                     currentWallet.current_balance,
                     currentWallet.initial_balance,
-                    currentWallet.icon
+                    currentWallet.icon,
+                    finalImageUri
                 );
             }
         },
@@ -258,6 +272,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
                         initialBalance={wallet?.initial_balance || 0}
                         balanceDiff={balanceDiff}
                         diffColor={diffColor}
+                        imageUri={wallet?.image_uri}
                         style={styles.summaryCard}
                     />
                 </View>

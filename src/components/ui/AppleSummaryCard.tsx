@@ -9,6 +9,7 @@ interface AppleSummaryCardProps {
     initialBalance: number;
     balanceDiff: number;
     diffColor: string;
+    imageUri?: string | null;
     style?: StyleProp<ViewStyle>;
 }
 
@@ -18,13 +19,14 @@ const AppleSummaryCard: React.FC<AppleSummaryCardProps> = ({
     initialBalance,
     balanceDiff,
     diffColor,
+    imageUri,
     style,
 }) => {
     return (
         <View style={[styles.container, style]}>
             <View style={[StyleSheet.absoluteFillObject, { borderRadius: Radii.xxl, overflow: 'hidden' }]}>
                 <Image
-                    source={require('../../assets/img/Background_Card.jpg')}
+                    source={imageUri ? { uri: imageUri } : require('../../assets/img/Background_Card.jpg')}
                     style={{ width: '100%', height: '100%' }}
                     resizeMode="cover"
                 />

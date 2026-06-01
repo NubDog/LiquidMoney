@@ -6,6 +6,7 @@ interface AppleWalletCardProps {
     name: string;
     balance: number;
     style?: StyleProp<ViewStyle>;
+    imageUri?: string | null;
     onPress?: () => void;
     onLongPress?: () => void;
 }
@@ -14,6 +15,7 @@ const AppleWalletCard: React.FC<AppleWalletCardProps> = ({
     name,
     balance,
     style,
+    imageUri,
     onPress,
     onLongPress
 }) => {
@@ -31,7 +33,7 @@ const AppleWalletCard: React.FC<AppleWalletCardProps> = ({
             {/* Background Image Container */}
             <View style={[StyleSheet.absoluteFillObject, { alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }]}>
                 <Image
-                    source={require('../../assets/img/Background_Card.jpg')}
+                    source={imageUri ? { uri: imageUri } : require('../../assets/img/Background_Card.jpg')}
                     style={{ width: '100%', height: '100%' }}
                     resizeMode="cover"
                 />

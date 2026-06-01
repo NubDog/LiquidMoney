@@ -81,6 +81,7 @@ interface StoreActions {
         currentBalance: number,
         initialBalance: number,
         icon?: string | null,
+        imageUri?: string | null,
     ) => void;
 
     /** Xóa ví */
@@ -196,13 +197,13 @@ export const useStore = create<Store>((set, get) => ({
         }
     },
 
-    adjustWalletBalance: (id, name, newBalance, currentBalance, initialBalance, icon) => {
+    adjustWalletBalance: (id, name, newBalance, currentBalance, initialBalance, icon, imageUri) => {
         if (!isDatabaseAvailable()) {
             Alert.alert('Database chưa sẵn sàng', 'Cần rebuild native app.');
             return;
         }
         try {
-            dbUpdateWallet(id, name, initialBalance, null, icon);
+            dbUpdateWallet(id, name, initialBalance, imageUri, icon);
             
             const diff = newBalance - currentBalance;
             if (diff !== 0) {

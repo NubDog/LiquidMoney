@@ -84,15 +84,29 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
     );
 
     const handleSaveWalletBalance = useCallback(
-        (name: string, currentBalance: number) => {
+        async (name: string, currentBalance: number, imageUri: string | null) => {
             if (editingWallet) {
+                let finalImageUri = editingWallet.image_uri;
+                if (imageUri !== undefined && imageUri !== editingWallet.image_uri) {
+                    const { imageService } = require('../services/imageService');
+                    if (imageUri) {
+                        finalImageUri = await imageService.saveImageToLocal(imageUri);
+                    } else {
+                        finalImageUri = null;
+                    }
+                    if (editingWallet.image_uri) {
+                        await imageService.deleteLocalImage(editingWallet.image_uri);
+                    }
+                }
+                
                 adjustWalletBalance(
                     editingWallet.id,
                     name,
                     currentBalance,
                     editingWallet.current_balance,
                     editingWallet.initial_balance,
-                    editingWallet.icon
+                    editingWallet.icon,
+                    finalImageUri
                 );
             }
         },
@@ -112,6 +126,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
             <AppleWalletCard
                 name={item.name}
                 balance={item.current_balance}
+                imageUri={item.image_uri}
                 onPress={() => onNavigateToWallet?.(item.id)}
                 onLongPress={() => openEditModal(item)}
             />
@@ -233,6 +248,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
                     onSave={handleSaveWalletBalance}
                     walletName={editingWallet.name}
                     walletBalance={editingWallet.current_balance}
+                    walletImageUri={editingWallet.image_uri}
                 />
             )}
         </View>
