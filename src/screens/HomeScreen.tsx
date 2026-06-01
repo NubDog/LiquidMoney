@@ -203,6 +203,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
                 maxToRenderPerBatch={5}
                 windowSize={5}
                 removeClippedSubviews={true}
+                // @ts-ignore: delaysContentTouches is a valid ScrollView prop but missing in FlatList types
                 delaysContentTouches={false}
                 refreshControl={
                     <RefreshControl
