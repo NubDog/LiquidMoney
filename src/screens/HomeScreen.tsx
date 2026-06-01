@@ -188,6 +188,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
                 maxToRenderPerBatch={5}
                 windowSize={5}
                 removeClippedSubviews={true}
+                delaysContentTouches={false}
                 refreshControl={
                     <RefreshControl
                         refreshing={refreshing}

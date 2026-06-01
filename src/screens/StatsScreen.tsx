@@ -460,6 +460,7 @@ const StatsScreen: React.FC = () => {
                         contentContainerStyle={s.content}
                         onScroll={handleScroll}
                         scrollEventThrottle={16}
+                        delaysContentTouches={false}
                         refreshControl={
                             <RefreshControl
                                 refreshing={refreshing}

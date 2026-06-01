@@ -315,6 +315,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
                 maxToRenderPerBatch={5}
                 windowSize={5}
                 removeClippedSubviews={Platform.OS === 'android'}
+                delaysContentTouches={false}
             />
 
             {/* Transaction Modal */}
@@ -407,8 +408,8 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
 
             // Immediately mount payload in transition state to prepare layout
             setIsReady(true);
-            setIsTransitioning(false); // Load FlatList items immediately
-
+            
+            // Defer loading heavy FlatList items to free up JS Thread for animation
             requestAnimationFrame(() => {
                 if (!mounted) return;
                 
@@ -420,6 +421,12 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
                 }).start(() => {
                     if (mounted) {
                         setShowContent(true);
+                        // Đợi TẤT CẢ animation (kể cả mờ màn hình chính) kết thúc hẳn rồi mới render danh sách giao dịch
+                        InteractionManager.runAfterInteractions(() => {
+                            if (mounted) {
+                                setIsTransitioning(false); 
+                            }
+                        });
                     }
                 });
             });

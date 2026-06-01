@@ -16,6 +16,9 @@
   - Xóa bỏ file script rác `extract_props.js`.
   - Giữ nguyên `BackgroundPickerModal` cho tương lai.
   - Tổ chức lại state `toWalletId` (tính năng chuyển tiền giữa các ví) thành Placeholder rõ ràng cho các bản cập nhật sau.
+- **Sửa lỗi Delay Toàn App (High Priority):** 
+  - Khắc phục tình trạng "đơ" hoặc delay 150ms khi bấm vào bất kỳ nút nào (FAB, thẻ ví, dòng giao dịch) bằng cách tắt mặc định `delaysContentTouches={false}` trên toàn bộ `FlatList` và `ScrollView` trong app.
+  - Trì hoãn việc render danh sách giao dịch nặng trong `WalletDetailScreen` cho đến khi hiệu ứng trượt 400ms kết thúc, giải phóng JS Thread và giúp thao tác chạm mượt mà tức thời.
 
 ---
 

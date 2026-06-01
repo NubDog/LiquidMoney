@@ -132,6 +132,7 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
                             showsVerticalScrollIndicator={true}
                             keyboardShouldPersistTaps="handled"
                             contentContainerStyle={{ flexGrow: 1 }}
+                            delaysContentTouches={false}
                         >
                             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                                 <View style={styles.sheet}>
