@@ -30,6 +30,8 @@ const AppleSummaryCard: React.FC<AppleSummaryCardProps> = ({
                     style={{ width: '100%', height: '100%' }}
                     resizeMode="cover"
                 />
+                {/* Dark Overlay for Text Legibility */}
+                <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0, 0, 0, 0.35)' }]} />
             </View>
             <Text style={styles.walletName}>{walletName}</Text>
             
@@ -82,11 +84,17 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: Colors.textSecondary,
         marginBottom: Spacing.sm,
+        textShadowColor: 'rgba(0, 0, 0, 0.5)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
     },
     balanceLabel: {
         fontSize: FontSizes.sm,
-        color: 'rgba(235, 235, 245, 0.6)', // Apple standard secondary text
+        color: 'rgba(235, 235, 245, 0.8)', // Brighter for better contrast over images
         marginTop: Spacing.xs,
+        textShadowColor: 'rgba(0, 0, 0, 0.5)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
     },
     balanceAmount: {
         fontSize: FontSizes.title + 8,
@@ -94,6 +102,9 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         marginTop: 4,
         letterSpacing: -1,
+        textShadowColor: 'rgba(0, 0, 0, 0.5)',
+        textShadowOffset: { width: 0, height: 2 },
+        textShadowRadius: 4,
     },
     balanceRow: {
         flexDirection: 'row',
@@ -105,13 +116,19 @@ const styles = StyleSheet.create({
     },
     smallLabel: {
         fontSize: FontSizes.xs + 2,
-        color: 'rgba(235, 235, 245, 0.6)',
+        color: 'rgba(235, 235, 245, 0.8)',
         marginBottom: 4,
+        textShadowColor: 'rgba(0, 0, 0, 0.5)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
     },
     smallValue: {
         fontSize: FontSizes.md,
         fontWeight: '600',
-        color: 'rgba(255, 255, 255, 0.9)',
+        color: 'rgba(255, 255, 255, 1)',
+        textShadowColor: 'rgba(0, 0, 0, 0.5)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
     },
 });
 
