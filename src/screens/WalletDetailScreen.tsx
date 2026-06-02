@@ -37,7 +37,7 @@ import EditWalletModal from '../components/modals/EditWalletModal';
 import ApplePopupMenu from '../components/ui/ApplePopupMenu';
 import AppleIconButton from '../components/ui/AppleIconButton';
 import LiquidBackground from '../components/layout/LiquidBackground';
-import { WalletDetailSkeleton } from '../components/layout/WalletDetailSkeleton';
+import { WalletDetailSkeleton } from '../components/layout/skeletons/WalletDetailSkeleton';
 import AppleEmptyState from '../components/ui/AppleEmptyState';
 import AppleSummaryCard from '../components/ui/AppleSummaryCard';
 
