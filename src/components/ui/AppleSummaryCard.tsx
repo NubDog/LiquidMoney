@@ -30,8 +30,8 @@ const AppleSummaryCard: React.FC<AppleSummaryCardProps> = ({
                     style={{ width: '100%', height: '100%' }}
                     resizeMode="cover"
                 />
-                {/* Dark Overlay for Text Legibility */}
-                <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0, 0, 0, 0.35)' }]} />
+                {/* Lớp phủ mờ 20% giúp chữ luôn nổi bật trên ảnh nền tuỳ biến */}
+                <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0,0,0,0.2)' }]} />
             </View>
             <Text style={styles.walletName}>{walletName}</Text>
             
@@ -82,17 +82,17 @@ const styles = StyleSheet.create({
     walletName: {
         fontSize: FontSizes.md,
         fontWeight: '600',
-        color: Colors.textSecondary,
+        color: 'rgba(255, 255, 255, 0.85)',
         marginBottom: Spacing.sm,
-        textShadowColor: 'rgba(0, 0, 0, 0.5)',
+        textShadowColor: 'rgba(0,0,0,0.5)',
         textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 2,
+        textShadowRadius: 3,
     },
     balanceLabel: {
         fontSize: FontSizes.sm,
-        color: 'rgba(235, 235, 245, 0.8)', // Brighter for better contrast over images
+        color: 'rgba(235, 235, 245, 0.8)', // Apple standard secondary text
         marginTop: Spacing.xs,
-        textShadowColor: 'rgba(0, 0, 0, 0.5)',
+        textShadowColor: 'rgba(0,0,0,0.5)',
         textShadowOffset: { width: 0, height: 1 },
         textShadowRadius: 2,
     },
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         marginTop: 4,
         letterSpacing: -1,
-        textShadowColor: 'rgba(0, 0, 0, 0.5)',
+        textShadowColor: 'rgba(0,0,0,0.6)',
         textShadowOffset: { width: 0, height: 2 },
         textShadowRadius: 4,
     },
@@ -118,15 +118,15 @@ const styles = StyleSheet.create({
         fontSize: FontSizes.xs + 2,
         color: 'rgba(235, 235, 245, 0.8)',
         marginBottom: 4,
-        textShadowColor: 'rgba(0, 0, 0, 0.5)',
+        textShadowColor: 'rgba(0,0,0,0.5)',
         textShadowOffset: { width: 0, height: 1 },
         textShadowRadius: 2,
     },
     smallValue: {
         fontSize: FontSizes.md,
         fontWeight: '600',
-        color: 'rgba(255, 255, 255, 1)',
-        textShadowColor: 'rgba(0, 0, 0, 0.5)',
+        color: 'rgba(255, 255, 255, 0.95)',
+        textShadowColor: 'rgba(0,0,0,0.5)',
         textShadowOffset: { width: 0, height: 1 },
         textShadowRadius: 2,
     },

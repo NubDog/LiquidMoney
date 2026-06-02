@@ -37,8 +37,8 @@ const AppleWalletCard: React.FC<AppleWalletCardProps> = ({
                     style={{ width: '100%', height: '100%' }}
                     resizeMode="cover"
                 />
-                {/* Dark Overlay for Text Legibility */}
-                <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0, 0, 0, 0.35)' }]} />
+                {/* Lớp phủ mờ 20% giúp chữ luôn nổi bật trên ảnh nền tuỳ biến */}
+                <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0,0,0,0.2)' }]} />
             </View>
 
             {/* Apple-style minimalist curved highlight */}
@@ -104,10 +104,10 @@ const styles = StyleSheet.create({
     name: {
         fontSize: FontSizes.xs,
         fontWeight: '600',
-        color: 'rgba(255, 255, 255, 0.7)', // Slightly brighter for contrast
+        color: 'rgba(255, 255, 255, 0.75)',
         letterSpacing: 1,
         marginBottom: 12,
-        textShadowColor: 'rgba(0, 0, 0, 0.75)',
+        textShadowColor: 'rgba(0,0,0,0.5)',
         textShadowOffset: { width: 0, height: 1 },
         textShadowRadius: 3,
     },
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
         color: '#FFFFFF', // EXACTLY the same color as the amount to avoid mismatch
         fontWeight: '600', // Same weight as amount
         marginRight: 6,
-        textShadowColor: 'rgba(0, 0, 0, 0.5)',
+        textShadowColor: 'rgba(0,0,0,0.6)',
         textShadowOffset: { width: 0, height: 2 },
         textShadowRadius: 4,
     },
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontWeight: '600',
         letterSpacing: 0.5,
-        textShadowColor: 'rgba(0, 0, 0, 0.5)',
+        textShadowColor: 'rgba(0,0,0,0.6)',
         textShadowOffset: { width: 0, height: 2 },
         textShadowRadius: 4,
     },
