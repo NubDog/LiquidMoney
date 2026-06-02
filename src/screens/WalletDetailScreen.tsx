@@ -84,6 +84,8 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
         currentWallet,
         transactions,
         refreshTransactions,
+        loadMoreTransactions,
+        hasMoreTransactions,
         addTransaction,
         editTransaction,
         removeTransaction,
