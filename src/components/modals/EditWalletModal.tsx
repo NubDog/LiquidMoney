@@ -189,20 +189,23 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
                                     <Text style={{ color: 'rgba(235, 235, 245, 0.6)', marginBottom: 12, fontWeight: '500' }}>Ảnh nền ví</Text>
                                     <Pressable 
                                         style={{ 
-                                            width: '100%', 
-                                            height: 120, 
+                                            width: '85%', 
+                                            aspectRatio: 2.2, 
                                             borderRadius: 16, 
                                             backgroundColor: 'rgba(255, 255, 255, 0.05)',
                                             borderWidth: 1,
                                             borderColor: 'rgba(255, 255, 255, 0.1)',
-                                            overflow: 'hidden',
                                             justifyContent: 'center',
-                                            alignItems: 'center'
+                                            alignItems: 'center',
+                                            shadowColor: '#000',
+                                            shadowOffset: { width: 0, height: 4 },
+                                            shadowOpacity: 0.3,
+                                            shadowRadius: 8,
                                         }} 
                                         onPress={handlePickImage}
                                     >
                                         {imageUri ? (
-                                            <Image source={{ uri: imageUri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+                                            <Image source={{ uri: imageUri }} style={{ width: '100%', height: '100%', borderRadius: 15 }} resizeMode="cover" />
                                         ) : (
                                             <Text style={{ color: '#0A84FF', fontSize: 16, fontWeight: '600' }}>+ Đổi ảnh nền</Text>
                                         )}
