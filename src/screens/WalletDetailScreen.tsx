@@ -334,6 +334,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
                 maxToRenderPerBatch={12}
                 windowSize={5}
                 removeClippedSubviews={Platform.OS === 'android'}
+                // @ts-ignore - Thuộc tính này có thật trên Native (ScrollView) nhưng bị thiếu trong TypeScript
                 delaysContentTouches={false}
                 onEndReached={() => {
                     if (hasMoreTransactions && !isTransitioning) {
