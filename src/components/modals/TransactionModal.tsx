@@ -138,6 +138,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                             showsVerticalScrollIndicator={true}
                             keyboardShouldPersistTaps="handled"
                             contentContainerStyle={{ flexGrow: 1 }}
+                            // @ts-ignore: delaysContentTouches is a valid ScrollView prop but missing in FlatList/ScrollView types in some RN versions
                             delaysContentTouches={false}
                         >
                             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
