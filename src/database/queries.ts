@@ -428,6 +428,8 @@ export function deleteTransaction(id: string): void {
 export function getTransactionsByWallet(
     walletId: string,
     filterType?: 'IN' | 'OUT',
+    limit: number = 1000,
+    offset: number = 0,
 ): Transaction[] {
     const db = getDatabase();
 
@@ -435,8 +437,9 @@ export function getTransactionsByWallet(
         const result = db.execute(
             `SELECT * FROM transactions
        WHERE wallet_id = ? AND type = ?
-       ORDER BY created_at DESC;`,
-            [walletId, filterType],
+       ORDER BY created_at DESC
+       LIMIT ? OFFSET ?;`,
+            [walletId, filterType, limit, offset],
         );
         return extractRows<Transaction>(result);
     }
@@ -444,8 +447,9 @@ export function getTransactionsByWallet(
     const result = db.execute(
         `SELECT * FROM transactions
      WHERE wallet_id = ?
-     ORDER BY created_at DESC;`,
-        [walletId],
+     ORDER BY created_at DESC
+     LIMIT ? OFFSET ?;`,
+        [walletId, limit, offset],
     );
     return extractRows<Transaction>(result);
 }

@@ -33,8 +33,11 @@ interface StoreState {
     /** Danh sách ví */
     wallets: Wallet[];
 
-    /** Giao dịch của ví đang xem */
+    /** Danh sách giao dịch của ví đang chọn */
     transactions: Transaction[];
+
+    /** Trạng thái còn dữ liệu giao dịch hay không */
+    hasMoreTransactions: boolean;
 
     /** Ví đang xem chi tiết */
     currentWallet: Wallet | null;
@@ -90,8 +93,11 @@ interface StoreActions {
     /** Chọn ví để xem chi tiết */
     selectWallet: (id: string) => void;
 
-    /** Load giao dịch của ví hiện tại */
+    /** Refresh danh sách giao dịch (chỉ lấy 12 dòng đầu) */
     refreshTransactions: (walletId: string, filterType?: 'IN' | 'OUT') => void;
+
+    /** Tải thêm 12 giao dịch tiếp theo */
+    loadMoreTransactions: (walletId: string, filterType?: 'IN' | 'OUT') => void;
 
     /** Tạo giao dịch mới */
     addTransaction: (
@@ -129,6 +135,7 @@ export const useStore = create<Store>((set, get) => ({
     isReady: false,
     wallets: [],
     transactions: [],
+    hasMoreTransactions: true,
     currentWallet: null,
     loading: false,
     isDeveloperMode: true,
@@ -242,8 +249,8 @@ export const useStore = create<Store>((set, get) => ({
     selectWallet: (id) => {
         try {
             const wallet = getWalletById(id);
-            const txns = wallet ? getTransactionsByWallet(id) : [];
-            set({ currentWallet: wallet, transactions: txns });
+            const txns = wallet ? getTransactionsByWallet(id, undefined, 12, 0) : [];
+            set({ currentWallet: wallet, transactions: txns, hasMoreTransactions: txns.length === 12 });
         } catch (err) {
             console.error('[Store] selectWallet error:', err);
         }
@@ -253,14 +260,34 @@ export const useStore = create<Store>((set, get) => ({
         if (!isDatabaseAvailable()) return;
         set({ loading: true });
         try {
-            const txns = getTransactionsByWallet(walletId, filterType);
+            const txns = getTransactionsByWallet(walletId, filterType, 12, 0);
             const wallet = getWalletById(walletId);
             const allWallets = getAllWallets();
-            set({ transactions: txns, currentWallet: wallet, wallets: allWallets });
+            set({ transactions: txns, currentWallet: wallet, wallets: allWallets, hasMoreTransactions: txns.length === 12 });
         } catch (err) {
             console.error('[Store] refreshTransactions error:', err);
         } finally {
             set({ loading: false });
+        }
+    },
+
+    loadMoreTransactions: (walletId, filterType) => {
+        if (!isDatabaseAvailable()) return;
+        const currentTxns = get().transactions;
+        const offset = currentTxns.length;
+        
+        try {
+            const moreTxns = getTransactionsByWallet(walletId, filterType, 12, offset);
+            if (moreTxns.length > 0) {
+                set({ 
+                    transactions: [...currentTxns, ...moreTxns],
+                    hasMoreTransactions: moreTxns.length === 12
+                });
+            } else {
+                set({ hasMoreTransactions: false });
+            }
+        } catch (err) {
+            console.error('[Store] loadMoreTransactions error:', err);
         }
     },
 

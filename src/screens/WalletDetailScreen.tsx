@@ -93,6 +93,8 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
         currentWallet: state.currentWallet,
         transactions: state.transactions,
         refreshTransactions: state.refreshTransactions,
+        loadMoreTransactions: state.loadMoreTransactions,
+        hasMoreTransactions: state.hasMoreTransactions,
         addTransaction: state.addTransaction,
         editTransaction: state.editTransaction,
         removeTransaction: state.removeTransaction,
@@ -256,8 +258,8 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
 
     // ─── Render ─────────────────────────────────────────────────────────────
     const renderItem = useCallback(
-        ({ item }: { item: Transaction }) => (
-            <AppleTransactionRow item={item} onPress={handleViewTransaction} />
+        ({ item, index }: { item: Transaction, index: number }) => (
+            <AppleTransactionRow item={item} index={index} onPress={handleViewTransaction} />
         ),
         [handleViewTransaction],
     );
@@ -326,11 +328,18 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
                 ListEmptyComponent={isTransitioning ? null : listEmpty}
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
-                initialNumToRender={6}
-                maxToRenderPerBatch={5}
+                initialNumToRender={12}
+                maxToRenderPerBatch={12}
                 windowSize={5}
                 removeClippedSubviews={Platform.OS === 'android'}
                 delaysContentTouches={false}
+                onEndReached={() => {
+                    if (hasMoreTransactions && !isTransitioning) {
+                        const filterType: 'IN' | 'OUT' | undefined = filterIndex === 1 ? 'IN' : filterIndex === 2 ? 'OUT' : undefined;
+                        loadMoreTransactions(walletId, filterType);
+                    }
+                }}
+                onEndReachedThreshold={0.5}
             />
 
             {/* Transaction Modal */}

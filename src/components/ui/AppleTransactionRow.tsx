@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ArrowDownRight, ArrowUpRight, Repeat } from 'lucide-react-native';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -10,10 +11,12 @@ import type { Transaction } from '../../common/types';
 interface AppleTransactionRowProps {
     item: Transaction;
     onPress?: (transaction: Transaction) => void;
+    index?: number;
 }
 
 const AppleTransactionRow: React.FC<AppleTransactionRowProps> = ({
     item,
+    index = 0,
     onPress,
 }) => {
     const isIncome = item.type === 'IN';
@@ -33,8 +36,14 @@ const AppleTransactionRow: React.FC<AppleTransactionRowProps> = ({
         return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     };
 
+    // Giới hạn delay tối đa là cho 12 phần tử (để những mẻ tải sau không bị delay quá lâu)
+    const animationDelay = (index % 12) * 50;
+
     return (
-        <View style={styles.wrapper}>
+        <Animated.View 
+            entering={FadeInDown.delay(animationDelay).duration(400)} 
+            style={styles.wrapper}
+        >
             <View style={styles.cardStyle}>
                 <Pressable
                     style={({ pressed }) => [
@@ -63,7 +72,7 @@ const AppleTransactionRow: React.FC<AppleTransactionRowProps> = ({
                     </View>
                 </Pressable>
             </View>
-        </View>
+        </Animated.View>
     );
 };
 
