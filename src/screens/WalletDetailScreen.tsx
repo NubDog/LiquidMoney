@@ -424,13 +424,18 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
     useEffect(() => {
         let mounted = true;
 
-        const load = () => {
+        const load = async () => {
             try {
                 selectWallet(walletId);
                 refreshTransactions(walletId);
             } catch (err) {
                 console.error('Error in fetchWalletData:', err);
             }
+
+            // Đợi 500ms để hiển thị Skeleton (Tạo cảm giác tải dữ liệu tự nhiên)
+            await delay(500);
+
+            if (!mounted) return;
 
             // Immediately mount payload in transition state to prepare layout
             setIsReady(true);
