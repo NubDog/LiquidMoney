@@ -1,6 +1,5 @@
-import React from 'react';
-import { StyleSheet, Text, View, Pressable } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import React, { useEffect, useRef } from 'react';
+import { StyleSheet, Text, View, Pressable, Animated } from 'react-native';
 import { ArrowDownRight, ArrowUpRight, Repeat } from 'lucide-react-native';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -39,10 +38,29 @@ const AppleTransactionRow: React.FC<AppleTransactionRowProps> = ({
     // Giới hạn delay tối đa là cho 12 phần tử (để những mẻ tải sau không bị delay quá lâu)
     const animationDelay = (index % 12) * 50;
 
+    const opacity = useRef(new Animated.Value(0)).current;
+    const translateY = useRef(new Animated.Value(-15)).current; // -15 để trượt từ trên xuống (FadeInDown)
+
+    useEffect(() => {
+        Animated.parallel([
+            Animated.timing(opacity, {
+                toValue: 1,
+                duration: 400,
+                delay: animationDelay,
+                useNativeDriver: true,
+            }),
+            Animated.timing(translateY, {
+                toValue: 0,
+                duration: 400,
+                delay: animationDelay,
+                useNativeDriver: true,
+            })
+        ]).start();
+    }, [opacity, translateY, animationDelay]);
+
     return (
         <Animated.View 
-            entering={FadeInDown.delay(animationDelay).duration(400)} 
-            style={styles.wrapper}
+            style={[styles.wrapper, { opacity, transform: [{ translateY }] }]}
         >
             <View style={styles.cardStyle}>
                 <Pressable
