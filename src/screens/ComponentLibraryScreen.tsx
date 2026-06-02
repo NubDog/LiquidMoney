@@ -36,7 +36,7 @@ import InfoDialog from '../components/modals/InfoDialog';
 import TerminalLogModal from '../components/modals/TerminalLogModal';
 import TransactionDetailOverlay from '../components/overlays/TransactionDetailOverlay';
 import TransactionModal from '../components/modals/TransactionModal';
-import { WalletDetailSkeleton } from '../components/layout/WalletDetailSkeleton';
+import { WalletDetailSkeleton } from '../components/layout/skeletons/WalletDetailSkeleton';
 import WalletModal from '../components/modals/WalletModal';
 
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
