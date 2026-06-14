@@ -23,8 +23,8 @@ const AppleSummaryCard: React.FC<AppleSummaryCardProps> = ({
     style,
 }) => {
     return (
-        <View style={[styles.container, style]}>
-            <View style={[StyleSheet.absoluteFillObject, { borderRadius: Radii.xxl, overflow: 'hidden' }]}>
+        <View style={[styles.container, style, { backgroundColor: '#000000' }]}>
+            <View style={[StyleSheet.absoluteFillObject, { borderRadius: Radii.xxl, overflow: 'hidden', backgroundColor: '#000000' }]}>
                 <Image
                     source={imageUri ? { uri: imageUri } : require('../../assets/img/Background_Card.jpg')}
                     style={{ width: '100%', height: '100%' }}

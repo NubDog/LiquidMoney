@@ -32,7 +32,7 @@ const AppleWalletCard: React.FC<AppleWalletCardProps> = ({
         >
             <View style={styles.innerContainer}>
                 {/* Background Image Container */}
-                <View style={[StyleSheet.absoluteFillObject, { alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }]}>
+                <View style={[StyleSheet.absoluteFillObject, { alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: '#000000' }]}>
                     <Image
                         source={imageUri ? { uri: imageUri } : require('../../assets/img/Background_Card.jpg')}
                         style={{ width: '100%', height: '100%' }}
@@ -42,9 +42,7 @@ const AppleWalletCard: React.FC<AppleWalletCardProps> = ({
                     <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0,0,0,0.2)' }]} />
                 </View>
 
-                {/* Apple-style minimalist curved highlight */}
-                <View style={styles.appleCurve} />
-                <View style={styles.gradientHighlight} />
+
 
                 <View style={styles.content}>
                     <Text style={styles.name}>{name.toUpperCase()}</Text>
@@ -65,37 +63,20 @@ const styles = StyleSheet.create({
     container: {
         width: '100%',
         aspectRatio: 2.2, // Tighter aspect ratio to make it less tall
-        backgroundColor: '#0A0A0C', // Deep premium black
+        backgroundColor: '#000000', // Pure black as requested
         borderRadius: Radii.xl,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 12 },
         shadowOpacity: 0.6,
         shadowRadius: 24,
-        elevation: 10,
+        elevation: 8,
     },
     innerContainer: {
         flex: 1,
         borderRadius: Radii.xl,
         overflow: 'hidden',
     },
-    appleCurve: {
-        position: 'absolute',
-        width: 1600,
-        height: 1600,
-        borderRadius: 800,
-        backgroundColor: 'rgba(255, 255, 255, 0.015)',
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(255, 255, 255, 0.03)',
-        bottom: -1300, // 300 visible height
-        right: -400, // Peak is to the right, creating upward slope
-    },
-    gradientHighlight: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: '100%',
-    },
+
     content: {
         flex: 1,
         padding: Spacing.xl,

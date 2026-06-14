@@ -212,9 +212,13 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
                                         )}
                                     </Pressable>
                                     {imageUri && (
-                                        <Pressable style={{ marginTop: 12 }} onPress={() => setImageUri(null)}>
-                                            <Text style={{ color: '#FF453A', fontSize: 14 }}>Xóa ảnh</Text>
-                                        </Pressable>
+                                        <View style={{ marginTop: 16, width: '85%' }}>
+                                            <AppleButton
+                                                title="Xóa ảnh nền"
+                                                variant="danger"
+                                                onPress={() => setImageUri(null)}
+                                            />
+                                        </View>
                                     )}
                                 </View>
                             </View>

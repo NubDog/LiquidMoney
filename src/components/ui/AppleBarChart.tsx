@@ -179,10 +179,13 @@ const AppleBarChart: React.FC<AppleBarChartProps> = React.memo(({ data, period }
                                         const inH = shouldRenderIn ? Math.max(rawInH, 4) : 0;
                                         const outH = shouldRenderOut ? Math.max(rawOutH, 4) : 0;
 
+                                        // Determine if both bars need to be shown side-by-side
+                                        const hasBoth = d.income > 0 && d.expense > 0;
+
                                         // In Day view, since there's only 1 bar per group, center it.
-                                        // In Week view, always keep Income left and Expense right.
-                                        const inBarX = isDayView ? cx - barWidth / 2 : cx - barWidth - barGap / 2;
-                                        const outBarX = isDayView ? cx - barWidth / 2 : cx + barGap / 2;
+                                        // In Week view, center if only 1 bar has data, otherwise offset them.
+                                        const inBarX = isDayView || !hasBoth ? cx - barWidth / 2 : cx - barWidth - barGap / 2;
+                                        const outBarX = isDayView || !hasBoth ? cx - barWidth / 2 : cx + barGap / 2;
                                         
                                         // Ensure labels and bars exist rigidly inside the frame
                                         const inBarY = VALUE_LABEL_HEIGHT + BAR_AREA_HEIGHT - inH;
@@ -190,7 +193,7 @@ const AppleBarChart: React.FC<AppleBarChartProps> = React.memo(({ data, period }
 
                                         return (
                                             <React.Fragment key={`bar-${i}`}>
-                                                {shouldRenderIn && (
+                                                {shouldRenderIn && d.income > 0 && (
                                                     <>
                                                         <SvgText
                                                             x={inBarX + barWidth / 2}
@@ -199,7 +202,7 @@ const AppleBarChart: React.FC<AppleBarChartProps> = React.memo(({ data, period }
                                                             fill={Colors.income}
                                                             fontWeight="700"
                                                             textAnchor="middle"
-                                                            opacity={d.income === 0 ? 0.3 : 0.9}>
+                                                            opacity={0.9}>
                                                             {formatVNDShort(d.income)}
                                                         </SvgText>
                                                         <Rect
@@ -209,11 +212,11 @@ const AppleBarChart: React.FC<AppleBarChartProps> = React.memo(({ data, period }
                                                             height={inH}
                                                             rx={barRadius}
                                                             fill="url(#incG)"
-                                                            opacity={d.income === 0 ? 0.2 : 1}
+                                                            opacity={1}
                                                         />
                                                     </>
                                                 )}
-                                                {shouldRenderOut && (
+                                                {shouldRenderOut && d.expense > 0 && (
                                                     <>
                                                         <SvgText
                                                             x={outBarX + barWidth / 2}
@@ -222,7 +225,7 @@ const AppleBarChart: React.FC<AppleBarChartProps> = React.memo(({ data, period }
                                                             fill={Colors.expense}
                                                             fontWeight="700"
                                                             textAnchor="middle"
-                                                            opacity={d.expense === 0 ? 0.3 : 0.8}>
+                                                            opacity={0.8}>
                                                             {formatVNDShort(d.expense)}
                                                         </SvgText>
                                                         <Rect
@@ -232,7 +235,7 @@ const AppleBarChart: React.FC<AppleBarChartProps> = React.memo(({ data, period }
                                                             height={outH}
                                                             rx={barRadius}
                                                             fill="url(#expG)"
-                                                            opacity={d.expense === 0 ? 0.2 : 1}
+                                                            opacity={1}
                                                         />
                                                     </>
                                                 )}

@@ -121,26 +121,22 @@ const AppNavigator: React.FC = () => {
     useEffect(() => {
         if (activeWalletId) {
             walletSlideAnim.setValue(0);
-            requestAnimationFrame(() => {
-                Animated.timing(walletSlideAnim, {
-                    toValue: 1,
-                    useNativeDriver: true,
-                    duration: 400,
-                    easing: Easing.out(Easing.cubic),
-                }).start();
-            });
+            Animated.timing(walletSlideAnim, {
+                toValue: 1,
+                useNativeDriver: true,
+                duration: 400,
+                easing: Easing.out(Easing.cubic),
+            }).start();
         } else if (walletDetailRendered) {
-            requestAnimationFrame(() => {
-                Animated.timing(walletSlideAnim, {
-                    toValue: 0,
-                    useNativeDriver: true,
-                    duration: 400,
-                    easing: Easing.out(Easing.cubic),
-                }).start(({ finished }) => {
-                    if (finished) {
-                        setWalletDetailRendered(false);
-                    }
-                });
+            Animated.timing(walletSlideAnim, {
+                toValue: 0,
+                useNativeDriver: true,
+                duration: 400,
+                easing: Easing.out(Easing.cubic),
+            }).start(({ finished }) => {
+                if (finished) {
+                    setWalletDetailRendered(false);
+                }
             });
         }
     }, [activeWalletId, walletSlideAnim, walletDetailRendered]);

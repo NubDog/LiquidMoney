@@ -158,7 +158,6 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
 
     const handleSave = useCallback(
         (type: 'IN' | 'OUT', amount: number, reason?: string | null, imageUri?: string | null, customDate?: string) => {
-            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
             if (editingTx) {
                 // Editing existing transaction (does not support changing date yet)
                 editTransaction(editingTx.id, walletId, type, amount, reason, imageUri);
@@ -179,7 +178,6 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
 
     const handleDeleteFromDetail = useCallback(
         (id: string, wId: string) => {
-            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
             removeTransaction(id, wId);
         },
         [removeTransaction],
@@ -187,7 +185,6 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
 
     const handleDelete = useCallback(() => {
         if (editingTx) {
-            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
             removeTransaction(editingTx.id, walletId);
         }
     }, [editingTx, walletId, removeTransaction]);
@@ -385,6 +382,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
                 onSave={handleSaveWallet}
                 walletName={wallet?.name || ''}
                 walletBalance={wallet?.current_balance || 0}
+                walletImageUri={wallet?.image_uri}
             />
 
             {/* Delete Confirm Dialog */}
@@ -443,25 +441,23 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
             setIsReady(true);
             
             // Defer loading heavy FlatList items to free up JS Thread for animation
-            requestAnimationFrame(() => {
-                if (!mounted) return;
-                
-                Animated.timing(transitionAnim, {
-                    toValue: 1,
-                    useNativeDriver: true,
-                    duration: 400, // Super fast transition
-                    easing: Easing.out(Easing.cubic),
-                }).start(() => {
-                    if (mounted) {
-                        setShowContent(true);
-                        // Đợi TẤT CẢ animation (kể cả mờ màn hình chính) kết thúc hẳn rồi mới render danh sách giao dịch
-                        InteractionManager.runAfterInteractions(() => {
-                            if (mounted) {
-                                setIsTransitioning(false); 
-                            }
-                        });
-                    }
-                });
+            if (!mounted) return;
+            
+            Animated.timing(transitionAnim, {
+                toValue: 1,
+                useNativeDriver: true,
+                duration: 400, // Super fast transition
+                easing: Easing.out(Easing.cubic),
+            }).start(() => {
+                if (mounted) {
+                    setShowContent(true);
+                    // Đợi TẤT CẢ animation (kể cả mờ màn hình chính) kết thúc hẳn rồi mới render danh sách giao dịch
+                    InteractionManager.runAfterInteractions(() => {
+                        if (mounted) {
+                            setIsTransitioning(false); 
+                        }
+                    });
+                }
             });
         };
 
