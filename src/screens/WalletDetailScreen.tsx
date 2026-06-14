@@ -80,6 +80,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
     onFabPressRef,
     isTransitioning,
 }) => {
+    const insets = useSafeAreaInsets();
     const {
         currentWallet,
         transactions,
@@ -328,7 +329,7 @@ const WalletPayload: React.FC<WalletPayloadProps> = ({
                 renderItem={renderItem}
                 ListHeaderComponent={listHeader}
                 ListEmptyComponent={isTransitioning ? null : listEmpty}
-                contentContainerStyle={styles.listContent}
+                contentContainerStyle={[styles.listContent, { paddingTop: insets.top + 66 + Spacing.xl }]}
                 showsVerticalScrollIndicator={false}
                 initialNumToRender={12}
                 maxToRenderPerBatch={12}
@@ -491,19 +492,26 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
     const payloadTranslateY = transitionAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] });
 
     return (
-        <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={styles.container}>
 
 
             {/* LAYER 1: IMMEDIATE SHELL */}
-            <View style={styles.topBar}>
-                <AppleIconButton onPress={onGoBack} style={styles.backBtn} size={42} icon={<ChevronLeft size={24} color={Colors.text} />} />
+            <View style={[styles.topBar, { paddingTop: insets.top + 12, position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }]}>
+                <AppleIconButton 
+                    onPress={onGoBack} 
+                    style={[styles.backBtn, { borderWidth: 0, shadowOpacity: 0, elevation: 0 }]} 
+                    backgroundColor="transparent"
+                    size={42} 
+                    icon={<ChevronLeft size={24} color={Colors.text} />} 
+                />
 
                 <View style={{ flex: 1 }} />
 
                 <View ref={menuBtnRef} collapsable={false}>
                     <AppleIconButton
                         onPress={handleMenuPress}
-                        style={[styles.menuBtn, !isReady && { opacity: 0.5 }]}
+                        style={[styles.menuBtn, !isReady && { opacity: 0.5 }, { borderWidth: 0, shadowOpacity: 0, elevation: 0 }]}
+                        backgroundColor="transparent"
                         disabled={!isReady}
                         size={42}
                         icon={<MoreVertical size={22} color={Colors.text} strokeWidth={1.5} />}
@@ -512,7 +520,7 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
             </View>
 
             {/* CONTENT: Skeleton → Payload Drift & Expand Transition */}
-            <View style={{ flex: 1, position: 'relative' }}>
+            <View style={StyleSheet.absoluteFill}>
                 {/* Skeleton (Exit Layer) */}
                 {!showContent && (
                     <Animated.View
@@ -520,6 +528,7 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
                         style={[
                             StyleSheet.absoluteFill,
                             {
+                                paddingTop: insets.top + 66,
                                 opacity: skelOpacity,
                                 transform: [{ scale: skelScale }, { translateY: skelTranslateY }]
                             }
@@ -557,7 +566,7 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
                 icon={<Plus strokeWidth={1.5} color="#FFF" size={32} />}
                 size={60}
                 onPress={handleFabPress}
-                style={{ position: 'absolute', bottom: 140, right: 20, zIndex: 9999, shadowColor: 'rgba(0, 0, 0, 0.6)', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 1, shadowRadius: 10, elevation: 10 }}
+                style={{ position: 'absolute', bottom: 140, right: 20, zIndex: 9999, shadowColor: 'rgba(0, 0, 0, 0.6)', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 1, shadowRadius: 10, elevation: 0 }}
             />
         </View>
     );
@@ -584,7 +593,6 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     listContent: {
-        paddingTop: Spacing.xl,
         paddingHorizontal: Spacing.md,
         paddingBottom: 100,
     },

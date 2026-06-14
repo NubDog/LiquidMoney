@@ -189,14 +189,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
     }, [refreshWallets]);
 
     return (
-        <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={styles.container}>
             <FlatList
                 data={wallets}
                 renderItem={renderWalletItem}
                 keyExtractor={keyExtractor}
                 ListHeaderComponent={ListHeader}
                 ListEmptyComponent={emptyState}
-                contentContainerStyle={styles.listContent}
+                contentContainerStyle={[styles.listContent, { paddingTop: insets.top }]}
                 showsVerticalScrollIndicator={false}
                 ItemSeparatorComponent={ItemSeparator}
                 initialNumToRender={6}
@@ -229,7 +229,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
                     shadowOffset: { width: 0, height: 4 },
                     shadowOpacity: 1,
                     shadowRadius: 10,
-                    elevation: 10,
+                    elevation: 0, // Fix Android low-poly shadow showing through translucent background
                 }} 
             />
 

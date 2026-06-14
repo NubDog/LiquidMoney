@@ -30,29 +30,31 @@ const AppleWalletCard: React.FC<AppleWalletCardProps> = ({
             activeOpacity={0.9}
             disabled={!onPress && !onLongPress}
         >
-            {/* Background Image Container */}
-            <View style={[StyleSheet.absoluteFillObject, { alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }]}>
-                <Image
-                    source={imageUri ? { uri: imageUri } : require('../../assets/img/Background_Card.jpg')}
-                    style={{ width: '100%', height: '100%' }}
-                    resizeMode="cover"
-                />
-                {/* Lớp phủ mờ 20% giúp chữ luôn nổi bật trên ảnh nền tuỳ biến */}
-                <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0,0,0,0.2)' }]} />
-            </View>
+            <View style={styles.innerContainer}>
+                {/* Background Image Container */}
+                <View style={[StyleSheet.absoluteFillObject, { alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }]}>
+                    <Image
+                        source={imageUri ? { uri: imageUri } : require('../../assets/img/Background_Card.jpg')}
+                        style={{ width: '100%', height: '100%' }}
+                        resizeMode="cover"
+                    />
+                    {/* Lớp phủ mờ 20% giúp chữ luôn nổi bật trên ảnh nền tuỳ biến */}
+                    <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0,0,0,0.2)' }]} />
+                </View>
 
-            {/* Apple-style minimalist curved highlight */}
-            <View style={styles.appleCurve} />
-            <View style={styles.gradientHighlight} />
+                {/* Apple-style minimalist curved highlight */}
+                <View style={styles.appleCurve} />
+                <View style={styles.gradientHighlight} />
 
-            <View style={styles.content}>
-                <Text style={styles.name}>{name.toUpperCase()}</Text>
+                <View style={styles.content}>
+                    <Text style={styles.name}>{name.toUpperCase()}</Text>
 
-                <View style={styles.balanceContainer}>
-                    <Text style={styles.balanceSign}>$</Text>
-                    <Text style={styles.balanceAmount} numberOfLines={1} adjustsFontSizeToFit>
-                        {formattedBalance}
-                    </Text>
+                    <View style={styles.balanceContainer}>
+                        <Text style={styles.balanceSign}>$</Text>
+                        <Text style={styles.balanceAmount} numberOfLines={1} adjustsFontSizeToFit>
+                            {formattedBalance}
+                        </Text>
+                    </View>
                 </View>
             </View>
         </TouchableOpacity>
@@ -65,13 +67,15 @@ const styles = StyleSheet.create({
         aspectRatio: 2.2, // Tighter aspect ratio to make it less tall
         backgroundColor: '#0A0A0C', // Deep premium black
         borderRadius: Radii.xl,
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.06)',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 12 },
         shadowOpacity: 0.6,
         shadowRadius: 24,
         elevation: 10,
+    },
+    innerContainer: {
+        flex: 1,
+        borderRadius: Radii.xl,
         overflow: 'hidden',
     },
     appleCurve: {
@@ -91,10 +95,6 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         height: '100%',
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(255, 255, 255, 0.15)',
-        borderLeftWidth: 0.5,
-        borderLeftColor: 'rgba(255, 255, 255, 0.05)',
     },
     content: {
         flex: 1,

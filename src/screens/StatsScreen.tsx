@@ -442,22 +442,24 @@ const StatsScreen: React.FC = () => {
 
     if (!isDatabaseAvailable()) {
         return (
-            <View style={[s.container, { paddingTop: insets.top + 16 }, s.center]}>
+            <View style={[s.container, s.center]}>
                 <Text style={s.dbError}>Database chưa sẵn sàng</Text>
             </View>
         );
     }
 
     return (
-        <View style={[s.container, { paddingTop: insets.top + 8 }]}>
+        <View style={s.container}>
             {!isReady ? (
-                <StatsSkeleton />
+                <View style={{ paddingTop: insets.top + 8 }}>
+                    <StatsSkeleton />
+                </View>
             ) : (
                 <>
                     <Animated.View style={{ flex: 1, opacity: showContent ? contentOpacity : 0 }}>
                     <ScrollView
                         showsVerticalScrollIndicator={false}
-                        contentContainerStyle={s.content}
+                        contentContainerStyle={[s.content, { paddingTop: insets.top + 8 }]}
                         onScroll={handleScroll}
                         scrollEventThrottle={16}
                         delaysContentTouches={false}

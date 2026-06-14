@@ -141,8 +141,8 @@ const SettingsScreen: React.FC = () => {
     return (
         <>
             <ScrollView
-                style={[styles.container, { paddingTop: insets.top + 16 }]}
-                contentContainerStyle={styles.content}
+                style={styles.container}
+                contentContainerStyle={[styles.content, { paddingTop: insets.top + 16 }]}
                 showsVerticalScrollIndicator={false}
                 refreshControl={
                     <RefreshControl
