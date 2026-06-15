@@ -129,7 +129,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
             <View style={styles.container}>
                 <AnimatedOverlay visible={visible} onPress={handleClose} />
                 <KeyboardAvoidingView
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                     style={styles.keyboardView}
                     pointerEvents="box-none">
                     <Animated.View style={[styles.sheetContainer, { flexShrink: 1, maxHeight: '90%', transform: [{ translateY }] }]}>
