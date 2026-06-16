@@ -20,13 +20,8 @@ class MainActivity : ReactActivity() {
 
     // Can thiệp sâu phần cứng (Deep Hardware Override: 120Hz/144Hz)
     // Thực thi ở onResume để đảm bảo RN không reset lại cài đặt khi reload màn hình
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-        // Lớp 2: Android 11+ dùng setFrameRate siêu mượt, không gây lỗi GPU scale
-        window.decorView.post {
-            window.setFrameRate(144f, Surface.FRAME_RATE_COMPATIBILITY_DEFAULT)
-        }
-    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-        // Lớp 3: Android 6-10 dùng preferredDisplayModeId nhưng có Khóa Độ Phân Giải
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        // Lớp 3: Dùng preferredDisplayModeId nhưng có Khóa Độ Phân Giải (An toàn cho mọi máy)
         val display = windowManager.defaultDisplay
         val currentMode = display.mode
         val supportedModes = display.supportedModes
@@ -50,6 +45,7 @@ class MainActivity : ReactActivity() {
             window.attributes = layoutParams
         }
     }
+
   }
   /**
    * Returns the name of the main component registered from JavaScript. This is used to schedule
