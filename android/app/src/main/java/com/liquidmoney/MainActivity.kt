@@ -13,8 +13,13 @@ class MainActivity : ReactActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+  }
+
+  override fun onResume() {
+    super.onResume()
 
     // Can thiệp sâu phần cứng (Deep Hardware Override: 120Hz/144Hz)
+    // Thực thi ở onResume để đảm bảo RN không reset lại cài đặt khi reload màn hình
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
         // Lớp 2: Android 11+ dùng setFrameRate siêu mượt, không gây lỗi GPU scale
         window.decorView.post {
