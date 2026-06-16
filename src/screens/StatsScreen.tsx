@@ -462,6 +462,7 @@ const StatsScreen: React.FC = () => {
                         contentContainerStyle={[s.content, { paddingTop: insets.top + 8 }]}
                         onScroll={handleScroll}
                         scrollEventThrottle={16}
+                        // @ts-ignore - Thuộc tính này có thật trên Native (ScrollView) nhưng bị thiếu trong TypeScript
                         delaysContentTouches={false}
                         refreshControl={
                             <RefreshControl

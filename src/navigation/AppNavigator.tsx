@@ -23,6 +23,7 @@ import { Easing } from 'react-native';
 
 
 import LiquidBackground from '../components/layout/LiquidBackground';
+import FPSMonitorComponent from '../components/ui/FPSMonitor';
 import HomeScreen from '../screens/HomeScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import StatsScreen from '../screens/StatsScreen';
@@ -262,6 +263,7 @@ const AppNavigator: React.FC = () => {
     return (
         <View style={styles.root} {...panResponder.panHandlers}>
             <LiquidBackground />
+            <FPSMonitorComponent />
 
             {/* Sliding Container — always rendered all 4 screens for flawless memory allocation */}
             <Animated.View
