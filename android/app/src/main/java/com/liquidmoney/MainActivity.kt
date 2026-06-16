@@ -3,6 +3,7 @@ package com.liquidmoney
 import android.os.Bundle
 import android.os.Build
 import android.view.WindowManager
+import android.view.Surface
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
@@ -13,21 +14,32 @@ class MainActivity : ReactActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
 
-    // Ép xung màn hình (Force High Refresh Rate: 90Hz/120Hz/144Hz)
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+    // Can thiệp sâu phần cứng (Deep Hardware Override: 120Hz/144Hz)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        // Lớp 2: Android 11+ dùng setFrameRate siêu mượt, không gây lỗi GPU scale
+        window.decorView.post {
+            window.setFrameRate(144f, Surface.FRAME_RATE_COMPATIBILITY_DEFAULT)
+        }
+    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        // Lớp 3: Android 6-10 dùng preferredDisplayModeId nhưng có Khóa Độ Phân Giải
         val display = windowManager.defaultDisplay
+        val currentMode = display.mode
         val supportedModes = display.supportedModes
-        var maxRefreshRate = 0f
-        var preferredModeId = 0
+        var maxRefreshRate = currentMode.refreshRate
+        var preferredModeId = currentMode.modeId
         
         for (mode in supportedModes) {
-            if (mode.refreshRate > maxRefreshRate) {
+            // Rất quan trọng: Chỉ chọn chế độ có CÙNG độ phân giải để chống GPU bị "lú" (Stuttering)
+            if (mode.physicalWidth == currentMode.physicalWidth && 
+                mode.physicalHeight == currentMode.physicalHeight && 
+                mode.refreshRate > maxRefreshRate) {
+                
                 maxRefreshRate = mode.refreshRate
                 preferredModeId = mode.modeId
             }
         }
         
-        if (preferredModeId != 0) {
+        if (preferredModeId != currentMode.modeId) {
             val layoutParams = window.attributes
             layoutParams.preferredDisplayModeId = preferredModeId
             window.attributes = layoutParams
