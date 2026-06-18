@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Dimensions, Easing, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring, Easing, runOnJS } from 'react-native-reanimated';
 import Svg, { Defs, LinearGradient, Rect, Stop, Text as SvgText } from 'react-native-svg';
 import { Colors, FontSizes, Spacing } from '../../common/theme';
 import { formatVNDShort } from '../../common/formatters';
@@ -30,64 +31,36 @@ const AppleBarChart: React.FC<AppleBarChartProps> = React.memo(({ data, period }
     const [displayData, setDisplayData] = useState(data);
 
     // Scale animation for bars dropping and growing
-    const barScale = useRef(new Animated.Value(0)).current;
+    const barScale = useSharedValue(0);
     
     // Fade animation for X-axis labels to transition smoothly
-    const labelsFade = useRef(new Animated.Value(0)).current;
+    const labelsFade = useSharedValue(0);
 
     useEffect(() => {
         // Run initial mount animation
-        Animated.parallel([
-            Animated.spring(barScale, {
-                toValue: 1,
-                damping: 14,
-                stiffness: 120,
-                useNativeDriver: true,
-            }),
-            Animated.timing(labelsFade, {
-                toValue: 1,
-                duration: 400,
-                useNativeDriver: true,
-            })
-        ]).start();
+        barScale.value = withSpring(1, { damping: 14, stiffness: 120 });
+        labelsFade.value = withTiming(1, { duration: 400 });
     }, [barScale, labelsFade]);
+
+    const swapDataAndAnimate = (newData: ChartDataPoint[]) => {
+        setDisplayData(newData);
+        
+        // Wait a tiny bit to ensure JS paints the swap, then grow up gracefully
+        setTimeout(() => {
+            barScale.value = withSpring(1, { damping: 14, stiffness: 110 });
+            labelsFade.value = withTiming(1, { duration: 400 });
+        }, 50);
+    };
 
     useEffect(() => {
         if (data === displayData) return;
 
         // Sequence: Drop down -> Swap -> Grow up
-        Animated.parallel([
-            Animated.timing(barScale, {
-                toValue: 0,
-                duration: 400,
-                easing: Easing.in(Easing.cubic),
-                useNativeDriver: true,
-            }),
-            Animated.timing(labelsFade, {
-                toValue: 0,
-                duration: 400,
-                useNativeDriver: true,
-            })
-        ]).start(() => {
-            // Swap data
-            setDisplayData(data);
-            
-            // Wait a tiny bit to ensure JS paints the swap, then grow up gracefully
-            setTimeout(() => {
-                Animated.parallel([
-                    Animated.spring(barScale, {
-                        toValue: 1,
-                        damping: 14,
-                        stiffness: 110,
-                        useNativeDriver: true,
-                    }),
-                    Animated.timing(labelsFade, {
-                        toValue: 1,
-                        duration: 400,
-                        useNativeDriver: true,
-                    })
-                ]).start();
-            }, 50);
+        barScale.value = withTiming(0, { duration: 400, easing: Easing.in(Easing.cubic) });
+        labelsFade.value = withTiming(0, { duration: 400 }, (finished) => {
+            if (finished) {
+                runOnJS(swapDataAndAnimate)(data);
+            }
         });
     }, [data, displayData, barScale, labelsFade]);
 

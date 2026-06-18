@@ -1,13 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-    Animated,
     Modal,
     Pressable,
     StyleSheet,
     Text,
     View,
-    Easing,
 } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing, runOnJS } from 'react-native-reanimated';
 import { FontSizes, Radii, Shadows, Spacing } from '../../common/theme';
 
 export interface MenuItem {
@@ -34,65 +33,46 @@ const ApplePopupMenu: React.FC<ApplePopupMenuProps> = ({
     const [isRendered, setIsRendered] = useState(false);
     
     // Animation values
-    const scaleAnim = useRef(new Animated.Value(0.9)).current;
-    const opacityAnim = useRef(new Animated.Value(0)).current;
-    const translateYAnim = useRef(new Animated.Value(-10)).current;
+    const scaleAnim = useSharedValue(0.9);
+    const opacityAnim = useSharedValue(0);
+    const translateYAnim = useSharedValue(-10);
 
     useEffect(() => {
         if (visible) {
             setIsRendered(true);
             
             // Reset before animating (start closer to 1 to avoid large leaps)
-            scaleAnim.setValue(0.85);
-            opacityAnim.setValue(0);
-            translateYAnim.setValue(-15);
+            scaleAnim.value = 0.85;
+            opacityAnim.value = 0;
+            translateYAnim.value = -15;
             
             // Wait for Modal to mount to prevent frame drops/stuttering
             requestAnimationFrame(() => {
-                Animated.parallel([
-                    Animated.timing(opacityAnim, {
-                        toValue: 1,
-                        duration: 400,
-                        easing: Easing.out(Easing.cubic),
-                        useNativeDriver: true,
-                    }),
-                    Animated.timing(scaleAnim, {
-                        toValue: 1,
-                        duration: 400,
-                        easing: Easing.out(Easing.back(1.2)),
-                        useNativeDriver: true,
-                    }),
-                    Animated.timing(translateYAnim, {
-                        toValue: 0,
-                        duration: 400,
-                        easing: Easing.out(Easing.back(1.2)),
-                        useNativeDriver: true,
-                    }),
-                ]).start();
+                opacityAnim.value = withTiming(1, { duration: 400, easing: Easing.out(Easing.cubic) });
+                scaleAnim.value = withTiming(1, { duration: 400, easing: Easing.out(Easing.back(1.2)) });
+                translateYAnim.value = withTiming(0, { duration: 400, easing: Easing.out(Easing.back(1.2)) });
             });
         } else if (isRendered) {
             // Smooth exit animation
-            Animated.parallel([
-                Animated.timing(opacityAnim, {
-                    toValue: 0,
-                    duration: 400,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(scaleAnim, {
-                    toValue: 0.8,
-                    duration: 400,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(translateYAnim, {
-                    toValue: -10,
-                    duration: 400,
-                    useNativeDriver: true,
-                }),
-            ]).start(() => {
-                setIsRendered(false);
+            opacityAnim.value = withTiming(0, { duration: 400 });
+            scaleAnim.value = withTiming(0.8, { duration: 400 });
+            translateYAnim.value = withTiming(-10, { duration: 400 }, (finished) => {
+                if (finished) runOnJS(setIsRendered)(false);
             });
         }
     }, [visible]);
+
+    const animatedOverlayStyle = useAnimatedStyle(() => ({
+        opacity: opacityAnim.value
+    }));
+
+    const animatedMenuStyle = useAnimatedStyle(() => ({
+        opacity: opacityAnim.value,
+        transform: [
+            { translateY: translateYAnim.value },
+            { scale: scaleAnim.value }
+        ]
+    }));
 
     if (!visible && !isRendered) return null;
 
@@ -105,7 +85,7 @@ const ApplePopupMenu: React.FC<ApplePopupMenuProps> = ({
             onRequestClose={onClose}>
             <View style={styles.root}>
                 {/* Overlay để click ra ngoài là tắt */}
-                <Animated.View style={[StyleSheet.absoluteFill, { opacity: opacityAnim }]}>
+                <Animated.View style={[StyleSheet.absoluteFill, animatedOverlayStyle]}>
                     <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
                 </Animated.View>
                 
@@ -116,12 +96,8 @@ const ApplePopupMenu: React.FC<ApplePopupMenuProps> = ({
                         {
                             top: anchor.y + 8,
                             right: anchor.x,
-                            opacity: opacityAnim,
-                            transform: [
-                                { translateY: translateYAnim },
-                                { scale: scaleAnim }
-                            ],
-                        }
+                        },
+                        animatedMenuStyle
                     ]}
                 >
                     <View style={styles.card}>

@@ -1,15 +1,16 @@
 import React from 'react';
-import { Animated, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { Spacing, Radii } from '../../../common/theme';
 
 interface Props {
-    pulseAnim: Animated.Value;
+    pulseStyle: any;
 }
 
-export const FilterSkeleton: React.FC<Props> = ({ pulseAnim }) => {
+export const FilterSkeleton: React.FC<Props> = ({ pulseStyle }) => {
     return (
         <View style={styles.filterWrapper}>
-            <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,255,255,0.03)', opacity: pulseAnim }]} />
+            <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,255,255,0.03)' }, pulseStyle]} />
         </View>
     );
 };

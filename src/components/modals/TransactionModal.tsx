@@ -5,7 +5,6 @@
 import React, { useRef, useState } from 'react';
 import {
     ActivityIndicator,
-    Animated,
     Keyboard,
     KeyboardAvoidingView,
     Modal,
@@ -18,9 +17,10 @@ import {
     TouchableWithoutFeedback,
     ScrollView,
 } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, cancelAnimation, runOnJS } from 'react-native-reanimated';
 import { Calendar as CalendarIcon, X } from 'lucide-react-native';
 import { format } from 'date-fns';
-import { animateSheetIn, animateSheetOut } from '../../common/animations';
+import { animateSheetIn } from '../../common/animations';
 import AnimatedOverlay from '../overlays/AnimatedOverlay';
 import AppleButton from '../ui/AppleButton';
 import AppleTextInput from '../ui/AppleTextInput';
@@ -62,15 +62,15 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
     // const [toWalletId, setToWalletId] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const translateY = useRef(new Animated.Value(600)).current;
+    const translateY = useSharedValue(600);
     const amountInputRef = useRef<TextInput>(null);
 
     const prevVisible = useRef(false);
 
     React.useEffect(() => {
         if (visible && !prevVisible.current) {
-            translateY.stopAnimation();
-            animateSheetIn(translateY).start();
+            cancelAnimation(translateY);
+            animateSheetIn(translateY);
             if (editData) {
                 setAmount(editData.amount ? editData.amount.toString() : '');
                 setDescription(editData.reason || '');
@@ -88,9 +88,11 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
 
     const handleClose = () => {
         Keyboard.dismiss();
-        translateY.stopAnimation();
-        animateSheetOut(translateY, 600, 250).start(() => {
-            onClose();
+        cancelAnimation(translateY);
+        translateY.value = withTiming(600, { duration: 250 }, (finished) => {
+            if (finished) {
+                runOnJS(onClose)();
+            }
         });
     };
 
@@ -117,6 +119,10 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
         }
     };
 
+    const animatedSheetStyle = useAnimatedStyle(() => ({
+        transform: [{ translateY: translateY.value }]
+    }));
+
     // Native Keyboard Avoidance + ScrollView will handle everything smoothly.
 
     return (
@@ -132,7 +138,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                     behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                     style={styles.keyboardView}
                     pointerEvents="box-none">
-                    <Animated.View style={[styles.sheetContainer, { flexShrink: 1, maxHeight: '90%', transform: [{ translateY }] }]}>
+                    <Animated.View style={[styles.sheetContainer, { flexShrink: 1, maxHeight: '90%' }, animatedSheetStyle]}>
                         <ScrollView
                             bounces={false}
                             showsVerticalScrollIndicator={true}

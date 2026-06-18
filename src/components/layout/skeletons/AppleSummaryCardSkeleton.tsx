@@ -1,33 +1,34 @@
 import React from 'react';
-import { Animated, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { Spacing, Radii } from '../../../common/theme';
 
 interface Props {
-    pulseAnim: Animated.Value;
+    pulseStyle: any;
 }
 
-export const AppleSummaryCardSkeleton: React.FC<Props> = ({ pulseAnim }) => {
+export const AppleSummaryCardSkeleton: React.FC<Props> = ({ pulseStyle }) => {
     return (
         <View style={styles.headerCard}>
             <View style={styles.headerCardInner}>
                 {/* Wallet Name */}
-                <Animated.View style={[styles.shimmerBox, { width: 100, height: 20, opacity: pulseAnim, marginBottom: Spacing.sm }]} />
+                <Animated.View style={[styles.shimmerBox, { width: 100, height: 20, marginBottom: Spacing.sm }, pulseStyle]} />
                 
                 {/* Balance Label */}
-                <Animated.View style={[styles.shimmerBox, { width: 90, height: 16, marginTop: Spacing.xs, opacity: pulseAnim }]} />
+                <Animated.View style={[styles.shimmerBox, { width: 90, height: 16, marginTop: Spacing.xs }, pulseStyle]} />
                 
                 {/* Balance Amount */}
-                <Animated.View style={[styles.shimmerBox, { width: '60%', height: 44, marginTop: 4, opacity: pulseAnim }]} />
+                <Animated.View style={[styles.shimmerBox, { width: '60%', height: 44, marginTop: 4 }, pulseStyle]} />
                 
                 {/* Balance Row */}
                 <View style={styles.headerRow}>
                     <View style={{flex: 1}}>
-                        <Animated.View style={[styles.shimmerBox, { width: 50, height: 14, marginBottom: 4, opacity: pulseAnim }]} />
-                        <Animated.View style={[styles.shimmerBox, { width: 100, height: 20, opacity: pulseAnim }]} />
+                        <Animated.View style={[styles.shimmerBox, { width: 50, height: 14, marginBottom: 4 }, pulseStyle]} />
+                        <Animated.View style={[styles.shimmerBox, { width: 100, height: 20 }, pulseStyle]} />
                     </View>
                     <View style={{flex: 1}}>
-                        <Animated.View style={[styles.shimmerBox, { width: 70, height: 14, marginBottom: 4, opacity: pulseAnim }]} />
-                        <Animated.View style={[styles.shimmerBox, { width: 120, height: 20, opacity: pulseAnim }]} />
+                        <Animated.View style={[styles.shimmerBox, { width: 70, height: 14, marginBottom: 4 }, pulseStyle]} />
+                        <Animated.View style={[styles.shimmerBox, { width: 120, height: 20 }, pulseStyle]} />
                     </View>
                 </View>
             </View>

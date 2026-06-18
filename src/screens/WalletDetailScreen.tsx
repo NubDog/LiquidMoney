@@ -19,10 +19,9 @@ import {
     StyleSheet,
     Text,
     View,
-    Animated,
-    Easing,
     Platform,
 } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing, interpolate, Extrapolation, runOnJS } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronLeft, MoreVertical, Plus } from 'lucide-react-native';
 
@@ -419,11 +418,28 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
     const [isReady, setIsReady] = useState(false);
     const [showContent, setShowContent] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(true);
-    const transitionAnim = useRef(new Animated.Value(0)).current;
+    const transitionAnim = useSharedValue(0);
+
+    const mountedRef = useRef(true);
+    useEffect(() => {
+        mountedRef.current = true;
+        return () => {
+            mountedRef.current = false;
+        };
+    }, []);
+
+    const handleTransitionComplete = useCallback(() => {
+        if (!mountedRef.current) return;
+        setShowContent(true);
+        // Đợi TẤT CẢ animation (kể cả mờ màn hình chính) kết thúc hẳn rồi mới render danh sách giao dịch
+        InteractionManager.runAfterInteractions(() => {
+            if (mountedRef.current) {
+                setIsTransitioning(false);
+            }
+        });
+    }, []);
 
     useEffect(() => {
-        let mounted = true;
-
         const load = async () => {
             try {
                 selectWallet(walletId);
@@ -435,34 +451,25 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
             // Đợi 500ms để hiển thị Skeleton (Tạo cảm giác tải dữ liệu tự nhiên)
             await delay(500);
 
-            if (!mounted) return;
+            if (!mountedRef.current) return;
 
             // Immediately mount payload in transition state to prepare layout
             setIsReady(true);
             
             // Defer loading heavy FlatList items to free up JS Thread for animation
-            if (!mounted) return;
+            if (!mountedRef.current) return;
             
-            Animated.timing(transitionAnim, {
-                toValue: 1,
-                useNativeDriver: true,
+            transitionAnim.value = withTiming(1, {
                 duration: 400, // Super fast transition
                 easing: Easing.out(Easing.cubic),
-            }).start(() => {
-                if (mounted) {
-                    setShowContent(true);
-                    // Đợi TẤT CẢ animation (kể cả mờ màn hình chính) kết thúc hẳn rồi mới render danh sách giao dịch
-                    InteractionManager.runAfterInteractions(() => {
-                        if (mounted) {
-                            setIsTransitioning(false); 
-                        }
-                    });
+            }, (finished) => {
+                if (finished) {
+                    runOnJS(handleTransitionComplete)();
                 }
             });
         };
 
         load();
-        return () => { mounted = false; };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [walletId]);
 
@@ -479,13 +486,21 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
     }, []);
 
     // ─── Pro Max Animation Interpolations ───────────────────────────────────────
-    const skelOpacity = transitionAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 0] });
-    const skelScale = transitionAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 0.95] });
-    const skelTranslateY = transitionAnim.interpolate({ inputRange: [0, 1], outputRange: [0, -15] });
+    const animatedSkelStyle = useAnimatedStyle(() => ({
+        opacity: interpolate(transitionAnim.value, [0, 1], [1, 0], Extrapolation.CLAMP),
+        transform: [
+            { scale: interpolate(transitionAnim.value, [0, 1], [1, 0.95], Extrapolation.CLAMP) },
+            { translateY: interpolate(transitionAnim.value, [0, 1], [0, -15], Extrapolation.CLAMP) }
+        ]
+    }));
 
-    const payloadOpacity = transitionAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
-    const payloadScale = transitionAnim.interpolate({ inputRange: [0, 1], outputRange: [0.95, 1] });
-    const payloadTranslateY = transitionAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] });
+    const animatedPayloadStyle = useAnimatedStyle(() => ({
+        opacity: interpolate(transitionAnim.value, [0, 1], [0, 1], Extrapolation.CLAMP),
+        transform: [
+            { scale: interpolate(transitionAnim.value, [0, 1], [0.95, 1], Extrapolation.CLAMP) },
+            { translateY: interpolate(transitionAnim.value, [0, 1], [20, 0], Extrapolation.CLAMP) }
+        ]
+    }));
 
     return (
         <View style={styles.container}>
@@ -525,9 +540,8 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
                             StyleSheet.absoluteFill,
                             {
                                 paddingTop: insets.top + 66,
-                                opacity: skelOpacity,
-                                transform: [{ scale: skelScale }, { translateY: skelTranslateY }]
-                            }
+                            },
+                            animatedSkelStyle
                         ]}
                     >
                         <WalletDetailSkeleton />
@@ -539,10 +553,7 @@ const WalletDetailScreen: React.FC<WalletDetailScreenProps> = ({
                     <Animated.View
                         style={[
                             StyleSheet.absoluteFill,
-                            {
-                                opacity: payloadOpacity,
-                                transform: [{ scale: payloadScale }, { translateY: payloadTranslateY }]
-                            }
+                            animatedPayloadStyle
                         ]}
                     >
                         <WalletPayload

@@ -1,47 +1,32 @@
-import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, View } from 'react-native';
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { Spacing, Radii } from '../../../common/theme';
+import { usePulseAnimation } from '../../../common/animations';
 
 import { AppleSummaryCardSkeleton } from './AppleSummaryCardSkeleton';
 import { FilterSkeleton } from './FilterSkeleton';
 import { AppleTransactionRowSkeleton } from './AppleTransactionRowSkeleton';
 
 export const WalletDetailSkeleton = () => {
-    // Pulse animation shared among all skeleton children
-    const pulseAnim = useRef(new Animated.Value(0.3)).current;
-
-    useEffect(() => {
-        Animated.loop(
-            Animated.sequence([
-                Animated.timing(pulseAnim, {
-                    toValue: 0.7,
-                    duration: 400,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(pulseAnim, {
-                    toValue: 0.3,
-                    duration: 400,
-                    useNativeDriver: true,
-                }),
-            ]),
-        ).start();
-    }, [pulseAnim]);
+    // Shared native pulse animation for all skeleton children
+    const pulseStyle = usePulseAnimation();
 
     return (
         <View style={styles.container}>
-            <AppleSummaryCardSkeleton pulseAnim={pulseAnim} />
+            <AppleSummaryCardSkeleton pulseStyle={pulseStyle} />
 
-            <FilterSkeleton pulseAnim={pulseAnim} />
+            <FilterSkeleton pulseStyle={pulseStyle} />
 
             {/* Title Skel */}
             <View style={styles.sectionTitleWrap}>
-                <Animated.View style={[styles.shimmerBox, { width: 130, height: 20, opacity: pulseAnim }]} />
+                <Animated.View style={[styles.shimmerBox, { width: 130, height: 20 }, pulseStyle]} />
             </View>
 
             {/* List Skel perfectly matching AppleTransactionRow */}
             <View>
                 {[1, 2, 3, 4, 5, 6].map((key) => (
-                    <AppleTransactionRowSkeleton key={key} pulseAnim={pulseAnim} />
+                    <AppleTransactionRowSkeleton key={key} pulseStyle={pulseStyle} />
                 ))}
             </View>
         </View>

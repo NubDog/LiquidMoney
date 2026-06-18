@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Animated } from 'react-native';
+import { useSharedValue, withSpring, cancelAnimation } from 'react-native-reanimated';
 
 interface UseWaterDropAnimationProps {
     options: { key: string; label: string }[];
@@ -15,10 +15,10 @@ export const useWaterDropAnimation = ({
     paddingHorizontal = 4,
 }: UseWaterDropAnimationProps) => {
     const [containerWidth, setContainerWidth] = useState(0);
-    const translateXAnim = useRef(new Animated.Value(0)).current;
+    const translateXAnim = useSharedValue(0);
     
     // We can also animate scaleX for a bouncy width effect
-    const scaleXAnim = useRef(new Animated.Value(1)).current;
+    const scaleXAnim = useSharedValue(1);
     
     const prevIdx = useRef(options.findIndex(o => o.key === selected));
     const prevWidth = useRef(0);
@@ -42,8 +42,8 @@ export const useWaterDropAnimation = ({
         if (idx === prevIdx.current) {
             if (isWidthChanged) {
                 // Initial snap
-                translateXAnim.setValue(targetX);
-                scaleXAnim.setValue(1);
+                translateXAnim.value = targetX;
+                scaleXAnim.value = 1;
             }
             return;
         }
@@ -54,34 +54,27 @@ export const useWaterDropAnimation = ({
         // "Water Drop" stretching effect via scaleX
         // Since transform-origin is center by default, we stretch it momentarily
         // We set the stretch scale instantly, and then spring back to 1.
-        // This avoids Animated.sequence, which relies on the JS thread and gets 
-        // blocked by the FlatList re-rendering when the filter changes.
         const stretchScale = 1 + (distance * 0.35);
 
         // Stop any running animations to prevent conflicts
-        translateXAnim.stopAnimation();
-        scaleXAnim.stopAnimation();
+        cancelAnimation(translateXAnim);
+        cancelAnimation(scaleXAnim);
 
         // Instantly stretch
-        scaleXAnim.setValue(stretchScale);
+        scaleXAnim.value = stretchScale;
 
-        // Animate purely natively without relying on JS sequence callbacks
-        Animated.parallel([
-            Animated.spring(translateXAnim, {
-                toValue: targetX,
-                stiffness: 250,
-                damping: 24,
-                mass: 1,
-                useNativeDriver: true,
-            }),
-            Animated.spring(scaleXAnim, {
-                toValue: 1,
-                stiffness: 200,
-                damping: 18,
-                mass: 1,
-                useNativeDriver: true,
-            })
-        ]).start();
+        // Animate natively
+        translateXAnim.value = withSpring(targetX, {
+            stiffness: 250,
+            damping: 24,
+            mass: 1,
+        });
+        
+        scaleXAnim.value = withSpring(1, {
+            stiffness: 200,
+            damping: 18,
+            mass: 1,
+        });
 
     }, [selected, containerWidth, options, tabWidth, gap, paddingHorizontal, translateXAnim, scaleXAnim]);
 

@@ -1,13 +1,13 @@
-import React, { useRef } from 'react';
-import { StyleSheet, Text, View, type ViewStyle, type StyleProp, Animated, Pressable } from 'react-native';
+import React from 'react';
+import { StyleSheet, Text, View, type ViewStyle, type StyleProp, Pressable } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import AppleGlassBackground from '../ui/AppleGlassBackground';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 const SPRING_CONFIG = {
-    useNativeDriver: true,
-    friction: 7,
-    tension: 100,
+    damping: 7,
+    stiffness: 100,
 };
 
 interface LiquidButton2Props {
@@ -27,15 +27,19 @@ const LiquidButton2: React.FC<LiquidButton2Props> = ({
     disabled = false,
     disableBlur = false,
 }) => {
-    const scale = useRef(new Animated.Value(1)).current;
+    const scale = useSharedValue(1);
 
     const handlePressIn = () => {
-        Animated.spring(scale, { ...SPRING_CONFIG, toValue: 0.94 }).start();
+        scale.value = withSpring(0.94, SPRING_CONFIG);
     };
 
     const handlePressOut = () => {
-        Animated.spring(scale, { ...SPRING_CONFIG, toValue: 1 }).start();
+        scale.value = withSpring(1, SPRING_CONFIG);
     };
+
+    const animatedStyle = useAnimatedStyle(() => ({
+        transform: [{ scale: scale.value }]
+    }));
 
     const innerContent = (
         <View style={styles.contentContainer} collapsable={false}>
@@ -53,7 +57,7 @@ const LiquidButton2: React.FC<LiquidButton2Props> = ({
             onPressOut={handlePressOut}
             disabled={disabled}
             style={[
-                { transform: [{ scale }] },
+                animatedStyle,
                 style,
                 disabled && { opacity: 0.5 }
             ]}

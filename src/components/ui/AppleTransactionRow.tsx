@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, Pressable, Animated } from 'react-native';
+import React, { useEffect } from 'react';
+import { StyleSheet, Text, View, Pressable } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, withDelay } from 'react-native-reanimated';
 import { ArrowDownRight, ArrowUpRight, Repeat } from 'lucide-react-native';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -38,30 +39,21 @@ const AppleTransactionRow: React.FC<AppleTransactionRowProps> = ({
     // Giới hạn delay tối đa là cho 12 phần tử (để những mẻ tải sau không bị delay quá lâu)
     const animationDelay = (index % 12) * 50;
 
-    const opacity = useRef(new Animated.Value(0)).current;
-    const translateY = useRef(new Animated.Value(-15)).current; // -15 để trượt từ trên xuống (FadeInDown)
+    const opacity = useSharedValue(0);
+    const translateY = useSharedValue(-15);
 
     useEffect(() => {
-        Animated.parallel([
-            Animated.timing(opacity, {
-                toValue: 1,
-                duration: 400,
-                delay: animationDelay,
-                useNativeDriver: true,
-            }),
-            Animated.timing(translateY, {
-                toValue: 0,
-                duration: 400,
-                delay: animationDelay,
-                useNativeDriver: true,
-            })
-        ]).start();
+        opacity.value = withDelay(animationDelay, withTiming(1, { duration: 400 }));
+        translateY.value = withDelay(animationDelay, withTiming(0, { duration: 400 }));
     }, [opacity, translateY, animationDelay]);
 
+    const animatedStyle = useAnimatedStyle(() => ({
+        opacity: opacity.value,
+        transform: [{ translateY: translateY.value }]
+    }));
+
     return (
-        <Animated.View 
-            style={[styles.wrapper, { opacity, transform: [{ translateY }] }]}
-        >
+        <Animated.View style={[styles.wrapper, animatedStyle]}>
             <View style={styles.cardStyle}>
                 <Pressable
                     style={({ pressed }) => [

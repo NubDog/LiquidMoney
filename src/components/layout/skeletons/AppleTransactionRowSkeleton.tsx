@@ -1,21 +1,22 @@
 import React from 'react';
-import { Animated, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { Spacing, Radii } from '../../../common/theme';
 
 interface Props {
-    pulseAnim: Animated.Value;
+    pulseStyle: any;
 }
 
-export const AppleTransactionRowSkeleton: React.FC<Props> = ({ pulseAnim }) => {
+export const AppleTransactionRowSkeleton: React.FC<Props> = ({ pulseStyle }) => {
     return (
         <View style={styles.rowCard}>
             <View style={styles.rowContent}>
-                <Animated.View style={[styles.avatarSkel, { opacity: pulseAnim }]} />
+                <Animated.View style={[styles.avatarSkel, pulseStyle]} />
                 <View style={styles.textWrap}>
-                    <Animated.View style={[styles.shimmerBox, { width: '70%', height: 20, marginBottom: 2, opacity: pulseAnim }]} />
-                    <Animated.View style={[styles.shimmerBox, { width: '40%', height: 16, opacity: pulseAnim }]} />
+                    <Animated.View style={[styles.shimmerBox, { width: '70%', height: 20, marginBottom: 2 }, pulseStyle]} />
+                    <Animated.View style={[styles.shimmerBox, { width: '40%', height: 16 }, pulseStyle]} />
                 </View>
-                <Animated.View style={[styles.shimmerBox, { width: 80, height: 20, opacity: pulseAnim }]} />
+                <Animated.View style={[styles.shimmerBox, { width: 80, height: 20 }, pulseStyle]} />
             </View>
         </View>
     );
@@ -54,3 +55,4 @@ const styles = StyleSheet.create({
         marginRight: Spacing.xs,
     },
 });
+

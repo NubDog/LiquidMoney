@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Modal, StyleSheet, View, Text, Pressable, KeyboardAvoidingView, Platform, Animated, Easing } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Modal, StyleSheet, View, Text, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing, runOnJS, interpolate } from 'react-native-reanimated';
 import { BlurView } from '@react-native-community/blur';
 import { AlertTriangle } from 'lucide-react-native';
 
@@ -30,35 +31,42 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     isDestructive = false,
 }) => {
     const [isRendered, setIsRendered] = useState(visible);
-    const animValue = useRef(new Animated.Value(0)).current;
+    const animValue = useSharedValue(0);
+
+    const finishClose = () => {
+        setIsRendered(false);
+        animValue.value = 0; // reset for next open
+    };
 
     useEffect(() => {
         if (visible) {
             setIsRendered(true);
-            Animated.timing(animValue, {
-                toValue: 1,
+            animValue.value = withTiming(1, {
                 duration: 400,
                 easing: Easing.out(Easing.cubic),
-                useNativeDriver: true,
-            }).start();
+            });
         } else {
-            Animated.timing(animValue, {
-                toValue: 0,
+            animValue.value = withTiming(0, {
                 duration: 400,
                 easing: Easing.in(Easing.cubic),
-                useNativeDriver: true,
-            }).start(() => {
-                setIsRendered(false);
-                animValue.setValue(0); // reset for next open
+            }, (finished) => {
+                if (finished) {
+                    runOnJS(finishClose)();
+                }
             });
         }
     }, [visible, animValue]);
 
-    const opacity = animValue;
-    const scale = animValue.interpolate({
-        inputRange: [0, 1],
-        outputRange: [1.15, 1],
-    });
+    const animatedOpacityStyle = useAnimatedStyle(() => ({
+        opacity: animValue.value,
+    }));
+
+    const animatedContentStyle = useAnimatedStyle(() => ({
+        opacity: animValue.value,
+        transform: [{
+            scale: interpolate(animValue.value, [0, 1], [1.15, 1]),
+        }],
+    }));
 
     if (!isRendered && !visible) return null;
 
@@ -75,14 +83,14 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             >
                 {/* Backdrop Layer - Đen tuyền mờ mờ ảo ảo (Dark Frosted Glass) */}
                 <AnimatedBlurView
-                    style={[StyleSheet.absoluteFill, { zIndex: 0, opacity }]}
+                    style={[StyleSheet.absoluteFill, { zIndex: 0 }, animatedOpacityStyle]}
                     blurType="dark"
                     blurAmount={15}
                     reducedTransparencyFallbackColor="rgba(0,0,0,0.85)"
                 />
                 {/* Lớp màu đen nhẹ kết hợp với blur tạo ra độ mờ ảo, không bị đen thui */}
                 <Animated.View 
-                    style={[StyleSheet.absoluteFill, { zIndex: 0, backgroundColor: 'rgba(0, 0, 0, 0.45)', opacity }]} 
+                    style={[StyleSheet.absoluteFill, { zIndex: 0, backgroundColor: 'rgba(0, 0, 0, 0.45)' }, animatedOpacityStyle]} 
                     pointerEvents="none" 
                 />
 
@@ -90,7 +98,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                 <Pressable style={styles.backdropPressable} onPress={onCancel} />
 
                 {/* Main Dialog UI */}
-                <Animated.View style={[styles.contentWrapper, { opacity, transform: [{ scale }] }]} pointerEvents="box-none">
+                <Animated.View style={[styles.contentWrapper, animatedContentStyle]} pointerEvents="box-none">
                     <View style={styles.card}>
                         
                         {/* Icon */}

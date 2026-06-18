@@ -1,6 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
-    Animated,
     Keyboard,
     KeyboardAvoidingView,
     Modal,
@@ -14,8 +13,8 @@ import {
     ScrollView,
     Image
 } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, runOnJS } from 'react-native-reanimated';
 import { launchImageLibrary } from 'react-native-image-picker';
-import { SpringConfigs } from '../../common/animations';
 import AppleButton from '../ui/AppleButton';
 import AppleTextInput from '../ui/AppleTextInput';
 import AppleAmountInput from '../ui/AppleAmountInput';
@@ -49,8 +48,8 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
     const [balanceStr, setBalanceStr] = useState(formatCurrency(walletBalance.toString()));
     const [imageUri, setImageUri] = useState<string | null>(walletImageUri || null);
 
-    const sheetTranslateY = useRef(new Animated.Value(600)).current;
-    const opacityAnim = useRef(new Animated.Value(0)).current;
+    const sheetTranslateY = useSharedValue(600);
+    const opacityAnim = useSharedValue(0);
     const [shouldRender, setShouldRender] = useState(false);
 
     // Native Keyboard Avoidance + ScrollView will handle everything smoothly.
@@ -61,38 +60,18 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
             setName(walletName);
             setBalanceStr(formatCurrency(walletBalance.toString()));
             setImageUri(walletImageUri || null);
-            Animated.parallel([
-                Animated.timing(sheetTranslateY, {
-                    toValue: 0,
-                    duration: 400,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(opacityAnim, {
-                    toValue: 1,
-                    duration: 400,
-                    useNativeDriver: true,
-                })
-            ]).start();
+            sheetTranslateY.value = withTiming(0, { duration: 400 });
+            opacityAnim.value = withTiming(1, { duration: 400 });
         }
-    }, [visible, sheetTranslateY, opacityAnim]);
+    }, [visible, sheetTranslateY, opacityAnim, walletName, walletBalance, walletImageUri]);
 
     const handleClose = useCallback(() => {
         Keyboard.dismiss();
-        Animated.parallel([
-            Animated.timing(sheetTranslateY, {
-                toValue: 600,
-                duration: 400,
-                useNativeDriver: true,
-            }),
-            Animated.timing(opacityAnim, {
-                toValue: 0,
-                duration: 400,
-                useNativeDriver: true,
-            })
-        ]).start(({ finished }) => {
+        sheetTranslateY.value = withTiming(600, { duration: 400 });
+        opacityAnim.value = withTiming(0, { duration: 400 }, (finished) => {
             if (finished) {
-                setShouldRender(false);
-                onClose();
+                runOnJS(setShouldRender)(false);
+                runOnJS(onClose)();
             }
         });
     }, [sheetTranslateY, opacityAnim, onClose]);
@@ -128,6 +107,14 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
 
     const isSaveDisabled = !name.trim();
 
+    const animatedOverlayStyle = useAnimatedStyle(() => ({
+        opacity: opacityAnim.value
+    }));
+
+    const animatedSheetStyle = useAnimatedStyle(() => ({
+        transform: [{ translateY: sheetTranslateY.value }]
+    }));
+
     if (!shouldRender && !visible) return null;
 
     return (
@@ -138,7 +125,7 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
             statusBarTranslucent
             onRequestClose={handleClose}>
             <View style={styles.root}>
-                <Animated.View style={[StyleSheet.absoluteFill, styles.overlay, { opacity: opacityAnim }]}>
+                <Animated.View style={[StyleSheet.absoluteFill, styles.overlay, animatedOverlayStyle]}>
                     <Pressable style={StyleSheet.absoluteFill} onPress={() => {
                         Keyboard.dismiss();
                         handleClose();
@@ -149,7 +136,7 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
                     behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                     style={styles.keyboardView}
                     pointerEvents="box-none">
-                    <Animated.View style={[styles.sheetContainer, { flexShrink: 1, maxHeight: '90%', transform: [{ translateY: sheetTranslateY }] }]}>
+                    <Animated.View style={[styles.sheetContainer, { flexShrink: 1, maxHeight: '90%' }, animatedSheetStyle]}>
                         <ScrollView
                             bounces={false}
                             showsVerticalScrollIndicator={true}

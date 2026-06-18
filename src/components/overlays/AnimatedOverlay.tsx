@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from 'react';
-import { Animated, Pressable, StyleSheet, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
+import Animated, { useSharedValue, withTiming } from 'react-native-reanimated';
 
 interface AnimatedOverlayProps {
     visible: boolean;
@@ -15,14 +16,10 @@ const AnimatedOverlay: React.FC<AnimatedOverlayProps> = ({
     children,
     duration = 250,
 }) => {
-    const opacity = useRef(new Animated.Value(0)).current;
+    const opacity = useSharedValue(0);
 
     useEffect(() => {
-        Animated.timing(opacity, {
-            toValue: visible ? 1 : 0,
-            duration,
-            useNativeDriver: true,
-        }).start();
+        opacity.value = withTiming(visible ? 1 : 0, { duration });
     }, [visible, duration, opacity]);
 
     if (!visible) { return null; }

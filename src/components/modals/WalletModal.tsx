@@ -8,18 +8,17 @@ import {
     TextInput,
     View,
     Pressable,
-    Animated,
     Keyboard,
     TouchableOpacity,
     TouchableWithoutFeedback,
     ScrollView
 } from 'react-native';
 
-import { Easing } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, cancelAnimation, withTiming, runOnJS } from 'react-native-reanimated';
 import AppleTextInput from '../ui/AppleTextInput';
 import AppleAmountInput from '../ui/AppleAmountInput';
 import AppleButton from '../ui/AppleButton';
-import { animateSheetIn, animateSheetOut } from '../../common/animations';
+import { animateSheetIn } from '../../common/animations';
 import AnimatedOverlay from '../overlays/AnimatedOverlay';
 import AppleCloseButton from '../ui/AppleCloseButton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -42,27 +41,27 @@ const WalletModal: React.FC<WalletModalProps> = ({
     const [name, setName] = useState('');
     const [balanceStr, setBalanceStr] = useState('');
 
-    const translateY = useRef(new Animated.Value(600)).current;
+    const translateY = useSharedValue(600);
 
     const prevVisible = useRef(false);
 
     useEffect(() => {
         if (visible && !prevVisible.current) {
-            translateY.stopAnimation();
-            animateSheetIn(translateY).start();
+            cancelAnimation(translateY);
+            animateSheetIn(translateY);
             setName('');
             setBalanceStr('');
         }
         prevVisible.current = visible;
     }, [visible, translateY]);
 
-    // Native Keyboard Avoidance + ScrollView will handle everything smoothly.
-
     const handleClose = () => {
         Keyboard.dismiss();
-        translateY.stopAnimation();
-        animateSheetOut(translateY, 600, 250).start(() => {
-            onClose();
+        cancelAnimation(translateY);
+        translateY.value = withTiming(600, { duration: 250 }, (finished) => {
+            if (finished) {
+                runOnJS(onClose)();
+            }
         });
     };
 
@@ -88,6 +87,10 @@ const WalletModal: React.FC<WalletModalProps> = ({
 
     const isSaveDisabled = !name.trim() || !balanceStr;
 
+    const animatedSheetStyle = useAnimatedStyle(() => ({
+        transform: [{ translateY: translateY.value }]
+    }));
+
     return (
         <Modal
             visible={visible}
@@ -102,7 +105,7 @@ const WalletModal: React.FC<WalletModalProps> = ({
                     behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
                     style={styles.keyboardView}
                     pointerEvents="box-none">
-                    <Animated.View style={[styles.sheetContainer, { flexShrink: 1, maxHeight: '90%', transform: [{ translateY }] }]}>
+                    <Animated.View style={[styles.sheetContainer, { flexShrink: 1, maxHeight: '90%' }, animatedSheetStyle]}>
                         <ScrollView
                             bounces={false}
                             showsVerticalScrollIndicator={true}

@@ -3,15 +3,15 @@
  * Refactored to Volumetric Liquid Glass
  */
 
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback } from 'react';
 import {
-    Animated,
     Modal,
     Pressable,
     StyleSheet,
     Text,
     View,
 } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle } from 'react-native-reanimated';
 import { CheckCircle, AlertTriangle } from 'lucide-react-native';
 import { animateDialogOpen, animateDialogClose } from '../../common/animations';
 import { BlurView } from '@react-native-community/blur';
@@ -35,8 +35,8 @@ const InfoDialog: React.FC<InfoDialogProps> = ({
     message,
     type,
 }) => {
-    const overlayOpacity = useRef(new Animated.Value(0)).current;
-    const cardScale = useRef(new Animated.Value(0.85)).current;
+    const overlayOpacity = useSharedValue(0);
+    const cardScale = useSharedValue(0.85);
 
     React.useEffect(() => {
         if (visible) {
@@ -48,6 +48,14 @@ const InfoDialog: React.FC<InfoDialogProps> = ({
         animateDialogClose(overlayOpacity, cardScale, onClose);
     }, [overlayOpacity, cardScale, onClose]);
 
+    const animatedOverlayStyle = useAnimatedStyle(() => ({
+        opacity: overlayOpacity.value
+    }));
+
+    const animatedCardStyle = useAnimatedStyle(() => ({
+        transform: [{ scale: cardScale.value }]
+    }));
+
     return (
         <Modal
             visible={visible}
@@ -58,20 +66,20 @@ const InfoDialog: React.FC<InfoDialogProps> = ({
             <View style={styles.root}>
                 {/* Backdrop Layer */}
                 <AnimatedBlurView
-                    style={[StyleSheet.absoluteFill, { zIndex: 0, opacity: overlayOpacity }]}
+                    style={[StyleSheet.absoluteFill, { zIndex: 0 }, animatedOverlayStyle]}
                     blurType="dark"
                     blurAmount={15}
                     reducedTransparencyFallbackColor="rgba(0,0,0,0.85)"
                 />
                 <Animated.View 
-                    style={[StyleSheet.absoluteFill, { zIndex: 0, backgroundColor: 'rgba(0, 0, 0, 0.45)', opacity: overlayOpacity }]} 
+                    style={[StyleSheet.absoluteFill, { zIndex: 0, backgroundColor: 'rgba(0, 0, 0, 0.45)' }, animatedOverlayStyle]} 
                     pointerEvents="none" 
                 />
                 <Pressable
                     style={StyleSheet.absoluteFill}
                     onPress={handleClose}
                 />
-                <Animated.View style={[styles.cardContainer, { transform: [{ scale: cardScale }] }]} pointerEvents="box-none">
+                <Animated.View style={[styles.cardContainer, animatedCardStyle]} pointerEvents="box-none">
                     <View style={styles.card}>
                         <View style={styles.iconContainer}>
                             {type === 'success' ? (

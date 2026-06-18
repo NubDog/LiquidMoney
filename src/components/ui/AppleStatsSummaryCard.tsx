@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View, Animated, Easing } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing, runOnJS } from 'react-native-reanimated';
 import { Colors, FontSizes, Radii, Spacing } from '../../common/theme';
 import { formatVND } from '../../common/formatters';
 
@@ -10,46 +11,39 @@ const AnimatedSlidingText: React.FC<{
     numberOfLines?: number;
 }> = React.memo(({ text, style, adjustsFontSizeToFit, numberOfLines }) => {
     const [displayText, setDisplayText] = useState(text);
-    const animX = useRef(new Animated.Value(0)).current;
-    const animOpacity = useRef(new Animated.Value(1)).current;
+    const animX = useSharedValue(0);
+    const animOpacity = useSharedValue(1);
+
+    const updateText = (newText: string) => {
+        setDisplayText(newText);
+    };
 
     useEffect(() => {
         if (text === displayText) return;
 
-        Animated.parallel([
-            Animated.timing(animX, {
-                toValue: -20,
-                duration: 400,
-                useNativeDriver: true,
-            }),
-            Animated.timing(animOpacity, {
-                toValue: 0,
-                duration: 400,
-                useNativeDriver: true,
-            }),
-        ]).start(() => {
-            setDisplayText(text);
-            animX.setValue(-20);
-            
-            Animated.parallel([
-                Animated.timing(animX, {
-                    toValue: 0,
+        animX.value = withTiming(-20, { duration: 400 });
+        animOpacity.value = withTiming(0, { duration: 400 }, (finished) => {
+            if (finished) {
+                runOnJS(updateText)(text);
+                animX.value = -20;
+                
+                animX.value = withTiming(0, {
                     duration: 400,
                     easing: Easing.out(Easing.back(1.5)),
-                    useNativeDriver: true,
-                }),
-                Animated.timing(animOpacity, {
-                    toValue: 1,
-                    duration: 400,
-                    useNativeDriver: true,
-                }),
-            ]).start();
+                });
+                animOpacity.value = withTiming(1, { duration: 400 });
+            }
         });
     }, [text, displayText, animX, animOpacity]);
 
+    const animatedStyle = useAnimatedStyle(() => ({
+        opacity: animOpacity.value,
+        transform: [{ translateX: animX.value }]
+    }));
+
     return (
         <Animated.Text 
-            style={[style, { opacity: animOpacity, transform: [{ translateX: animX }] }]}
+            style={[style, animatedStyle]}
             adjustsFontSizeToFit={adjustsFontSizeToFit}
             numberOfLines={numberOfLines}
         >

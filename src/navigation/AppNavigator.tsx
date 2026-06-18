@@ -9,7 +9,6 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-    Animated,
     BackHandler,
     PanResponder,
     Pressable,
@@ -17,9 +16,9 @@ import {
     View,
     useWindowDimensions,
 } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing, interpolate, Extrapolation, runOnJS } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from '@react-native-community/blur';
-import { Easing } from 'react-native';
 
 
 import LiquidBackground from '../components/layout/LiquidBackground';
@@ -28,6 +27,7 @@ import SettingsScreen from '../screens/SettingsScreen';
 import StatsScreen from '../screens/StatsScreen';
 import WalletDetailScreen from '../screens/WalletDetailScreen';
 import DeveloperScreen from '../screens/DeveloperScreen';
+import FPSMonitor from '../components/ui/FPSMonitor';
 
 import {
     BarChart2,
@@ -62,6 +62,54 @@ const NAVBAR_PADDING = 6;
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
+const TabItemComponent = React.memo(({ 
+    tab, 
+    index, 
+    width, 
+    slideAnim, 
+    devExpansionAnim, 
+    isDevTab, 
+    animatedBaseTabStyle, 
+    animatedDevTabStyle, 
+    setActiveTab 
+}: any) => {
+    const animatedIconWrapperStyle = useAnimatedStyle(() => {
+        const centerValue = index * -width;
+        const scale = interpolate(
+            slideAnim.value,
+            [centerValue - width, centerValue, centerValue + width],
+            [1, 1.4, 1],
+            Extrapolation.CLAMP
+        );
+        const opacity = interpolate(
+            slideAnim.value,
+            [centerValue - width, centerValue, centerValue + width],
+            [0.5, 1, 0.5],
+            Extrapolation.CLAMP
+        );
+        
+        return {
+            transform: [{ scale: isDevTab ? scale * devExpansionAnim.value : scale }],
+            opacity: isDevTab ? opacity * devExpansionAnim.value : opacity,
+        };
+    });
+
+    const IconComponent = tab.icon;
+
+    return (
+        <Pressable onPress={() => setActiveTab(tab.key)}>
+            <Animated.View style={[styles.tabItem, isDevTab ? animatedDevTabStyle : animatedBaseTabStyle]}>
+                <Animated.View style={[
+                    { width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' },
+                    animatedIconWrapperStyle
+                ]}>
+                    <IconComponent size={28} color="#FFFFFF" strokeWidth={2} />
+                </Animated.View>
+            </Animated.View>
+        </Pressable>
+    );
+});
+
 const AppNavigator: React.FC = () => {
     const insets = useSafeAreaInsets();
     const { width, height } = useWindowDimensions();
@@ -73,15 +121,14 @@ const AppNavigator: React.FC = () => {
     const [displayWalletId, setDisplayWalletId] = useState<string | null>(null);
 
     // Slide animation value (Tab Slide)
-    const slideAnim = useRef(new Animated.Value(0)).current;
+    const slideAnim = useSharedValue(0);
 
     // Wallet Detail slide animation
-    const walletSlideAnim = useRef(new Animated.Value(0)).current;
+    const walletSlideAnim = useSharedValue(0);
     const [walletDetailRendered, setWalletDetailRendered] = useState(false);
 
     // Dev tab expansion (0 to 1)
-    const devExpansionAnim = useRef(new Animated.Value(isDeveloperMode ? 1 : 0)).current; // JS Thread (for width)
-    const devExpansionAnimNative = useRef(new Animated.Value(isDeveloperMode ? 1 : 0)).current; // Native Thread (for transforms)
+    const devExpansionAnim = useSharedValue(isDeveloperMode ? 1 : 0);
 
     // Synchronization of Developer Mode logic
     useEffect(() => {
@@ -89,53 +136,38 @@ const AppNavigator: React.FC = () => {
             setActiveTab('home');
         }
 
-        Animated.timing(devExpansionAnim, {
-            toValue: isDeveloperMode ? 1 : 0,
+        devExpansionAnim.value = withTiming(isDeveloperMode ? 1 : 0, {
             duration: 400,
-            easing: Easing.out(Easing.cubic),
-            useNativeDriver: false, // Animating width
-        }).start();
-
-        Animated.timing(devExpansionAnimNative, {
-            toValue: isDeveloperMode ? 1 : 0,
-            duration: 400,
-            easing: Easing.out(Easing.cubic),
-            useNativeDriver: true, // Animating transforms natively
-        }).start();
-    }, [isDeveloperMode, devExpansionAnim, devExpansionAnimNative, activeTab]);
+            easing: Easing.out(Easing.cubic)
+        });
+    }, [isDeveloperMode, devExpansionAnim, activeTab]);
 
     // Trigger tab slide animation
     useEffect(() => {
         const targetIndex = ALL_TABS.findIndex(t => t.key === activeTab);
         const idx = targetIndex === -1 ? 0 : targetIndex;
 
-        Animated.timing(slideAnim, {
-            toValue: -idx * width,
+        slideAnim.value = withTiming(-idx * width, {
             duration: 400,
-            easing: Easing.out(Easing.cubic),
-            useNativeDriver: true,
-        }).start();
+            easing: Easing.out(Easing.cubic)
+        });
     }, [activeTab, width, slideAnim]);
 
     // Trigger slide animation when wallet is selected/deselected
     useEffect(() => {
         if (activeWalletId) {
-            walletSlideAnim.setValue(0);
-            Animated.timing(walletSlideAnim, {
-                toValue: 1,
-                useNativeDriver: true,
+            walletSlideAnim.value = 0;
+            walletSlideAnim.value = withTiming(1, {
                 duration: 400,
-                easing: Easing.out(Easing.cubic),
-            }).start();
+                easing: Easing.out(Easing.cubic)
+            });
         } else if (walletDetailRendered) {
-            Animated.timing(walletSlideAnim, {
-                toValue: 0,
-                useNativeDriver: true,
+            walletSlideAnim.value = withTiming(0, {
                 duration: 400,
-                easing: Easing.out(Easing.cubic),
-            }).start(({ finished }) => {
+                easing: Easing.out(Easing.cubic)
+            }, (finished) => {
                 if (finished) {
-                    setWalletDetailRendered(false);
+                    runOnJS(setWalletDetailRendered)(false);
                 }
             });
         }
@@ -211,51 +243,38 @@ const AppNavigator: React.FC = () => {
     const navWidthEnd = Math.min(width * 0.8, TAB_UNIT_WIDTH * 4 + 40);
     const tabWidthEnd = (navWidthEnd - NAVBAR_PADDING * 2) / 4;
 
-    const navWidthAnim = devExpansionAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: [navWidthStart, navWidthEnd]
+    const animatedFloatingTabBarStyle = useAnimatedStyle(() => ({
+        width: interpolate(devExpansionAnim.value, [0, 1], [navWidthStart, navWidthEnd], Extrapolation.CLAMP)
+    }));
+
+    const animatedBaseTabStyle = useAnimatedStyle(() => ({
+        width: interpolate(devExpansionAnim.value, [0, 1], [tabWidthStart, tabWidthEnd], Extrapolation.CLAMP)
+    }));
+
+    const animatedDevTabStyle = useAnimatedStyle(() => ({
+        width: interpolate(devExpansionAnim.value, [0, 1], [0, tabWidthEnd], Extrapolation.CLAMP)
+    }));
+
+    const animatedPillStyle = useAnimatedStyle(() => {
+        const normalizedSlide = width > 0 ? slideAnim.value / -width : 0;
+        const currentTabWidth = interpolate(devExpansionAnim.value, [0, 1], [tabWidthStart, tabWidthEnd], Extrapolation.CLAMP);
+        return {
+            transform: [{ translateX: normalizedSlide * currentTabWidth }]
+        };
     });
 
-    const baseTabWidthAnim = devExpansionAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: [tabWidthStart, tabWidthEnd]
-    });
+    const animatedScreensContainerStyle = useAnimatedStyle(() => ({
+        transform: [{ translateX: slideAnim.value }],
+        opacity: interpolate(walletSlideAnim.value, [0, 1], [1, 0])
+    }));
 
-    const devTabWidthAnim = devExpansionAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, tabWidthEnd]
-    });
-    
-    // NATIVE interpolations for transforms
-    const baseTabWidthAnimNative = devExpansionAnimNative.interpolate({
-        inputRange: [0, 1],
-        outputRange: [tabWidthStart, tabWidthEnd]
-    });
+    const animatedTabBarContainerStyle = useAnimatedStyle(() => ({
+        opacity: interpolate(walletSlideAnim.value, [0, 1], [1, 0])
+    }));
 
-    // To prevent Animated.divide by 0 during initialization
-    const minusWidth = useRef(new Animated.Value(-width || -1)).current;
-    useEffect(() => {
-        if (width > 0) {
-            minusWidth.setValue(-width);
-        }
-    }, [width, minusWidth]);
-
-    // Math for active pill translation seamlessly reacting to tab width changes
-    // slideAnim: 0 to -3*width
-    // normalizedSlide: 0 to 3
-    const normalizedSlide = Animated.divide(slideAnim, minusWidth);
-    const pillTranslateX = Animated.multiply(normalizedSlide, baseTabWidthAnimNative);
-
-    // Wallet slide transforms
-    const walletTranslateX = walletSlideAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: [width, 0],
-    });
-
-    const mainOpacity = walletSlideAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: [1, 0],
-    });
+    const animatedWalletDetailStyle = useAnimatedStyle(() => ({
+        transform: [{ translateX: interpolate(walletSlideAnim.value, [0, 1], [width, 0]) }]
+    }));
 
     // ─── Render ───────────────────────────────────────────────────────────────
 
@@ -269,9 +288,8 @@ const AppNavigator: React.FC = () => {
                     styles.screensContainer,
                     {
                         width: width * ALL_TABS.length,
-                        transform: [{ translateX: slideAnim }],
-                        opacity: mainOpacity,
                     },
+                    animatedScreensContainerStyle
                 ]}>
                 <View style={{ width, height: '100%' }}>
                     <HomeScreen onNavigateToWallet={navigateToWallet} />
@@ -294,13 +312,13 @@ const AppNavigator: React.FC = () => {
                     styles.tabBarContainer,
                     { 
                         paddingBottom: insets.bottom + 20,
-                        opacity: mainOpacity 
                     },
+                    animatedTabBarContainerStyle
                 ]}>
                 <Animated.View
                     style={[
                         styles.floatingTabBar,
-                        { width: navWidthAnim },
+                        animatedFloatingTabBarStyle
                     ]}>
                     <BlurView
                         style={styles.blurBackground}
@@ -314,13 +332,10 @@ const AppNavigator: React.FC = () => {
                     <View style={styles.tabBarContent}>
                         {/* Animated Active Pill Background (Decoupled JS Width and Native TranslateX) */}
                         <Animated.View
-                            style={{
-                                position: 'absolute',
-                                left: 6,
-                                top: 6,
-                                bottom: 6,
-                                width: baseTabWidthAnim, // JS Animation
-                            }}>
+                            style={[
+                                { position: 'absolute', left: 6, top: 6, bottom: 6 },
+                                animatedBaseTabStyle
+                            ]}>
                             <Animated.View
                                 style={[
                                     styles.activePill,
@@ -331,74 +346,27 @@ const AppNavigator: React.FC = () => {
                                         bottom: 0,
                                         width: '100%',
                                         height: '100%',
-                                        transform: [
-                                            { translateX: pillTranslateX }, // Native Animation
-                                        ],
                                     },
+                                    animatedPillStyle
                                 ]}
                             />
                         </Animated.View>
 
                         {ALL_TABS.map((tab, index) => {
-                            // Interpolate Scale for Icon
-                            const centerValue = index * -width;
-                            const scale = slideAnim.interpolate({
-                                inputRange: [
-                                    centerValue - width,
-                                    centerValue,
-                                    centerValue + width,
-                                ],
-                                outputRange: [1, 1.4, 1], // Bigger scale (1.4) since no label
-                                extrapolate: 'clamp',
-                            });
-
-                            const opacity = slideAnim.interpolate({
-                                inputRange: [
-                                    centerValue - width,
-                                    centerValue,
-                                    centerValue + width,
-                                ],
-                                outputRange: [0.5, 1, 0.5],
-                                extrapolate: 'clamp',
-                            });
-
-                            const IconComponent = tab.icon;
                             const isDevTab = tab.key === 'dev';
-
                             return (
-                                <Pressable
+                                <TabItemComponent 
                                     key={tab.key}
-                                    onPress={() => setActiveTab(tab.key)}>
-                                    <Animated.View
-                                        style={[
-                                            styles.tabItem,
-                                            { width: isDevTab ? devTabWidthAnim : baseTabWidthAnim } // JS Animation
-                                        ]}>
-                                        <Animated.View
-                                            style={{
-                                                width: '100%',
-                                                height: '100%',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                transform: [
-                                                    {
-                                                        scale: isDevTab
-                                                            ? Animated.multiply(scale, devExpansionAnimNative) as any // Native
-                                                            : scale
-                                                    },
-                                                ],
-                                                opacity: isDevTab 
-                                                    ? Animated.multiply(opacity, devExpansionAnimNative) as any // Native
-                                                    : opacity,
-                                            }}>
-                                            <IconComponent
-                                                size={28}
-                                                color="#FFFFFF"
-                                                strokeWidth={2}
-                                            />
-                                        </Animated.View>
-                                    </Animated.View>
-                                </Pressable>
+                                    tab={tab}
+                                    index={index}
+                                    width={width}
+                                    slideAnim={slideAnim}
+                                    devExpansionAnim={devExpansionAnim}
+                                    isDevTab={isDevTab}
+                                    animatedBaseTabStyle={animatedBaseTabStyle}
+                                    animatedDevTabStyle={animatedDevTabStyle}
+                                    setActiveTab={setActiveTab}
+                                />
                             );
                         })}
                     </View>
@@ -411,10 +379,10 @@ const AppNavigator: React.FC = () => {
                 style={[
                     StyleSheet.absoluteFill,
                     {
-                        transform: [{ translateX: walletTranslateX }],
                         zIndex: 100, // Ensure it covers the tab bar
                         elevation: 100,
                     },
+                    animatedWalletDetailStyle
                 ]}>
                 {walletDetailRendered && displayWalletId && (
                     <WalletDetailScreen
@@ -423,6 +391,9 @@ const AppNavigator: React.FC = () => {
                     />
                 )}
             </Animated.View>
+
+            {/* Hardware UI Thread FPS Monitor */}
+            {isDeveloperMode && <FPSMonitor />}
         </View>
     );
 };
