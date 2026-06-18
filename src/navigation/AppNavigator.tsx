@@ -117,6 +117,7 @@ const AppNavigator: React.FC = () => {
 
     // ─── Navigation State ───────────────────────────────────────────────────────
     const [activeTab, setActiveTab] = useState<TabName>('home');
+    const [visitedTabs, setVisitedTabs] = useState<Record<string, boolean>>({ home: true });
     const [activeWalletId, setActiveWalletId] = useState<string | null>(null);
     const [displayWalletId, setDisplayWalletId] = useState<string | null>(null);
 
@@ -144,6 +145,11 @@ const AppNavigator: React.FC = () => {
 
     // Trigger tab slide animation
     useEffect(() => {
+        setVisitedTabs(prev => {
+            if (prev[activeTab]) return prev;
+            return { ...prev, [activeTab]: true };
+        });
+
         const targetIndex = ALL_TABS.findIndex(t => t.key === activeTab);
         const idx = targetIndex === -1 ? 0 : targetIndex;
 
@@ -282,7 +288,7 @@ const AppNavigator: React.FC = () => {
         <View style={styles.root} {...panResponder.panHandlers}>
             <LiquidBackground />
 
-            {/* Sliding Container — always rendered all 4 screens for flawless memory allocation */}
+            {/* Sliding Container — lazy loads screens to save memory and layout calculation time */}
             <Animated.View
                 style={[
                     styles.screensContainer,
@@ -292,16 +298,16 @@ const AppNavigator: React.FC = () => {
                     animatedScreensContainerStyle
                 ]}>
                 <View style={{ width, height: '100%' }}>
-                    <HomeScreen onNavigateToWallet={navigateToWallet} />
+                    {visitedTabs['home'] && <HomeScreen onNavigateToWallet={navigateToWallet} />}
                 </View>
                 <View style={{ width, height: '100%' }}>
-                    <StatsScreen />
+                    {visitedTabs['stats'] && <StatsScreen />}
                 </View>
                 <View style={{ width, height: '100%' }}>
-                    <SettingsScreen />
+                    {visitedTabs['settings'] && <SettingsScreen />}
                 </View>
                 <View style={{ width, height: '100%' }}>
-                    <DeveloperScreen />
+                    {visitedTabs['dev'] && <DeveloperScreen />}
                 </View>
             </Animated.View>
 
