@@ -111,6 +111,29 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
         opacity: opacityAnim.value
     }));
 
+    const keyboardHeight = useSharedValue(0);
+
+    useEffect(() => {
+        const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+        const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+        const showSub = Keyboard.addListener(showEvent, (e) => {
+            keyboardHeight.value = withTiming(e.endCoordinates.height, { duration: 250 });
+        });
+        const hideSub = Keyboard.addListener(hideEvent, () => {
+            keyboardHeight.value = withTiming(0, { duration: 250 });
+        });
+
+        return () => {
+            showSub.remove();
+            hideSub.remove();
+        };
+    }, []);
+
+    const animatedKeyboardStyle = useAnimatedStyle(() => ({
+        paddingBottom: keyboardHeight.value
+    }));
+
     const animatedSheetStyle = useAnimatedStyle(() => ({
         transform: [{ translateY: sheetTranslateY.value }]
     }));
@@ -132,9 +155,8 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
                     }} />
                 </Animated.View>
 
-                <KeyboardAvoidingView
-                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                    style={styles.keyboardView}
+                <Animated.View
+                    style={[styles.keyboardView, animatedKeyboardStyle]}
                     pointerEvents="box-none">
                     <Animated.View style={[styles.sheetContainer, { flexShrink: 1, maxHeight: '90%' }, animatedSheetStyle]}>
                         <ScrollView
@@ -233,7 +255,7 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
                         </TouchableWithoutFeedback>
                         </ScrollView>
                     </Animated.View>
-                </KeyboardAvoidingView>
+                </Animated.View>
             </View>
         </Modal>
     );

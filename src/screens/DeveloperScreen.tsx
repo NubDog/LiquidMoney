@@ -15,6 +15,7 @@ import {
     StyleSheet,
     Text,
     View,
+    Switch,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Code, Database, Bug, TerminalSquare, ChevronRight, Lock, Image as ImageIcon } from 'lucide-react-native';
@@ -33,10 +34,12 @@ import AppleTextInput from '../components/ui/AppleTextInput';
 
 const DeveloperScreen: React.FC = () => {
     const insets = useSafeAreaInsets();
-    const { wallets, refreshWallets, isDeveloperMode } = useStore(useShallow(state => ({
+    const { wallets, refreshWallets, isDeveloperMode, isFPSMonitorEnabled, toggleFPSMonitor } = useStore(useShallow(state => ({
         wallets: state.wallets,
         refreshWallets: state.refreshWallets,
-        isDeveloperMode: state.isDeveloperMode
+        isDeveloperMode: state.isDeveloperMode,
+        isFPSMonitorEnabled: state.isFPSMonitorEnabled,
+        toggleFPSMonitor: state.toggleFPSMonitor
     })));
 
     const [txCountStr, setTxCountStr] = useState<string>('50');
@@ -355,8 +358,16 @@ const DeveloperScreen: React.FC = () => {
                         <View style={styles.divider} />
                         <View style={[styles.rowCardInner, { marginTop: Spacing.md }]}>
                             <Bug size={20} color={Colors.textMuted} strokeWidth={2} />
-                            <Text style={[styles.rowCardTitle, { color: Colors.textMuted }]}>Debug Inspector</Text>
-                            <Text style={styles.comingSoon}>Sắp ra mắt</Text>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.rowCardTitle}>Hardware FPS Monitor</Text>
+                                <Text style={{ fontSize: FontSizes.xs, color: Colors.textMuted, marginTop: 2 }}>Hiển thị UI Thread FPS</Text>
+                            </View>
+                            <Switch 
+                                value={isFPSMonitorEnabled}
+                                onValueChange={toggleFPSMonitor}
+                                trackColor={{ false: 'rgba(255,255,255,0.1)', true: Colors.income }}
+                                thumbColor={'#ffffff'}
+                            />
                         </View>
                     </View>
 

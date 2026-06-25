@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { 
-    Animated,
     Pressable, 
     StyleSheet, 
     Text, 
@@ -41,6 +41,16 @@ const AppleSegmentedControl: React.FC<AppleSegmentedControlProps> = React.memo((
         setContainerWidth(e.nativeEvent.layout.width);
     };
 
+    const animatedIndicatorStyle = useAnimatedStyle(() => {
+        return {
+            width: tabWidth,
+            transform: [
+                { translateX: translateXAnim.value },
+                { scaleX: scaleXAnim.value }
+            ]
+        };
+    });
+
     return (
         <View style={[styles.wrapper, style]} onLayout={onLayout}>
             <View style={styles.container}>
@@ -48,13 +58,7 @@ const AppleSegmentedControl: React.FC<AppleSegmentedControlProps> = React.memo((
                     <Animated.View
                         style={[
                             styles.indicatorWrapper,
-                            {
-                                width: tabWidth,
-                                transform: [
-                                    { translateX: translateXAnim },
-                                    { scaleX: scaleXAnim }
-                                ]
-                            }
+                            animatedIndicatorStyle
                         ]}
                     >
                         <View style={[StyleSheet.absoluteFill, styles.indicatorOverlay]} />

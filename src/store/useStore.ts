@@ -48,8 +48,14 @@ interface StoreState {
     /** Chế độ Developer */
     isDeveloperMode: boolean;
 
+    /** Bật/tắt hiển thị FPS */
+    isFPSMonitorEnabled: boolean;
+
     /** Background ID đang chọn */
     selectedBackgroundId: string | null;
+
+    /** Danh sách hình nền tùy chỉnh */
+    customBackgrounds: string[];
 }
 
 interface StoreActions {
@@ -125,8 +131,20 @@ interface StoreActions {
     /** Bật/tắt Developer Mode */
     toggleDeveloperMode: () => void;
 
+    /** Bật/tắt hiển thị FPS */
+    toggleFPSMonitor: () => void;
+
     /** Cập nhật hình nền */
     setSelectedBackground: (id: string | null) => void;
+
+    /** Thêm hình nền tùy chỉnh */
+    addCustomBackground: (uri: string) => void;
+
+    /** Xóa hình nền tùy chỉnh */
+    removeCustomBackground: (uri: string) => void;
+
+    /** Kiểm tra xem các hình nền tùy chỉnh còn tồn tại không */
+    validateCustomBackgrounds: () => Promise<void>;
 }
 
 type Store = StoreState & StoreActions;
@@ -139,7 +157,9 @@ export const useStore = create<Store>((set, get) => ({
     currentWallet: null,
     loading: false,
     isDeveloperMode: true,
+    isFPSMonitorEnabled: false,
     selectedBackgroundId: null,
+    customBackgrounds: [],
 
     initialize: () => {
         try {
@@ -147,7 +167,12 @@ export const useStore = create<Store>((set, get) => ({
             if (success) {
                 const allWallets = getAllWallets();
                 const bgId = getSetting('app_background_id');
-                set({ isReady: true, wallets: allWallets, selectedBackgroundId: bgId });
+                const customBgsStr = getSetting('app_custom_backgrounds');
+                let customBgs: string[] = [];
+                if (customBgsStr) {
+                    try { customBgs = JSON.parse(customBgsStr); } catch (e) {}
+                }
+                set({ isReady: true, wallets: allWallets, selectedBackgroundId: bgId, customBackgrounds: customBgs });
             } else {
                 console.warn('[Store] DB chưa sẵn sàng — cần rebuild native app.');
                 set({ isReady: true });
@@ -334,6 +359,10 @@ export const useStore = create<Store>((set, get) => ({
         set((state) => ({ isDeveloperMode: !state.isDeveloperMode }));
     },
 
+    toggleFPSMonitor: () => {
+        set((state) => ({ isFPSMonitorEnabled: !state.isFPSMonitorEnabled }));
+    },
+
     setSelectedBackground: (id) => {
         if (!isDatabaseAvailable()) return;
         try {
@@ -345,6 +374,70 @@ export const useStore = create<Store>((set, get) => ({
             set({ selectedBackgroundId: id });
         } catch (err) {
             console.error('[Store] setSelectedBackground error:', err);
+        }
+    },
+
+    addCustomBackground: (uri) => {
+        if (!isDatabaseAvailable()) return;
+        const current = get().customBackgrounds;
+        if (!current.includes(uri)) {
+            const updated = [uri, ...current];
+            setSetting('app_custom_backgrounds', JSON.stringify(updated));
+            set({ customBackgrounds: updated });
+        }
+    },
+
+    removeCustomBackground: (uri) => {
+        if (!isDatabaseAvailable()) return;
+        const current = get().customBackgrounds;
+        if (current.includes(uri)) {
+            const updated = current.filter((u) => u !== uri);
+            setSetting('app_custom_backgrounds', JSON.stringify(updated));
+            set({ customBackgrounds: updated });
+            
+            if (get().selectedBackgroundId === uri) {
+                get().setSelectedBackground(null);
+            }
+        }
+    },
+
+    validateCustomBackgrounds: async () => {
+        if (!isDatabaseAvailable()) return;
+        const current = get().customBackgrounds;
+        if (!current || current.length === 0) return;
+        
+        const { Image } = require('react-native');
+        const validBgs: string[] = [];
+        let changed = false;
+        
+        for (const uri of current) {
+            try {
+                await new Promise<void>((resolve, reject) => {
+                    Image.getSize(uri, 
+                        () => resolve(), 
+                        () => reject(new Error('not found'))
+                    );
+                });
+                validBgs.push(uri);
+            } catch (err) {
+                changed = true;
+            }
+        }
+        
+        if (changed) {
+            setSetting('app_custom_backgrounds', JSON.stringify(validBgs));
+            set({ customBackgrounds: validBgs });
+            
+            const currentSelected = get().selectedBackgroundId;
+            // Xóa background đang chọn nếu nó không còn tồn tại
+            if (currentSelected && !validBgs.includes(currentSelected)) {
+                // Kiểm tra xem nó có phải là background mặc định/danh sách ko
+                // Cần check tránh xóa selectedBackgroundId hợp lệ từ BACKGROUNDS
+                const isPredefined = !currentSelected.startsWith('file://') && !currentSelected.startsWith('content://');
+                if (!isPredefined) {
+                    get().setSelectedBackground(null);
+                }
+            }
         }
     },
 }));

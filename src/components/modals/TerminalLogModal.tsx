@@ -11,13 +11,13 @@ import {
     StyleSheet,
     Text,
     View,
-    Animated,
     ActivityIndicator,
     Platform,
 } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, runOnJS, withTiming, cancelAnimation } from 'react-native-reanimated';
 import { Copy } from 'lucide-react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { animateSheetIn, animateSheetOut } from '../../common/animations';
+import { animateSheetIn } from '../../common/animations';
 import { Colors, FontSizes, Shadows, Spacing } from '../../common/theme';
 import AppleCloseButton from '../ui/AppleCloseButton';
 
@@ -37,23 +37,29 @@ const getLogColor = (log: string) => {
 };
 
 const TerminalLogModal: React.FC<TerminalLogModalProps> = ({ visible, onClose, logs, isComplete }) => {
-    const translateY = useRef(new Animated.Value(800)).current;
+    const translateY = useSharedValue(800);
     const prevVisible = useRef(false);
 
     React.useEffect(() => {
         if (visible && !prevVisible.current) {
-            translateY.stopAnimation();
-            animateSheetIn(translateY).start();
+            cancelAnimation(translateY);
+            animateSheetIn(translateY);
         }
         prevVisible.current = visible;
     }, [visible, translateY]);
 
     const handleClose = () => {
-        translateY.stopAnimation();
-        animateSheetOut(translateY, 800, 250).start(() => {
-            onClose();
+        cancelAnimation(translateY);
+        translateY.value = withTiming(800, { duration: 250 }, (finished) => {
+            if (finished) {
+                runOnJS(onClose)();
+            }
         });
     };
+
+    const animatedStyle = useAnimatedStyle(() => ({
+        transform: [{ translateY: translateY.value }],
+    }));
 
     const handleCopyAll = () => {
         const copyText = logs.join('\n');
@@ -79,7 +85,7 @@ const TerminalLogModal: React.FC<TerminalLogModalProps> = ({ visible, onClose, l
                 <Animated.View
                     style={[
                         styles.modalContainer,
-                        { transform: [{ translateY }] },
+                        animatedStyle,
                     ]}>
                     <View style={styles.sheet}>
                         

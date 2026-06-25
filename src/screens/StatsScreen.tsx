@@ -462,6 +462,7 @@ const StatsScreen: React.FC = () => {
                         contentContainerStyle={[s.content, { paddingTop: insets.top + 8 }]}
                         onScroll={handleScroll}
                         scrollEventThrottle={16}
+                        // @ts-ignore: delaysContentTouches is a valid ScrollView prop
                         delaysContentTouches={false}
                         refreshControl={
                             <RefreshControl

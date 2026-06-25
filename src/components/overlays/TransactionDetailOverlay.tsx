@@ -11,8 +11,8 @@ import {
     StyleSheet,
     Text,
     View,
-    Animated,
 } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, cancelAnimation, runOnJS } from 'react-native-reanimated';
 import { X } from 'lucide-react-native';
 import { format } from 'date-fns';
 import { animateSheetIn, animateSheetOut } from '../../common/animations';
@@ -41,23 +41,29 @@ const TransactionDetailOverlay: React.FC<TransactionDetailOverlayProps> = ({
     formatCurrency,
     onEditRequest,
 }) => {
-    const translateY = useRef(new Animated.Value(600)).current;
+    const translateY = useSharedValue(600);
     const prevVisible = useRef(false);
 
     React.useEffect(() => {
         if (visible && !prevVisible.current) {
-            translateY.stopAnimation();
-            animateSheetIn(translateY).start();
+            cancelAnimation(translateY);
+            animateSheetIn(translateY);
         }
         prevVisible.current = !!visible;
     }, [visible, translateY]);
 
     const handleClose = () => {
-        translateY.stopAnimation();
-        animateSheetOut(translateY, 600, 250).start(() => {
-            onClose();
+        cancelAnimation(translateY);
+        translateY.value = withTiming(600, { duration: 250 }, (finished) => {
+            if (finished) {
+                runOnJS(onClose)();
+            }
         });
     };
+
+    const animatedStyle = useAnimatedStyle(() => ({
+        transform: [{ translateY: translateY.value }]
+    }));
 
     if (!transaction) { return null; }
 
@@ -78,7 +84,7 @@ const TransactionDetailOverlay: React.FC<TransactionDetailOverlayProps> = ({
             <View style={styles.container}>
                 <AnimatedOverlay visible={!!visible} onPress={handleClose} />
                 
-                <Animated.View style={[styles.sheetContainer, { transform: [{ translateY }] }]}>
+                <Animated.View style={[styles.sheetContainer, animatedStyle]}>
                     <View style={styles.sheet}>
                         <View style={styles.handleBar} />
                         
@@ -130,7 +136,7 @@ const TransactionDetailOverlay: React.FC<TransactionDetailOverlayProps> = ({
                                 <AppleButton
                                     title="Chỉnh sửa giao dịch"
                                     onPress={() => {
-                                        translateY.stopAnimation();
+                                        cancelAnimation(translateY);
                                         onEditRequest?.();
                                     }}
                                     variant="primary"

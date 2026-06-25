@@ -1,6 +1,6 @@
 import React from 'react';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { 
-    Animated,
     Pressable, 
     StyleSheet, 
     Text, 
@@ -43,6 +43,16 @@ const LiquidSegmentedControl2: React.FC<LiquidSegmentedControl2Props> = React.me
         setContainerWidth(e.nativeEvent.layout.width);
     };
 
+    const animatedIndicatorStyle = useAnimatedStyle(() => {
+        return {
+            width: tabWidth,
+            transform: [
+                { translateX: translateXAnim.value },
+                { scaleX: scaleXAnim.value }
+            ]
+        };
+    });
+
     return (
         <AppleGlassBackground
             variant="chromeMaterial"
@@ -57,13 +67,7 @@ const LiquidSegmentedControl2: React.FC<LiquidSegmentedControl2Props> = React.me
                         needsOffscreenAlphaCompositing={true}
                         style={[
                             styles.indicatorWrapper,
-                            {
-                                width: tabWidth,
-                                transform: [
-                                    { translateX: translateXAnim },
-                                    { scaleX: scaleXAnim }
-                                ]
-                            }
+                            animatedIndicatorStyle
                         ]}
                     >
                         <View style={[StyleSheet.absoluteFill, styles.indicatorOverlay]} />

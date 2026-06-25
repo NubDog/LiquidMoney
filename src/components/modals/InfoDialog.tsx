@@ -69,7 +69,6 @@ const InfoDialog: React.FC<InfoDialogProps> = ({
                     style={[StyleSheet.absoluteFill, { zIndex: 0 }, animatedOverlayStyle]}
                     blurType="dark"
                     blurAmount={15}
-                    reducedTransparencyFallbackColor="rgba(0,0,0,0.85)"
                 />
                 <Animated.View 
                     style={[StyleSheet.absoluteFill, { zIndex: 0, backgroundColor: 'rgba(0, 0, 0, 0.45)' }, animatedOverlayStyle]} 

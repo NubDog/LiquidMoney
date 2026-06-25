@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, StyleSheet, View, Text, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing, runOnJS, interpolate } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing, runOnJS, interpolate, useAnimatedKeyboard } from 'react-native-reanimated';
 import { BlurView } from '@react-native-community/blur';
 import { AlertTriangle } from 'lucide-react-native';
 
@@ -57,15 +57,18 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         }
     }, [visible, animValue]);
 
+    const keyboard = useAnimatedKeyboard({ isStatusBarTranslucentAndroid: true });
+
     const animatedOpacityStyle = useAnimatedStyle(() => ({
         opacity: animValue.value,
     }));
 
     const animatedContentStyle = useAnimatedStyle(() => ({
         opacity: animValue.value,
-        transform: [{
-            scale: interpolate(animValue.value, [0, 1], [1.15, 1]),
-        }],
+        transform: [
+            { scale: interpolate(animValue.value, [0, 1], [1.15, 1]) },
+            { translateY: -keyboard.height.value / 2 }
+        ],
     }));
 
     if (!isRendered && !visible) return null;
@@ -77,16 +80,12 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             statusBarTranslucent // Quan trọng: Đảm bảo phủ mờ cả thanh trạng thái (status bar)
             animationType="none"
             onRequestClose={onCancel}>
-            <KeyboardAvoidingView 
-                style={styles.container} 
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            >
+            <View style={styles.container}>
                 {/* Backdrop Layer - Đen tuyền mờ mờ ảo ảo (Dark Frosted Glass) */}
                 <AnimatedBlurView
                     style={[StyleSheet.absoluteFill, { zIndex: 0 }, animatedOpacityStyle]}
                     blurType="dark"
                     blurAmount={15}
-                    reducedTransparencyFallbackColor="rgba(0,0,0,0.85)"
                 />
                 {/* Lớp màu đen nhẹ kết hợp với blur tạo ra độ mờ ảo, không bị đen thui */}
                 <Animated.View 
@@ -129,7 +128,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
                     </View>
                 </Animated.View>
-            </KeyboardAvoidingView>
+            </View>
         </Modal>
     );
 };

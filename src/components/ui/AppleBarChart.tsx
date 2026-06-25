@@ -38,7 +38,7 @@ const AppleBarChart: React.FC<AppleBarChartProps> = React.memo(({ data, period }
 
     useEffect(() => {
         // Run initial mount animation
-        barScale.value = withSpring(1, { damping: 14, stiffness: 120 });
+        barScale.value = withSpring(1, { damping: 17, stiffness: 90 });
         labelsFade.value = withTiming(1, { duration: 400 });
     }, [barScale, labelsFade]);
 
@@ -47,7 +47,7 @@ const AppleBarChart: React.FC<AppleBarChartProps> = React.memo(({ data, period }
         
         // Wait a tiny bit to ensure JS paints the swap, then grow up gracefully
         setTimeout(() => {
-            barScale.value = withSpring(1, { damping: 14, stiffness: 110 });
+            barScale.value = withSpring(1, { damping: 17, stiffness: 90 });
             labelsFade.value = withTiming(1, { duration: 400 });
         }, 50);
     };

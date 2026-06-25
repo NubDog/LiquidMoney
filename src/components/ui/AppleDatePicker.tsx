@@ -9,6 +9,7 @@ import {
     TextInput,
     KeyboardAvoidingView
 } from 'react-native';
+import Animated, { useAnimatedKeyboard, useAnimatedStyle } from 'react-native-reanimated';
 import {
     addMonths,
     subMonths,
@@ -164,6 +165,11 @@ const AppleDatePicker: React.FC<AppleDatePickerProps> = ({
         }
     };
 
+    const keyboard = useAnimatedKeyboard({ isStatusBarTranslucentAndroid: true });
+    const keyboardStyle = useAnimatedStyle(() => ({
+        paddingBottom: keyboard.height.value
+    }));
+
     return (
         <Modal
             visible={visible}
@@ -171,10 +177,7 @@ const AppleDatePicker: React.FC<AppleDatePickerProps> = ({
             animationType="slide"
             onRequestClose={onCancel}
         >
-            <KeyboardAvoidingView 
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                style={styles.overlay}
-            >
+            <Animated.View style={[styles.overlay, keyboardStyle]}>
                 <Pressable style={styles.backdrop} onPress={onCancel} />
                 <View style={styles.sheet}>
                     {/* Toolbar */}
@@ -219,7 +222,7 @@ const AppleDatePicker: React.FC<AppleDatePickerProps> = ({
                         </View>
                     </View>
                 </View>
-            </KeyboardAvoidingView>
+            </Animated.View>
         </Modal>
     );
 };

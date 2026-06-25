@@ -119,11 +119,34 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
         }
     };
 
+    const keyboardHeight = useSharedValue(0);
+
+    React.useEffect(() => {
+        const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+        const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+        const showSub = Keyboard.addListener(showEvent, (e) => {
+            keyboardHeight.value = withTiming(e.endCoordinates.height, { duration: 250 });
+        });
+        const hideSub = Keyboard.addListener(hideEvent, () => {
+            keyboardHeight.value = withTiming(0, { duration: 250 });
+        });
+
+        return () => {
+            showSub.remove();
+            hideSub.remove();
+        };
+    }, []);
+
+    const animatedKeyboardStyle = useAnimatedStyle(() => ({
+        paddingBottom: keyboardHeight.value
+    }));
+
     const animatedSheetStyle = useAnimatedStyle(() => ({
         transform: [{ translateY: translateY.value }]
     }));
 
-    // Native Keyboard Avoidance + ScrollView will handle everything smoothly.
+    // Native Keyboard Avoidance via Reanimated handles everything smoothly without gaps.
 
     return (
         <Modal
@@ -134,9 +157,8 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
             onRequestClose={handleClose}>
             <View style={styles.container}>
                 <AnimatedOverlay visible={visible} onPress={handleClose} />
-                <KeyboardAvoidingView
-                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                    style={styles.keyboardView}
+                <Animated.View
+                    style={[styles.keyboardView, animatedKeyboardStyle]}
                     pointerEvents="box-none">
                     <Animated.View style={[styles.sheetContainer, { flexShrink: 1, maxHeight: '90%' }, animatedSheetStyle]}>
                         <ScrollView
@@ -231,7 +253,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
                         </TouchableWithoutFeedback>
                         </ScrollView>
                     </Animated.View>
-                </KeyboardAvoidingView>
+                </Animated.View>
             </View>
         </Modal>
     );

@@ -6,12 +6,11 @@ import {
     StyleSheet,
     Text,
     View,
-    Animated,
     Platform,
     TextInput,
-    KeyboardAvoidingView,
     Keyboard,
 } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, runOnJS, useAnimatedKeyboard } from 'react-native-reanimated';
 import { Copy, Terminal as TerminalIcon, ChevronRight } from 'lucide-react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { animateSheetIn, animateSheetOut } from '../../common/animations';
@@ -33,43 +32,23 @@ const getLogColor = (log: string) => {
 };
 
 const InteractiveTerminalModal: React.FC<InteractiveTerminalModalProps> = ({ visible, onClose }) => {
-    const translateY = useRef(new Animated.Value(800)).current;
+    const translateY = useSharedValue(800);
     const prevVisible = useRef(false);
     
     const [logs, setLogs] = useState<string[]>([]);
     const [inputValue, setInputValue] = useState('');
     const scrollViewRef = useRef<ScrollView>(null);
     const inputRef = useRef<TextInput>(null);
-    const keyboardOffsetAnim = useRef(new Animated.Value(0)).current;
+    
+    const keyboard = useAnimatedKeyboard({ isStatusBarTranslucentAndroid: true });
 
-    useEffect(() => {
-        const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-        const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-
-        const onKeyboardShow = (e: any) => {
-            const shiftAmount = Math.max(0, e.endCoordinates.height);
-            Animated.timing(keyboardOffsetAnim, {
-                toValue: -shiftAmount,
-                duration: e.duration || 250,
-                useNativeDriver: true,
-            }).start();
-        };
-
-        const onKeyboardHide = (e: any) => {
-            Animated.timing(keyboardOffsetAnim, {
-                toValue: 0,
-                duration: e.duration || 250,
-                useNativeDriver: true,
-            }).start();
-        };
-
-        const sub1 = Keyboard.addListener(showEvent, onKeyboardShow);
-        const sub2 = Keyboard.addListener(hideEvent, onKeyboardHide);
-        return () => {
-            sub1.remove();
-            sub2.remove();
-        };
-    }, [keyboardOffsetAnim]);
+    const animatedKeyboardStyle = useAnimatedStyle(() => ({
+        paddingBottom: keyboard.height.value
+    }));
+    
+    const animatedSheetStyle = useAnimatedStyle(() => ({
+        transform: [{ translateY: translateY.value }]
+    }));
 
     const checkFPS = useCallback(async () => {
         return new Promise<number>((resolve) => {
@@ -129,8 +108,7 @@ const InteractiveTerminalModal: React.FC<InteractiveTerminalModalProps> = ({ vis
     // Auto-run FPS check on open
     useEffect(() => {
         if (visible && !prevVisible.current) {
-            translateY.stopAnimation();
-            animateSheetIn(translateY).start();
+            animateSheetIn(translateY);
             
             // Initial commands
             setLogs([
@@ -153,12 +131,12 @@ const InteractiveTerminalModal: React.FC<InteractiveTerminalModalProps> = ({ vis
 
     const handleClose = () => {
         Keyboard.dismiss();
-        translateY.stopAnimation();
-        animateSheetOut(translateY, 800, 250).start(() => {
+        animateSheetOut(translateY, 800, 250);
+        setTimeout(() => {
             onClose();
             setLogs([]);
             setInputValue('');
-        });
+        }, 300);
     };
 
     const handleCopyAll = () => {
@@ -180,11 +158,9 @@ const InteractiveTerminalModal: React.FC<InteractiveTerminalModalProps> = ({ vis
                 />
 
                 <Animated.View
-                    style={[
-                        styles.modalContainer,
-                        { transform: [{ translateY: Animated.add(translateY, keyboardOffsetAnim) }] },
-                    ]}>
-                    <View style={styles.sheet}>
+                    style={[styles.modalContainer, animatedKeyboardStyle]}
+                    pointerEvents="box-none">
+                    <Animated.View style={[styles.sheet, animatedSheetStyle]}>
                         {/* Grabber */}
                         <View style={styles.grabberContainer}>
                             <View style={styles.grabber} />
@@ -251,7 +227,7 @@ const InteractiveTerminalModal: React.FC<InteractiveTerminalModalProps> = ({ vis
                                 />
                             </View>
                         </Pressable>
-                    </View>
+                    </Animated.View>
                 </Animated.View>
             </View>
         </Modal>

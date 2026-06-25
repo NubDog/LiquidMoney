@@ -5,7 +5,7 @@
  */
 
 import { useEffect } from 'react';
-import { withTiming, withSpring, Easing, runOnJS, withRepeat, withSequence, useAnimatedStyle, type SharedValue, type WithSpringConfig } from 'react-native-reanimated';
+import { withTiming, withSpring, Easing, runOnJS, withRepeat, withSequence, useAnimatedStyle, useSharedValue, type SharedValue, type WithSpringConfig } from 'react-native-reanimated';
 
 // ─── Spring Configs ───────────────────────────────────────────────────────────
 

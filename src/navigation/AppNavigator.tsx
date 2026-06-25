@@ -114,6 +114,7 @@ const AppNavigator: React.FC = () => {
     const insets = useSafeAreaInsets();
     const { width, height } = useWindowDimensions();
     const isDeveloperMode = useStore(state => state.isDeveloperMode);
+    const isFPSMonitorEnabled = useStore(state => state.isFPSMonitorEnabled);
 
     // ─── Navigation State ───────────────────────────────────────────────────────
     const [activeTab, setActiveTab] = useState<TabName>('home');
@@ -399,7 +400,7 @@ const AppNavigator: React.FC = () => {
             </Animated.View>
 
             {/* Hardware UI Thread FPS Monitor */}
-            {isDeveloperMode && <FPSMonitor />}
+            {isFPSMonitorEnabled && <FPSMonitor />}
         </View>
     );
 };

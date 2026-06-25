@@ -10,10 +10,11 @@ import {
     Animated,
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
-import { X, CheckCircle2 } from 'lucide-react-native';
+import { X, CheckCircle2, Plus } from 'lucide-react-native';
 import { BACKGROUNDS, BACKGROUND_KEYS } from '../../assets/img/backgrounds';
 import { useStore } from '../../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
+import { launchImageLibrary } from 'react-native-image-picker';
 import AppleIconButton from '../ui/AppleIconButton';
 import { Colors, FontSizes, Radii, Spacing } from '../../common/theme';
 
@@ -26,10 +27,39 @@ const BackgroundPickerModal: React.FC<BackgroundPickerModalProps> = ({
     visible,
     onClose,
 }) => {
-    const { selectedBackgroundId, setSelectedBackground } = useStore(useShallow(state => ({
+    const { 
+        selectedBackgroundId, 
+        setSelectedBackground,
+        customBackgrounds,
+        addCustomBackground,
+        validateCustomBackgrounds,
+    } = useStore(useShallow(state => ({
         selectedBackgroundId: state.selectedBackgroundId,
-        setSelectedBackground: state.setSelectedBackground
+        setSelectedBackground: state.setSelectedBackground,
+        customBackgrounds: state.customBackgrounds,
+        addCustomBackground: state.addCustomBackground,
+        validateCustomBackgrounds: state.validateCustomBackgrounds,
     })));
+
+    React.useEffect(() => {
+        if (visible) {
+            validateCustomBackgrounds();
+        }
+    }, [visible, validateCustomBackgrounds]);
+
+    const handleAddCustomBackground = () => {
+        launchImageLibrary({ mediaType: 'photo', quality: 1 }, (response) => {
+            if (response.didCancel || response.errorCode || !response.assets?.length) {
+                return;
+            }
+            const uri = response.assets[0].uri;
+            if (uri) {
+                addCustomBackground(uri);
+                setSelectedBackground(uri);
+                onClose();
+            }
+        });
+    };
 
     if (!visible) return null;
 
@@ -60,9 +90,43 @@ const BackgroundPickerModal: React.FC<BackgroundPickerModalProps> = ({
                 <ScrollView
                     contentContainerStyle={styles.scrollContent}
                     showsVerticalScrollIndicator={false}>
-                    
-                    {/* Default Option (No specific background -> use Fallback/Default) */}
                     <View style={styles.grid}>
+                        {/* Add Custom Background Button */}
+                        <Pressable
+                            style={[styles.itemWrapper, styles.addButton]}
+                            onPress={handleAddCustomBackground}>
+                            <Plus color="#FFF" size={32} />
+                        </Pressable>
+
+                        {/* Custom Backgrounds */}
+                        {customBackgrounds.map((uri) => {
+                            const isSelected = selectedBackgroundId === uri;
+                            return (
+                                <Pressable
+                                    key={uri}
+                                    style={[
+                                        styles.itemWrapper,
+                                        isSelected && styles.selectedItem,
+                                    ]}
+                                    onPress={() => {
+                                        setSelectedBackground(uri);
+                                        onClose();
+                                    }}>
+                                    <Image
+                                        source={{ uri }}
+                                        style={styles.imageThumb}
+                                        resizeMode="cover"
+                                    />
+                                    {isSelected && (
+                                        <View style={styles.checkBadge}>
+                                            <CheckCircle2 color={Colors.income} size={28} />
+                                        </View>
+                                    )}
+                                </Pressable>
+                            );
+                        })}
+
+                        {/* Default Option (No specific background -> use Fallback/Default) */}
                         <Pressable
                             style={[
                                 styles.itemWrapper,
@@ -159,6 +223,14 @@ const styles = StyleSheet.create({
     },
     selectedItem: {
         borderColor: Colors.income,
+    },
+    addButton: {
+        backgroundColor: '#000',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 2,
+        borderColor: 'rgba(255,255,255,0.1)',
+        borderStyle: 'dashed',
     },
     imageThumb: {
         width: '100%',

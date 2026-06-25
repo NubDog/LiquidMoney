@@ -6,10 +6,16 @@ import { BACKGROUNDS } from '../../assets/img/backgrounds';
 const LiquidBackground: React.FC = () => {
     const selectedBackgroundId = useStore(state => state.selectedBackgroundId);
     
-    // Fallback: nếu selectedBackgroundId không có (null), dùng Background_0.jpg mặc định
-    const source = selectedBackgroundId && BACKGROUNDS[selectedBackgroundId] 
-        ? BACKGROUNDS[selectedBackgroundId] 
-        : require('../../assets/img/Background_0.jpg');
+    let source;
+    if (selectedBackgroundId) {
+        if (BACKGROUNDS[selectedBackgroundId]) {
+            source = BACKGROUNDS[selectedBackgroundId];
+        } else {
+            source = { uri: selectedBackgroundId };
+        }
+    } else {
+        source = require('../../assets/img/Background.jpg');
+    }
 
     return (
         <View style={styles.container}>
