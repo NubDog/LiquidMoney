@@ -22,6 +22,7 @@ import { Code, Database, Bug, TerminalSquare, ChevronRight, Lock, Image as Image
 import TerminalLogModal from '../components/modals/TerminalLogModal';
 import InteractiveTerminalModal from '../components/modals/InteractiveTerminalModal';
 import BackgroundPickerModal from '../components/modals/BackgroundPickerModal';
+import SlowTimeAnimationModal from '../components/modals/SlowTimeAnimationModal';
 import { useStore } from '../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import { generateRandomTransactions, generateRandomWallets, deleteAllData } from '../database/queries';
@@ -59,6 +60,9 @@ const DeveloperScreen: React.FC = () => {
 
     // Background Picker State
     const [showBackgroundPicker, setShowBackgroundPicker] = useState(false);
+
+    // Slow Time Animation State
+    const [showSlowTimeAnim, setShowSlowTimeAnim] = useState(false);
 
     // ─── Actions ────────────────────────────────────────────────────────────
 
@@ -369,6 +373,18 @@ const DeveloperScreen: React.FC = () => {
                                 thumbColor={'#ffffff'}
                             />
                         </View>
+                        <View style={styles.divider} />
+                        <Pressable 
+                            style={({ pressed }) => [styles.rowCardInner, pressed && { opacity: 0.7 }, { marginTop: Spacing.md }]}
+                            onPress={() => setShowSlowTimeAnim(true)}
+                        >
+                            <Code size={20} color={Colors.textMuted} strokeWidth={2} />
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.rowCardTitle}>Slow time animation</Text>
+                                <Text style={{ fontSize: FontSizes.xs, color: Colors.textMuted, marginTop: 2 }}>Điều chỉnh tốc độ animation</Text>
+                            </View>
+                            <ChevronRight size={20} color={Colors.textMuted} />
+                        </Pressable>
                     </View>
 
                     <Text style={styles.infoText}>
@@ -398,6 +414,11 @@ const DeveloperScreen: React.FC = () => {
             <BackgroundPickerModal
                 visible={showBackgroundPicker}
                 onClose={() => setShowBackgroundPicker(false)}
+            />
+
+            <SlowTimeAnimationModal
+                visible={showSlowTimeAnim}
+                onClose={() => setShowSlowTimeAnim(false)}
             />
         </>
     );

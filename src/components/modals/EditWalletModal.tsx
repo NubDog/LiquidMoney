@@ -16,6 +16,7 @@ import {
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, runOnJS } from 'react-native-reanimated';
 import { launchImageLibrary } from 'react-native-image-picker';
 import AppleButton from '../ui/AppleButton';
+import { useStore } from '../../store/useStore';
 import AppleTextInput from '../ui/AppleTextInput';
 import AppleAmountInput from '../ui/AppleAmountInput';
 
@@ -56,19 +57,25 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
 
     useEffect(() => {
         if (visible) {
+            const currentSlide = useStore.getState().devAnimations.slide * 1000;
+            const currentFade = useStore.getState().devAnimations.fade * 1000;
+
             setShouldRender(true);
             setName(walletName);
             setBalanceStr(formatCurrency(walletBalance.toString()));
             setImageUri(walletImageUri || null);
-            sheetTranslateY.value = withTiming(0, { duration: 400 });
-            opacityAnim.value = withTiming(1, { duration: 400 });
+            sheetTranslateY.value = withTiming(0, { duration: currentSlide });
+            opacityAnim.value = withTiming(1, { duration: currentFade });
         }
     }, [visible, sheetTranslateY, opacityAnim, walletName, walletBalance, walletImageUri]);
 
     const handleClose = useCallback(() => {
         Keyboard.dismiss();
-        sheetTranslateY.value = withTiming(600, { duration: 400 });
-        opacityAnim.value = withTiming(0, { duration: 400 }, (finished) => {
+        const currentSlide = useStore.getState().devAnimations.slide * 1000;
+        const currentFade = useStore.getState().devAnimations.fade * 1000;
+
+        sheetTranslateY.value = withTiming(600, { duration: currentSlide });
+        opacityAnim.value = withTiming(0, { duration: currentFade }, (finished) => {
             if (finished) {
                 runOnJS(setShouldRender)(false);
                 runOnJS(onClose)();
@@ -90,6 +97,11 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
                 mediaType: 'photo',
                 quality: 0.8,
             });
+            if (Platform.OS === 'android') {
+                setTimeout(() => {
+                    Keyboard.dismiss();
+                }, 100);
+            }
             if (result.assets && result.assets.length > 0) {
                 const uri = result.assets[0].uri;
                 if (uri) {
@@ -144,6 +156,7 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
         <Modal
             visible={shouldRender}
             transparent
+            hardwareAccelerated={true}
             animationType="none"
             statusBarTranslucent
             onRequestClose={handleClose}>

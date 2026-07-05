@@ -56,6 +56,13 @@ interface StoreState {
 
     /** Danh sách hình nền tùy chỉnh */
     customBackgrounds: string[];
+
+    /** Dev tool: Slow time animation settings (duration in seconds) */
+    devAnimations: {
+        fade: number;
+        slide: number;
+        zoom: number;
+    };
 }
 
 interface StoreActions {
@@ -143,8 +150,9 @@ interface StoreActions {
     /** Xóa hình nền tùy chỉnh */
     removeCustomBackground: (uri: string) => void;
 
-    /** Kiểm tra xem các hình nền tùy chỉnh còn tồn tại không */
     validateCustomBackgrounds: () => Promise<void>;
+
+    setDevAnimation: (key: 'fade' | 'slide' | 'zoom', durationSeconds: number) => void;
 }
 
 type Store = StoreState & StoreActions;
@@ -160,6 +168,11 @@ export const useStore = create<Store>((set, get) => ({
     isFPSMonitorEnabled: false,
     selectedBackgroundId: null,
     customBackgrounds: [],
+    devAnimations: {
+        fade: 0.4,
+        slide: 0.4,
+        zoom: 0.2, // fast spring default equivalent
+    },
 
     initialize: () => {
         try {
@@ -439,6 +452,15 @@ export const useStore = create<Store>((set, get) => ({
                 }
             }
         }
+    },
+
+    setDevAnimation: (key, durationSeconds) => {
+        set((state) => ({
+            devAnimations: {
+                ...state.devAnimations,
+                [key]: durationSeconds,
+            }
+        }));
     },
 }));
 

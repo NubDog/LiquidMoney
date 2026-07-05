@@ -153,24 +153,27 @@ const AppNavigator: React.FC = () => {
 
         const targetIndex = ALL_TABS.findIndex(t => t.key === activeTab);
         const idx = targetIndex === -1 ? 0 : targetIndex;
+        const currentDuration = useStore.getState().devAnimations.slide * 1000;
 
         slideAnim.value = withTiming(-idx * width, {
-            duration: 400,
+            duration: currentDuration,
             easing: Easing.out(Easing.cubic)
         });
     }, [activeTab, width, slideAnim]);
 
     // Trigger slide animation when wallet is selected/deselected
     useEffect(() => {
+        const currentDuration = useStore.getState().devAnimations.slide * 1000;
+        
         if (activeWalletId) {
             walletSlideAnim.value = 0;
             walletSlideAnim.value = withTiming(1, {
-                duration: 400,
+                duration: currentDuration,
                 easing: Easing.out(Easing.cubic)
             });
         } else if (walletDetailRendered) {
             walletSlideAnim.value = withTiming(0, {
-                duration: 400,
+                duration: currentDuration,
                 easing: Easing.out(Easing.cubic)
             }, (finished) => {
                 if (finished) {

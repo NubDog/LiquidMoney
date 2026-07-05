@@ -26,7 +26,10 @@ interface AppleBarChartProps {
     period: Period;
 }
 
+import { useStore } from '../../store/useStore';
+
 const AppleBarChart: React.FC<AppleBarChartProps> = React.memo(({ data, period }) => {
+
     // Hold displayed data to animate old data OUT before swapping to new data IN
     const [displayData, setDisplayData] = useState(data);
 
@@ -37,9 +40,15 @@ const AppleBarChart: React.FC<AppleBarChartProps> = React.memo(({ data, period }
     const labelsFade = useSharedValue(0);
 
     useEffect(() => {
+        const currentZoom = useStore.getState().devAnimations.zoom * 1000;
+        
         // Run initial mount animation
-        barScale.value = withSpring(1, { damping: 17, stiffness: 90 });
-        labelsFade.value = withTiming(1, { duration: 400 });
+        if (currentZoom <= 300) {
+            barScale.value = withSpring(1, { damping: 15, stiffness: 250, mass: 0.6 });
+        } else {
+            barScale.value = withTiming(1, { duration: currentZoom, easing: Easing.out(Easing.cubic) });
+        }
+        labelsFade.value = withTiming(1, { duration: currentZoom });
     }, [barScale, labelsFade]);
 
     const swapDataAndAnimate = (newData: ChartDataPoint[]) => {
@@ -47,17 +56,24 @@ const AppleBarChart: React.FC<AppleBarChartProps> = React.memo(({ data, period }
         
         // Wait a tiny bit to ensure JS paints the swap, then grow up gracefully
         setTimeout(() => {
-            barScale.value = withSpring(1, { damping: 17, stiffness: 90 });
-            labelsFade.value = withTiming(1, { duration: 400 });
+            const currentZoom = useStore.getState().devAnimations.zoom * 1000;
+            if (currentZoom <= 300) {
+                barScale.value = withSpring(1, { damping: 15, stiffness: 250, mass: 0.6 });
+            } else {
+                barScale.value = withTiming(1, { duration: currentZoom, easing: Easing.out(Easing.cubic) });
+            }
+            labelsFade.value = withTiming(1, { duration: currentZoom });
         }, 50);
     };
 
     useEffect(() => {
         if (data === displayData) return;
 
+        const currentZoom = useStore.getState().devAnimations.zoom * 1000;
+        
         // Sequence: Drop down -> Swap -> Grow up
-        barScale.value = withTiming(0, { duration: 400, easing: Easing.in(Easing.cubic) });
-        labelsFade.value = withTiming(0, { duration: 400 }, (finished) => {
+        barScale.value = withTiming(0, { duration: currentZoom * 0.75, easing: Easing.inOut(Easing.quad) });
+        labelsFade.value = withTiming(0, { duration: currentZoom * 0.75 }, (finished) => {
             if (finished) {
                 runOnJS(swapDataAndAnimate)(data);
             }
@@ -145,8 +161,8 @@ const AppleBarChart: React.FC<AppleBarChartProps> = React.memo(({ data, period }
                                         const shouldRenderIn = isDayView ? d.label === 'Thu' : true;
                                         const shouldRenderOut = isDayView ? d.label === 'Chi' : true;
 
-                                        const rawInH = maxVal > 0 ? (d.income / maxVal) * BAR_AREA_HEIGHT : 0;
-                                        const rawOutH = maxVal > 0 ? (d.expense / maxVal) * BAR_AREA_HEIGHT : 0;
+                                        const rawInH = maxVal > 0 ? (d.income / maxVal) * (BAR_AREA_HEIGHT * 0.85) : 0;
+                                        const rawOutH = maxVal > 0 ? (d.expense / maxVal) * (BAR_AREA_HEIGHT * 0.85) : 0;
                                         
                                         // Always render a minimum 4px bar if it should exist, even for 0 values.
                                         const inH = shouldRenderIn ? Math.max(rawInH, 4) : 0;

@@ -8,6 +8,8 @@ import {
     ScrollView,
     Image,
     Animated,
+    Platform,
+    Keyboard,
 } from 'react-native';
 import { BlurView } from '@react-native-community/blur';
 import { X, CheckCircle2, Plus } from 'lucide-react-native';
@@ -49,6 +51,11 @@ const BackgroundPickerModal: React.FC<BackgroundPickerModalProps> = ({
 
     const handleAddCustomBackground = () => {
         launchImageLibrary({ mediaType: 'photo', quality: 1 }, (response) => {
+            if (Platform.OS === 'android') {
+                setTimeout(() => {
+                    Keyboard.dismiss();
+                }, 100);
+            }
             if (response.didCancel || response.errorCode || !response.assets?.length) {
                 return;
             }
@@ -67,6 +74,7 @@ const BackgroundPickerModal: React.FC<BackgroundPickerModalProps> = ({
         <Modal
             visible={visible}
             transparent={true}
+            hardwareAccelerated={true}
             animationType="slide"
             statusBarTranslucent={true}
             onRequestClose={onClose}>
