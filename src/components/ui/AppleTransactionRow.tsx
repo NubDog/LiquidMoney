@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, withDelay } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeOutUp, LinearTransition } from 'react-native-reanimated';
 import { ArrowDownRight, ArrowUpRight, Repeat } from 'lucide-react-native';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -37,23 +37,15 @@ const AppleTransactionRow: React.FC<AppleTransactionRowProps> = ({
     };
 
     // Giới hạn delay tối đa là cho 12 phần tử (để những mẻ tải sau không bị delay quá lâu)
-    const animationDelay = (index % 12) * 50;
-
-    const opacity = useSharedValue(0);
-    const translateY = useSharedValue(-15);
-
-    useEffect(() => {
-        opacity.value = withDelay(animationDelay, withTiming(1, { duration: 400 }));
-        translateY.value = withDelay(animationDelay, withTiming(0, { duration: 400 }));
-    }, [opacity, translateY, animationDelay]);
-
-    const animatedStyle = useAnimatedStyle(() => ({
-        opacity: opacity.value,
-        transform: [{ translateY: translateY.value }]
-    }));
+    const animationDelay = (index % 12) * 35;
 
     return (
-        <Animated.View style={[styles.wrapper, animatedStyle]}>
+        <Animated.View 
+            entering={FadeInDown.delay(animationDelay).duration(300)}
+            exiting={FadeOutUp.duration(250)}
+            layout={LinearTransition.duration(250)}
+            style={styles.wrapper}
+        >
             <View style={styles.cardStyle}>
                 <Pressable
                     style={({ pressed }) => [

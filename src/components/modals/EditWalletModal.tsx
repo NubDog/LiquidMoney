@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     Keyboard,
     KeyboardAvoidingView,
@@ -13,7 +13,7 @@ import {
     ScrollView,
     Image
 } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, runOnJS } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, runOnJS, cancelAnimation } from 'react-native-reanimated';
 import { launchImageLibrary } from 'react-native-image-picker';
 import AppleButton from '../ui/AppleButton';
 import { useStore } from '../../store/useStore';
@@ -52,11 +52,14 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
     const sheetTranslateY = useSharedValue(600);
     const opacityAnim = useSharedValue(0);
     const [shouldRender, setShouldRender] = useState(false);
+    const prevVisible = useRef(false);
+    const isClosingRef = useRef(false);
 
     // Native Keyboard Avoidance + ScrollView will handle everything smoothly.
 
     useEffect(() => {
-        if (visible) {
+        if (visible && !prevVisible.current) {
+            isClosingRef.current = false;
             const currentSlide = useStore.getState().devAnimations.slide * 1000;
             const currentFade = useStore.getState().devAnimations.fade * 1000;
 
@@ -66,11 +69,20 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
             setImageUri(walletImageUri || null);
             sheetTranslateY.value = withTiming(0, { duration: currentSlide });
             opacityAnim.value = withTiming(1, { duration: currentFade });
+        } else if (!visible && prevVisible.current) {
+            isClosingRef.current = false;
+            setShouldRender(false);
         }
+        prevVisible.current = visible;
     }, [visible, sheetTranslateY, opacityAnim, walletName, walletBalance, walletImageUri]);
 
     const handleClose = useCallback(() => {
+        if (isClosingRef.current) return;
+        isClosingRef.current = true;
         Keyboard.dismiss();
+        cancelAnimation(sheetTranslateY);
+        cancelAnimation(opacityAnim);
+
         const currentSlide = useStore.getState().devAnimations.slide * 1000;
         const currentFade = useStore.getState().devAnimations.fade * 1000;
 
@@ -87,8 +99,8 @@ const EditWalletModal: React.FC<EditWalletModalProps> = ({
         const trimmedName = name.trim();
         if (!trimmedName) { return; }
         const balance = parseInt(balanceStr.replace(/[^0-9-]/g, ''), 10) || 0;
-        onSave(trimmedName, balance, imageUri);
         handleClose();
+        onSave(trimmedName, balance, imageUri);
     }, [name, balanceStr, imageUri, onSave, handleClose]);
 
     const handlePickImage = useCallback(async () => {
