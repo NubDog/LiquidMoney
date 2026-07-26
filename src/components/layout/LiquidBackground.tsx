@@ -24,6 +24,7 @@ const LiquidBackground: React.FC = () => {
                 style={styles.image} 
                 resizeMode="cover" 
                 fadeDuration={0}
+                progressiveRenderingEnabled={true}
             />
         </View>
     );

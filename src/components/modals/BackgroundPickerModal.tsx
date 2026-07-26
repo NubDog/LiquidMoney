@@ -19,6 +19,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { launchImageLibrary } from 'react-native-image-picker';
 import AppleIconButton from '../ui/AppleIconButton';
 import { Colors, FontSizes, Radii, Spacing } from '../../common/theme';
+import { imageService } from '../../services/imageService';
 
 interface BackgroundPickerModalProps {
     visible: boolean;
@@ -50,7 +51,7 @@ const BackgroundPickerModal: React.FC<BackgroundPickerModalProps> = ({
     }, [visible, validateCustomBackgrounds]);
 
     const handleAddCustomBackground = () => {
-        launchImageLibrary({ mediaType: 'photo', quality: 1 }, (response) => {
+        launchImageLibrary({ mediaType: 'photo', quality: 1 }, async (response) => {
             if (Platform.OS === 'android') {
                 setTimeout(() => {
                     Keyboard.dismiss();
@@ -59,10 +60,12 @@ const BackgroundPickerModal: React.FC<BackgroundPickerModalProps> = ({
             if (response.didCancel || response.errorCode || !response.assets?.length) {
                 return;
             }
-            const uri = response.assets[0].uri;
-            if (uri) {
-                addCustomBackground(uri);
-                setSelectedBackground(uri);
+            const tempUri = response.assets[0].uri;
+            if (tempUri) {
+                // Tải và lưu ảnh nguyên bản vào bộ nhớ vĩnh viễn cục bộ để không bị nén/thu nhỏ
+                const savedUri = await imageService.saveImageToLocal(tempUri);
+                addCustomBackground(savedUri);
+                setSelectedBackground(savedUri);
                 onClose();
             }
         });
