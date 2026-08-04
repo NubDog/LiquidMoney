@@ -24,6 +24,8 @@ import WalletModal from '../components/modals/WalletModal';
 import EditWalletModal from '../components/modals/EditWalletModal';
 import AppleWalletCard from '../components/ui/AppleWalletCard';
 import AppleIconButton from '../components/ui/AppleIconButton';
+import QuickAddTransactionBar from '../components/buttons/QuickAddTransactionBar';
+import QuickTransactionModal from '../components/modals/QuickTransactionModal';
 import { formatVND, formatVNDTruncated } from '../common/formatters';
 import { Colors, FontSizes, Spacing, Radii } from '../common/theme';
 import type { Wallet } from '../common/types';
@@ -42,7 +44,7 @@ const ItemSeparator = () => <View style={styles.separator} />;
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
     const insets = useSafeAreaInsets();
-    const { wallets, addWallet, editWallet, adjustWalletBalance, removeWallet, isReady, refreshWallets } = useStore(useShallow(state => ({
+    const { wallets, addWallet, editWallet, adjustWalletBalance, removeWallet, isReady, refreshWallets, addTransaction } = useStore(useShallow(state => ({
         wallets: state.wallets,
         addWallet: state.addWallet,
         editWallet: state.editWallet,
@@ -50,11 +52,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
         removeWallet: state.removeWallet,
         isReady: state.isReady,
         refreshWallets: state.refreshWallets,
+        addTransaction: state.addTransaction,
     })));
 
     // ─── Modal State ──────────────────────────────────────────────────────────
     const [modalVisible, setModalVisible] = useState(false);
     const [editWalletVisible, setEditWalletVisible] = useState(false);
+    const [quickModalVisible, setQuickModalVisible] = useState(false);
     const [editingWallet, setEditingWallet] = useState<Wallet | null>(null);
     const [refreshing, setRefreshing] = useState(false);
 
@@ -149,31 +153,46 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
         [],
     );
 
+    const handleQuickSaveTransaction = useCallback(
+        async (walletId: string, type: 'IN' | 'OUT', amount: number, reason?: string) => {
+            addTransaction(walletId, type, amount, reason || null, null, new Date().toISOString());
+            refreshWallets();
+        },
+        [addTransaction, refreshWallets],
+    );
+
     // ─── Header ───────────────────────────────────────────────────────────────
 
     const ListHeader = useMemo(
         () => (
             <View style={styles.headerSection}>
                 {wallets.length > 0 && (
-                    <View collapsable={false} style={styles.totalSection}>
-                        <View collapsable={false} style={styles.heroHeader}>
-                            <View style={styles.heroIconWrapper}>
-                                <PieChart size={22} color="#FFFFFF" strokeWidth={2.5} />
+                    <>
+                        <View collapsable={false} style={styles.totalSection}>
+                            <View collapsable={false} style={styles.heroHeader}>
+                                <View style={styles.heroIconWrapper}>
+                                    <PieChart size={22} color="#FFFFFF" strokeWidth={2.5} />
+                                </View>
+                                <Text style={styles.heroLabel}>TỔNG TÀI SẢN</Text>
                             </View>
-                            <Text style={styles.heroLabel}>TỔNG TÀI SẢN</Text>
-                        </View>
-                        
-                        <View collapsable={false}>
-                            <Text style={styles.heroBalance} numberOfLines={1} adjustsFontSizeToFit>{formatVNDTruncated(totalBalance)}</Text>
-                        </View>
-                        
-                        <View style={styles.heroFooter}>
-                            <View style={styles.badge}>
-                                <WalletIcon size={14} color="#FFFFFF" strokeWidth={2.5} />
-                                <Text style={styles.badgeText}>{wallets.length} ví hoạt động</Text>
+                            
+                            <View collapsable={false}>
+                                <Text style={styles.heroBalance} numberOfLines={1} adjustsFontSizeToFit>{formatVNDTruncated(totalBalance)}</Text>
+                            </View>
+                            
+                            <View style={styles.heroFooter}>
+                                <View style={styles.badge}>
+                                    <WalletIcon size={14} color="#FFFFFF" strokeWidth={2.5} />
+                                    <Text style={styles.badgeText}>{wallets.length} ví hoạt động</Text>
+                                </View>
                             </View>
                         </View>
-                    </View>
+
+                        {/* Quick Add Transaction Widget Bar */}
+                        <View style={styles.quickAddBarWrapper}>
+                            <QuickAddTransactionBar onPress={() => setQuickModalVisible(true)} />
+                        </View>
+                    </>
                 )}
             </View>
         ),
@@ -252,6 +271,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
                     walletImageUri={editingWallet.image_uri}
                 />
             )}
+
+            {/* Quick Add Transaction Modal */}
+            <QuickTransactionModal
+                visible={quickModalVisible}
+                wallets={wallets}
+                onClose={() => setQuickModalVisible(false)}
+                onSave={handleQuickSaveTransaction}
+            />
         </View>
     );
 };
@@ -324,6 +351,10 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontSize: 14,
         fontWeight: '600',
+    },
+    quickAddBarWrapper: {
+        marginTop: 18,
+        marginHorizontal: 4,
     },
     separator: {
         height: 14,
