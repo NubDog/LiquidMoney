@@ -29,7 +29,7 @@ const QuickAddTransactionBar: React.FC<QuickAddTransactionBarProps> = ({
     style,
     title = 'Thêm giao dịch mới',
     backgroundColor = '#0066FF',
-    height = 56,
+    height = 62,
 }) => {
     const [isLoading, setIsLoading] = useState(false);
 
@@ -54,6 +54,8 @@ const QuickAddTransactionBar: React.FC<QuickAddTransactionBarProps> = ({
         }
     }, [isLoading, onPress]);
 
+    const circleSize = height - 18;
+
     return (
         <Pressable
             onPress={handlePress}
@@ -70,7 +72,7 @@ const QuickAddTransactionBar: React.FC<QuickAddTransactionBarProps> = ({
             ]}
         >
             <View style={styles.contentRow}>
-                <View style={[styles.iconCircle, { width: height - 16, height: height - 16, borderRadius: (height - 16) / 2 }]}>
+                <View style={[styles.iconCircle, { width: circleSize, height: circleSize, borderRadius: circleSize / 2 }]}>
                     {isLoading ? (
                         <ActivityIndicator color="#FFFFFF" size="small" />
                     ) : (
@@ -87,7 +89,8 @@ const styles = StyleSheet.create({
     container: {
         width: '100%',
         justifyContent: 'center',
-        paddingHorizontal: 8,
+        alignItems: 'center',
+        paddingHorizontal: 16,
         ...Platform.select({
             ios: {
                 shadowColor: '#0066FF',
@@ -107,14 +110,13 @@ const styles = StyleSheet.create({
     contentRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'flex-start',
-        paddingRight: 16,
+        justifyContent: 'center',
     },
     iconCircle: {
         backgroundColor: 'rgba(255, 255, 255, 0.25)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 14,
+        marginRight: 10,
     },
     plusIcon: {
         color: '#FFFFFF',

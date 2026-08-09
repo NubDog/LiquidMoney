@@ -24,7 +24,6 @@ import WalletModal from '../components/modals/WalletModal';
 import EditWalletModal from '../components/modals/EditWalletModal';
 import AppleWalletCard from '../components/ui/AppleWalletCard';
 import AppleIconButton from '../components/ui/AppleIconButton';
-import QuickAddTransactionBar from '../components/buttons/QuickAddTransactionBar';
 import QuickTransactionModal from '../components/modals/QuickTransactionModal';
 import { formatVND, formatVNDTruncated } from '../common/formatters';
 import { Colors, FontSizes, Spacing, Radii } from '../common/theme';
@@ -187,11 +186,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
                                 </View>
                             </View>
                         </View>
-
-                        {/* Quick Add Transaction Widget Bar */}
-                        <View style={styles.quickAddBarWrapper}>
-                            <QuickAddTransactionBar onPress={() => setQuickModalVisible(true)} />
-                        </View>
                     </>
                 )}
             </View>
@@ -351,10 +345,6 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontSize: 14,
         fontWeight: '600',
-    },
-    quickAddBarWrapper: {
-        marginTop: 18,
-        marginHorizontal: 4,
     },
     separator: {
         height: 14,
