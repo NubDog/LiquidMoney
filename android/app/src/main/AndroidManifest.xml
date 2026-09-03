@@ -25,5 +25,26 @@
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
       </activity>
+
+      <activity
+        android:name=".TransparentOverlayActivity"
+        android:theme="@style/Theme.LiquidMoney.TransparentActivity"
+        android:launchMode="singleTask"
+        android:windowSoftInputMode="adjustResize"
+        android:excludeFromRecents="true"
+        android:exported="true"
+        android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode" />
+
+      <receiver
+        android:name=".widget.QuickTransactionWidgetProvider"
+        android:label="@string/widget_quick_transaction_name"
+        android:exported="true">
+        <intent-filter>
+          <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+        </intent-filter>
+        <meta-data
+          android:name="android.appwidget.provider"
+          android:resource="@xml/widget_quick_transaction_info" />
+      </receiver>
     </application>
 </manifest>

@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">LiquidMoney</string>
+    <string name="widget_quick_transaction_name">Thêm giao dịch nhanh</string>
+    <string name="widget_quick_transaction_desc">Chạm để mở giao diện thêm nhanh giao dịch LiquidMoney</string>
+    <string name="add_transaction">Thêm giao dịch</string>
+    <string name="quick_add_hint">Chạm để nhập nhanh</string>
 </resources>

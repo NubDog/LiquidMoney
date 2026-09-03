@@ -5,6 +5,7 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import {
+    BackHandler,
     Keyboard,
     Modal,
     Platform,
@@ -29,6 +30,7 @@ interface QuickTransactionModalProps {
     wallets: Wallet[];
     onClose: () => void;
     onSave: (walletId: string, type: 'IN' | 'OUT', amount: number, reason?: string) => void | Promise<void>;
+    embedded?: boolean;
 }
 
 const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
@@ -36,6 +38,7 @@ const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
     wallets,
     onClose,
     onSave,
+    embedded = false,
 }) => {
     const insets = useSafeAreaInsets();
     const [selectedWalletId, setSelectedWalletId] = useState<string>('');
@@ -64,6 +67,15 @@ const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
         }
         prevVisible.current = visible;
     }, [visible, translateY]);
+
+    useEffect(() => {
+        if (!visible) return;
+        const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+            handleClose();
+            return true;
+        });
+        return () => sub.remove();
+    }, [visible]);
 
     const selectedWallet = wallets.find(w => w.id === selectedWalletId) || wallets[0];
 
@@ -100,6 +112,74 @@ const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
 
     if (!visible) return null;
 
+    const content = (
+        <View style={styles.modalRoot}>
+            <AnimatedOverlay visible={visible} onPress={handleClose} />
+
+            <Animated.View style={[styles.sheetContainer, animatedSheetStyle, { paddingBottom: Math.max(insets.bottom, 20) + 16 }]}>
+                {/* Header with Close Button */}
+                <View style={styles.headerRow}>
+                    <View style={{ flex: 1 }} />
+                    <AppleCloseButton onPress={handleClose} size={32} />
+                </View>
+
+                <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                    contentContainerStyle={styles.scrollContent}
+                >
+                    {/* 1. Wallet Selection Dropdown Pill with smooth rotation and slide down animations */}
+                    <WalletDropdownPicker
+                        wallets={wallets}
+                        selectedWalletId={selectedWalletId}
+                        onSelectWallet={setSelectedWalletId}
+                    />
+
+                    {/* 2. Type Selector (Chi Tiêu / Thu Nhập) using AppleSegmentedControl */}
+                    <AppleSegmentedControl
+                        options={[
+                            { key: 'OUT', label: 'CHI TIÊU' },
+                            { key: 'IN', label: 'THU NHẬP' },
+                        ]}
+                        selected={transactionType}
+                        onChange={(key) => setTransactionType(key as 'OUT' | 'IN')}
+                        style={{ marginBottom: 20 }}
+                    />
+
+                    {/* 3. Section: SỐ TIỀN using AppleAmountInput */}
+                    <AppleAmountInput
+                        label="SỐ TIỀN"
+                        value={amountText}
+                        onChangeText={setAmountText}
+                        placeholder="0"
+                    />
+
+                    {/* 4. Section: NỘI DUNG using AppleTextInput */}
+                    <AppleTextInput
+                        label="NỘI DUNG"
+                        value={reasonText}
+                        onChangeText={setReasonText}
+                        placeholder="Nhập nội dung giao dịch"
+                        containerStyle={{ marginBottom: 20 }}
+                    />
+
+                    {/* 5. Submit Button using AppleButton */}
+                    <AppleButton
+                        title="Thêm giao dịch"
+                        onPress={handleSave}
+                        disabled={!amountText || isSubmitting}
+                        loading={isSubmitting}
+                        style={{ marginTop: 10 }}
+                    />
+                </ScrollView>
+            </Animated.View>
+        </View>
+    );
+
+    if (embedded) {
+        return content;
+    }
+
     return (
         <Modal
             visible={visible}
@@ -108,70 +188,7 @@ const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
             statusBarTranslucent={true}
             onRequestClose={handleClose}
         >
-            <View style={styles.modalRoot}>
-                <AnimatedOverlay visible={visible} onPress={handleClose} />
-
-                <Animated.View style={[styles.sheetContainer, animatedSheetStyle, { paddingBottom: Math.max(insets.bottom, 20) + 16 }]}>
-                    {/* Handle Indicator */}
-                    <View style={styles.handleBar} />
-
-                    {/* Header with Close Button */}
-                    <View style={styles.headerRow}>
-                        <View style={{ flex: 1 }} />
-                        <AppleCloseButton onPress={handleClose} size={32} />
-                    </View>
-
-                    <ScrollView
-                        showsVerticalScrollIndicator={false}
-                        keyboardShouldPersistTaps="handled"
-                        contentContainerStyle={styles.scrollContent}
-                    >
-                        {/* 1. Wallet Selection Dropdown Pill with smooth rotation and slide down animations */}
-                        <WalletDropdownPicker
-                            wallets={wallets}
-                            selectedWalletId={selectedWalletId}
-                            onSelectWallet={setSelectedWalletId}
-                        />
-
-                        {/* 2. Type Selector (Chi Tiêu / Thu Nhập) using AppleSegmentedControl */}
-                        <AppleSegmentedControl
-                            options={[
-                                { key: 'OUT', label: 'CHI TIÊU' },
-                                { key: 'IN', label: 'THU NHẬP' },
-                            ]}
-                            selected={transactionType}
-                            onChange={(key) => setTransactionType(key as 'OUT' | 'IN')}
-                            style={{ marginBottom: 20 }}
-                        />
-
-                        {/* 3. Section: SỐ TIỀN using AppleAmountInput */}
-                        <AppleAmountInput
-                            label="SỐ TIỀN"
-                            value={amountText}
-                            onChangeText={setAmountText}
-                            placeholder="0"
-                        />
-
-                        {/* 4. Section: NỘI DUNG using AppleTextInput */}
-                        <AppleTextInput
-                            label="NỘI DUNG"
-                            value={reasonText}
-                            onChangeText={setReasonText}
-                            placeholder="Nhập nội dung giao dịch"
-                            containerStyle={{ marginBottom: 20 }}
-                        />
-
-                        {/* 5. Submit Button using AppleButton */}
-                        <AppleButton
-                            title="Thêm giao dịch"
-                            onPress={handleSave}
-                            disabled={!amountText || isSubmitting}
-                            loading={isSubmitting}
-                            style={{ marginTop: 10 }}
-                        />
-                    </ScrollView>
-                </Animated.View>
-            </View>
+            {content}
         </Modal>
     );
 };
@@ -182,11 +199,16 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
     },
     sheetContainer: {
+        maxHeight: '90%',
         backgroundColor: '#1C1C1E',
         borderTopLeftRadius: 28,
         borderTopRightRadius: 28,
         paddingHorizontal: 20,
-        paddingTop: 12,
+        paddingTop: 16,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: 'rgba(255, 255, 255, 0.3)',
+        borderBottomWidth: 0,
+        borderRightWidth: 0,
         ...Platform.select({
             ios: {
                 shadowColor: '#000',
@@ -198,14 +220,6 @@ const styles = StyleSheet.create({
                 elevation: 16,
             },
         }),
-    },
-    handleBar: {
-        width: 40,
-        height: 5,
-        borderRadius: 2.5,
-        backgroundColor: 'rgba(255, 255, 255, 0.25)',
-        alignSelf: 'center',
-        marginBottom: 8,
     },
     headerRow: {
         flexDirection: 'row',

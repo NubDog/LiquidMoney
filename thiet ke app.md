@@ -78,42 +78,32 @@
 
 ---
 
-## 4. TÍNH NĂNG TRỌNG TÂM ĐANG TRIỂN KHAI: ANDROID HOME SCREEN WIDGET
+## 4. TÍNH NĂNG ĐÃ HOÀN THÀNH: ANDROID HOME SCREEN WIDGET (QUICK TRANSACTION)
 
-### 4.1. Mục tiêu và Định hướng Kỹ thuật
-- **Mục tiêu:** Người dùng có một Widget dạng viên thuốc (Pill shape) ngoài màn hình Home của Android. Khi nhấn vào nút `+` / "Thêm giao dịch mới", một giao diện pop-up mượt mà nổi đè lên màn hình desktop Android để thêm nhanh giao dịch vào ví.
-- **YÊU CẦU BẮT BUỘC TỪ NGƯỜI DÙNG:** 
-  - **TÁI SỬ DỤNG 100% COMPONENT CỦA APP** (`QuickTransactionModal.tsx`, `WalletDropdownPicker`, Zustand store, SQLite logic).
-  - **TUYỆT ĐỐI KHÔNG** viết lại form nhập liệu/giao diện bằng Android XML hay Java/Kotlin thuần.
-
-### 4.2. Bài học từ các bản thử nghiệm cũ (Lý do các lần thử trước thất bại)
-- Lần thử 1 (Native Dialog): Viết bằng XML native + Kotlin `QuickTransactionActivity.kt` $\rightarrow$ Xấu, lệch ngôn ngữ thiết kế của app, phải duplicate logic query SQLite.
-- Lần thử 2 (Deep link vào `MainActivity`): Khi bấm widget, toàn bộ app chính mở lên $\rightarrow$ Người dùng không muốn thấy toàn bộ giao diện app xuất hiện phía sau modal.
-- Lần thử 3 (Tạo `TransparentOverlayActivity` nhưng trỏ vào `"LiquidMoney"`): Khi mở, React Native nạp component root `App.tsx` $\rightarrow$ Nạp luôn cả `LiquidBackground` (hình nền app) $\rightarrow$ Làm mất hiệu ứng trong suốt đè lên màn hình Home Android.
-
-### 4.3. Kiến trúc chuẩn cần triển khai cho Android Widget
-1. **Bề mặt Widget trên Android Desktop (`RemoteViews`):**
-   - Cấu hình Provider XML: `android/app/src/main/res/xml/widget_quick_transaction_info.xml`.
-   - Layout XML: `android/app/src/main/res/layout/widget_quick_transaction.xml` (dạng viên thuốc bo tròn nền tối mờ, icon tròn `+` và chữ *"Thêm giao dịch mới"*).
-   - Class Provider: `QuickTransactionWidgetProvider.kt`.
-2. **Activity Nổi Trong Suốt (Native Android):**
-   - Tạo `TransparentOverlayActivity.kt` kế thừa `ReactActivity`.
-   - Cấu hình Theme trong `styles.xml`: `Theme.LiquidMoney.TransparentActivity` với `windowBackground = @android:color/transparent`, `windowIsTranslucent = true`, `backgroundDimAmount = 0.4`.
-   - **Điểm mấu chốt:** Override `getMainComponentName()` trả về một component riêng biệt, ví dụ: `"QuickWidgetOverlay"`.
-3. **Màn hình Nổi Độc Lập (React Native Side):**
-   - Trong `index.js`: Đăng ký thêm root component riêng:
-     ```javascript
-     AppRegistry.registerComponent('QuickWidgetOverlay', () => QuickWidgetScreen);
-     ```
-   - Tạo `QuickWidgetScreen.tsx`:
-     - Bọc bởi `SafeAreaProvider` và `StoreProvider` để kết nối database và store.
-     - **Không chứa** `LiquidBackground` hay `AppNavigator`.
-     - Chứa `QuickTransactionModal.tsx` với trạng thái `visible={true}`.
-     - Khi lưu thành công hoặc bấm Huỷ: gọi Native Module đóng `TransparentOverlayActivity` (hoặc `BackHandler.exitApp()`).
+### 4.1. Kiến trúc triển khai thực tế
+- **Bề mặt Widget (`RemoteViews`):**
+  - XML Layout: `android/app/src/main/res/layout/widget_quick_transaction.xml` (thiết kế dạng viên thuốc bo tròn 24dp, nền tối kính mờ `#E61C1C1E`, viền trắng mảnh `#33FFFFFF`, icon tròn `+` và chữ *"Thêm giao dịch"*).
+  - XML Provider Info: `android/app/src/main/res/xml/widget_quick_transaction_info.xml`.
+  - Class Provider: `QuickTransactionWidgetProvider.kt` (gửi PendingIntent mở `TransparentOverlayActivity`).
+- **Activity Nổi Trong Suốt (Native Android):**
+  - `TransparentOverlayActivity.kt` kế thừa `ReactActivity`, override `getMainComponentName()` trả về `"QuickWidgetOverlay"`.
+  - Theme trong `styles.xml`: `Theme.LiquidMoney.TransparentActivity` (`windowBackground` trong suốt, `windowIsTranslucent = true`, `backgroundDimAmount = 0.45`).
+  - Đã loại bỏ hiệu ứng chuyển cảnh window mặc định (`overridePendingTransition(0, 0)`) để hoạt ảnh Reanimated 120Hz trượt lên/xuống mượt mà không bị giật.
+- **Màn hình Nổi Độc Lập (React Native):**
+  - `src/screens/QuickWidgetScreen.tsx`: bọc bởi `SafeAreaProvider` và `StoreProvider`.
+  - Tái sử dụng 100% `QuickTransactionModal.tsx` với cờ `embedded={true}` (không dùng `<Modal>` của RN để tránh lồng Dialog trên cửa sổ trong suốt).
+  - Hỗ trợ phím cứng Back trên Android (`hardwareBackPress`) tự động đóng mượt mà.
+  - Sau khi lưu hoặc đóng, gọi `WidgetBridge.closeOverlayActivity()` kết thúc Activity.
+- **Native Bridge Module:**
+  - `WidgetBridgeModule.kt` & `WidgetBridgePackage.kt` cung cấp 2 phương thức:
+    - `closeOverlayActivity()`: Đóng Activity overlay native.
+    - `updateWidget()`: Gửi broadcast cập nhật widget ngoài màn hình chính khi có giao dịch mới.
+- **Đăng ký Component:**
+  - `index.js` đã đăng ký: `AppRegistry.registerComponent('QuickWidgetOverlay', () => QuickWidgetScreen);`.
 
 ---
 
-## 5. CÁC TỒN ĐỌNG KHÁC CẦN HOÀN THIỆN TIẾP THEO
+## 5. CÁC TỒN ĐỌNG CẦN HOÀN THIỆN TIẾP THEO
 
 1. **Dọn dẹp tàn dư Animated cũ (Reanimated Migration):**
    - Còn 4 tập tin vẫn đang import `Animated` từ `react-native`:
@@ -124,18 +114,25 @@
    - Cần chuyển đổi nốt sang `react-native-reanimated` theo chuẩn của [2026-06-18-reanimated-migration/plan.md](docs/plans/2026-06-18-reanimated-migration/plan.md).
 2. **Tính năng Chuyển tiền giữa các ví (Wallet Transfer):**
    - Đã có state placeholder `toWalletId` trong các modal và icon `Repeat` trong `AppleTransactionRow.tsx`, chưa viết logic chèn 2 giao dịch đồng thời (1 OUT từ ví nguồn, 1 IN vào ví đích).
+3. **Mở rộng Widget (Tùy chọn tương lai):**
+   - Hiển thị số dư nhanh của Ví mặc định trực tiếp trên mặt Widget (nếu người dùng yêu cầu).
 
 ---
 
-## 6. QUY TRÌNH HÀNH ĐỘNG CHO AI KẾ TIẾP (STEP-BY-STEP)
+## 6. HƯỚNG DẪN KIỂM THỬ WIDGET TRÊN MÁY ẢO / THIẾT BỊ ANDROID
 
-Khi nhận task phát triển tiếp **Widget Android**, hãy thực hiện tuần tự:
-- **Bước 1:** Kiểm tra lại layout XML và Provider trong `android/app/src/main/res/` để đảm bảo Widget hiển thị đẹp mắt trên Launcher Android.
-- **Bước 2:** Viết class `TransparentOverlayActivity.kt` và thêm thẻ `<activity>` với theme trong suốt trong `AndroidManifest.xml`.
-- **Bước 3:** Tạo `src/screens/QuickWidgetScreen.tsx` hiển thị `QuickTransactionModal` trên nền trong suốt.
-- **Bước 4:** Đăng ký `"QuickWidgetOverlay"` vào `index.js`.
-- **Bước 5:** Viết một Native Module nhỏ (ví dụ `WidgetBridgeModule.kt`) để cung cấp hàm `closeOverlayActivity()` giúp React Native đóng Activity khi hoàn tất giao dịch.
-- **Bước 6:** Kiểm thử trên thiết bị Android bằng cách add Widget ra màn hình chính và test thao tác thêm nhanh giao dịch.
+1. **Build và chạy app:**
+   ```bash
+   npm start
+   npm run android
+   ```
+2. **Thêm Widget ra Desktop:**
+   - Ngoài màn hình Home Android, nhấn giữ vào khoảng trống và chọn **Widgets**.
+   - Tìm ứng dụng **LiquidMoney**, kéo widget **"Thêm giao dịch nhanh"** ra màn hình chính.
+3. **Kiểm thử trải nghiệm:**
+   - Chạm vào widget (hoặc nút `+`): Một giao diện pop-up thêm giao dịch dạng Liquid Glass sẽ trượt mượt mà từ đáy màn hình đè lên desktop Android.
+   - Nhập số tiền, chọn ví, nhập lý do và bấm **"Thêm giao dịch"** (hoặc chạm ra ngoài vùng tối / bấm nút Back cứng): giao diện sẽ trượt xuống đóng lại và giao dịch được lưu ngay vào SQLite.
+   - Mở ứng dụng chính `LiquidMoney`, kiểm tra ví và danh sách giao dịch để thấy số dư và lịch sử đã được cập nhật chính xác.
 
 ---
-*Tài liệu được khởi tạo ngày 03/09/2026 bởi Antigravity AI Assistant.*
+*Tài liệu được cập nhật ngày 03/09/2026 bởi Antigravity AI Assistant.*
