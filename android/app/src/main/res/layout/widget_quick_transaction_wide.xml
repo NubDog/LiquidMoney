@@ -6,10 +6,11 @@
     android:background="@drawable/widget_bg"
     android:orientation="horizontal"
     android:gravity="center"
-    android:paddingStart="16dp"
-    android:paddingEnd="16dp"
+    android:paddingStart="18dp"
+    android:paddingEnd="18dp"
     android:paddingTop="8dp"
     android:paddingBottom="8dp"
+    android:animateLayoutChanges="true"
     android:clickable="true"
     android:focusable="true">
 
@@ -17,9 +18,11 @@
         android:id="@+id/btn_add_transaction"
         android:layout_width="44dp"
         android:layout_height="44dp"
-        android:background="@drawable/widget_plus_circle">
+        android:background="@drawable/widget_plus_circle"
+        android:animateLayoutChanges="true">
 
         <ImageView
+            android:id="@+id/widget_icon"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_gravity="center"
@@ -28,11 +31,13 @@
     </FrameLayout>
 
     <LinearLayout
+        android:id="@+id/widget_text_container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="14dp"
         android:orientation="vertical"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:animateLayoutChanges="true">
 
         <TextView
             android:id="@+id/widget_title"
@@ -56,7 +61,8 @@
             android:textSize="12sp"
             android:fontFamily="sans-serif"
             android:singleLine="true"
-            android:ellipsize="end" />
+            android:ellipsize="end"
+            android:visibility="visible" />
     </LinearLayout>
 
 </LinearLayout>

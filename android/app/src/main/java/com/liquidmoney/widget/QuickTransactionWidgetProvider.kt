@@ -46,9 +46,9 @@ class QuickTransactionWidgetProvider : AppWidgetProvider() {
                 // Android 12+ Responsive Layouts
                 val viewsMap = mapOf(
                     SizeF(80f, 40f) to buildRemoteViews(context, R.layout.widget_quick_transaction, pendingIntent),
-                    SizeF(220f, 40f) to buildRemoteViews(context, R.layout.widget_quick_transaction_wide, pendingIntent),
-                    SizeF(80f, 85f) to buildRemoteViews(context, R.layout.widget_quick_transaction_tall, pendingIntent),
-                    SizeF(220f, 85f) to buildRemoteViews(context, R.layout.widget_quick_transaction_large, pendingIntent)
+                    SizeF(200f, 40f) to buildRemoteViews(context, R.layout.widget_quick_transaction_wide, pendingIntent),
+                    SizeF(80f, 80f) to buildRemoteViews(context, R.layout.widget_quick_transaction_tall, pendingIntent),
+                    SizeF(180f, 80f) to buildRemoteViews(context, R.layout.widget_quick_transaction_large, pendingIntent)
                 )
                 val views = RemoteViews(viewsMap)
                 appWidgetManager.updateAppWidget(appWidgetId, views)
@@ -59,7 +59,7 @@ class QuickTransactionWidgetProvider : AppWidgetProvider() {
                 val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
 
                 val isTall = minHeight >= 80
-                val isWide = minWidth >= 220
+                val isWide = minWidth >= 200
 
                 val layoutId = when {
                     isTall && isWide -> R.layout.widget_quick_transaction_large
