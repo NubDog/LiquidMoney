@@ -63,11 +63,20 @@ interface StoreState {
         slide: number;
         zoom: number;
     };
+
+    /** Trạng thái đang sắp xếp lại vị trí ví trên màn hình chính */
+    isReorderingWallets: boolean;
 }
 
 interface StoreActions {
     /** Khởi tạo database */
     initialize: () => void;
+
+    /** Bật/tắt chế độ sắp xếp vị trí ví */
+    setIsReorderingWallets: (isReordering: boolean) => void;
+
+    /** Cập nhật thứ tự ví mới và lưu vào settings */
+    reorderWallets: (newWallets: Wallet[]) => void;
 
     /** Load lại danh sách ví từ DB */
     refreshWallets: () => void;
@@ -155,6 +164,32 @@ interface StoreActions {
     setDevAnimation: (key: 'fade' | 'slide' | 'zoom', durationSeconds: number) => void;
 }
 
+function sortWalletsBySavedOrder(wallets: Wallet[]): Wallet[] {
+    try {
+        const orderStr = getSetting('wallet_order');
+        if (!orderStr) return wallets;
+        const orderIds: string[] = JSON.parse(orderStr);
+        if (!Array.isArray(orderIds) || orderIds.length === 0) return wallets;
+
+        const walletMap = new Map(wallets.map(w => [w.id, w]));
+        const sorted: Wallet[] = [];
+
+        for (const id of orderIds) {
+            const w = walletMap.get(id);
+            if (w) {
+                sorted.push(w);
+                walletMap.delete(id);
+            }
+        }
+        for (const w of walletMap.values()) {
+            sorted.push(w);
+        }
+        return sorted;
+    } catch {
+        return wallets;
+    }
+}
+
 type Store = StoreState & StoreActions;
 
 export const useStore = create<Store>((set, get) => ({
@@ -173,12 +208,13 @@ export const useStore = create<Store>((set, get) => ({
         slide: 0.4,
         zoom: 0.2, // fast spring default equivalent
     },
+    isReorderingWallets: false,
 
     initialize: () => {
         try {
             const success = initDatabase();
             if (success) {
-                const allWallets = getAllWallets();
+                const allWallets = sortWalletsBySavedOrder(getAllWallets());
                 const bgId = getSetting('app_background_id');
                 const customBgsStr = getSetting('app_custom_backgrounds');
                 let customBgs: string[] = [];
@@ -196,11 +232,26 @@ export const useStore = create<Store>((set, get) => ({
         }
     },
 
+    setIsReorderingWallets: (isReordering) => {
+        set({ isReorderingWallets: isReordering });
+    },
+
+    reorderWallets: (newWallets) => {
+        set({ wallets: newWallets });
+        if (isDatabaseAvailable()) {
+            try {
+                setSetting('wallet_order', JSON.stringify(newWallets.map(w => w.id)));
+            } catch (err) {
+                console.error('[Store] reorderWallets save error:', err);
+            }
+        }
+    },
+
     refreshWallets: () => {
         if (!isDatabaseAvailable()) return;
         set({ loading: true });
         try {
-            const allWallets = getAllWallets();
+            const allWallets = sortWalletsBySavedOrder(getAllWallets());
             set({ wallets: allWallets });
         } catch (err) {
             console.error('[Store] refreshWallets error:', err);

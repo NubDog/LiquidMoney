@@ -9,6 +9,8 @@ interface AppleWalletCardProps {
     imageUri?: string | null;
     onPress?: () => void;
     onLongPress?: () => void;
+    delayLongPress?: number;
+    disabled?: boolean;
 }
 
 const AppleWalletCard: React.FC<AppleWalletCardProps> = ({
@@ -17,7 +19,9 @@ const AppleWalletCard: React.FC<AppleWalletCardProps> = ({
     style,
     imageUri,
     onPress,
-    onLongPress
+    onLongPress,
+    delayLongPress,
+    disabled = false,
 }) => {
     // Format number to use dot as thousands separator (e.g. 1.000.000)
     const formattedBalance = Math.floor(balance).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -27,8 +31,9 @@ const AppleWalletCard: React.FC<AppleWalletCardProps> = ({
             style={[styles.container, style]}
             onPress={onPress}
             onLongPress={onLongPress}
+            delayLongPress={delayLongPress}
             activeOpacity={0.9}
-            disabled={!onPress && !onLongPress}
+            disabled={disabled || (!onPress && !onLongPress)}
         >
             <View style={styles.innerContainer}>
                 {/* Background Image Container */}

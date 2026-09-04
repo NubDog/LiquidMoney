@@ -7,26 +7,36 @@
  * Cleaned: Removed empty cardWrapper style, duplicate FAB comment.
  */
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     FlatList,
+    Pressable,
     RefreshControl,
     StyleSheet,
     Text,
+    useWindowDimensions,
     View,
 } from 'react-native';
+import Animated, {
+    Easing,
+    FadeInDown,
+    FadeOutUp,
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
-import { Wallet as WalletIcon, PieChart, Plus } from 'lucide-react-native';
+import { Wallet as WalletIcon, PieChart, Plus, Check } from 'lucide-react-native';
 import AppleEmptyState from '../components/ui/AppleEmptyState';
 import WalletModal from '../components/modals/WalletModal';
 import EditWalletModal from '../components/modals/EditWalletModal';
-import AppleWalletCard from '../components/ui/AppleWalletCard';
 import AppleIconButton from '../components/ui/AppleIconButton';
+import ReorderableWalletCard from '../components/ui/ReorderableWalletCard';
 import QuickTransactionModal from '../components/modals/QuickTransactionModal';
-import { formatVND, formatVNDTruncated } from '../common/formatters';
-import { Colors, FontSizes, Spacing, Radii } from '../common/theme';
+import { formatVNDTruncated } from '../common/formatters';
+import { FontSizes, Spacing } from '../common/theme';
 import type { Wallet } from '../common/types';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -35,24 +45,69 @@ interface HomeScreenProps {
     onNavigateToWallet?: (walletId: string) => void;
 }
 
-// ─── Separator (named to avoid re-creation on every render) ───────────────────
-
-const ItemSeparator = () => <View style={styles.separator} />;
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
     const insets = useSafeAreaInsets();
-    const { wallets, addWallet, editWallet, adjustWalletBalance, removeWallet, isReady, refreshWallets, addTransaction } = useStore(useShallow(state => ({
+    const { width: screenWidth } = useWindowDimensions();
+    const {
+        wallets,
+        addWallet,
+        adjustWalletBalance,
+        removeWallet,
+        refreshWallets,
+        addTransaction,
+        isReorderingWallets,
+        setIsReorderingWallets,
+        reorderWallets,
+    } = useStore(useShallow(state => ({
         wallets: state.wallets,
         addWallet: state.addWallet,
-        editWallet: state.editWallet,
         adjustWalletBalance: state.adjustWalletBalance,
         removeWallet: state.removeWallet,
-        isReady: state.isReady,
         refreshWallets: state.refreshWallets,
         addTransaction: state.addTransaction,
+        isReorderingWallets: state.isReorderingWallets,
+        setIsReorderingWallets: state.setIsReorderingWallets,
+        reorderWallets: state.reorderWallets,
     })));
+
+    // ─── Reordering & Drag Shared Values ──────────────────────────────────────
+    const activeDragIndex = useSharedValue<number>(-1);
+    const activeTargetIndex = useSharedValue<number>(-1);
+    const dragPanY = useSharedValue<number>(0);
+    const isDragging = useSharedValue<boolean>(false);
+
+    // Card aspect ratio is 2.2, Spacing.md * 2 = 32, separator is 14
+    const defaultSlotHeight = useMemo(() => {
+        const cardWidth = screenWidth - Spacing.md * 2;
+        return Math.round(cardWidth / 2.2 + 14);
+    }, [screenWidth]);
+
+    // FAB hide animation
+    const fabAnim = useSharedValue(1);
+
+    useEffect(() => {
+        fabAnim.value = withTiming(isReorderingWallets ? 0 : 1, {
+            duration: 250,
+            easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+        });
+    }, [isReorderingWallets, fabAnim]);
+
+    const animatedFabStyle = useAnimatedStyle(() => ({
+        transform: [
+            { scale: fabAnim.value },
+            { translateY: (1 - fabAnim.value) * 60 },
+        ],
+        opacity: fabAnim.value,
+    }));
+
+    // Cleanup reorder mode on unmount
+    useEffect(() => {
+        return () => {
+            useStore.getState().setIsReorderingWallets(false);
+        };
+    }, []);
 
     // ─── Modal State ──────────────────────────────────────────────────────────
     const [modalVisible, setModalVisible] = useState(false);
@@ -116,25 +171,65 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
         [editingWallet, adjustWalletBalance],
     );
 
-    const handleDelete = useCallback(() => {
-        if (editingWallet) {
-            removeWallet(editingWallet.id);
+    // ─── Reorder & Drag Handlers ──────────────────────────────────────────────
+
+    const handleStartReordering = useCallback(() => {
+        setIsReorderingWallets(true);
+    }, [setIsReorderingWallets]);
+
+    const handleExitReordering = useCallback(() => {
+        if (isReorderingWallets) {
+            setIsReorderingWallets(false);
         }
-    }, [editingWallet, removeWallet]);
+    }, [isReorderingWallets, setIsReorderingWallets]);
+
+    const handleDragEnd = useCallback(
+        (from: number, to: number) => {
+            if (from !== to && from >= 0 && to >= 0 && from < wallets.length && to < wallets.length) {
+                const updated = [...wallets];
+                const [moved] = updated.splice(from, 1);
+                updated.splice(to, 0, moved);
+                reorderWallets(updated);
+            }
+            isDragging.value = false;
+            activeDragIndex.value = -1;
+            activeTargetIndex.value = -1;
+            dragPanY.value = 0;
+        },
+        [wallets, reorderWallets, isDragging, activeDragIndex, activeTargetIndex, dragPanY],
+    );
 
     // ─── Render Item ──────────────────────────────────────────────────────────
 
     const renderWalletItem = useCallback(
-        ({ item }: { item: Wallet }) => (
-            <AppleWalletCard
-                name={item.name}
-                balance={item.current_balance}
-                imageUri={item.image_uri}
-                onPress={() => onNavigateToWallet?.(item.id)}
-                onLongPress={() => openEditModal(item)}
+        ({ item, index }: { item: Wallet; index: number }) => (
+            <ReorderableWalletCard
+                item={item}
+                index={index}
+                totalCount={wallets.length}
+                slotHeight={defaultSlotHeight}
+                isReordering={isReorderingWallets}
+                activeDragIndex={activeDragIndex}
+                activeTargetIndex={activeTargetIndex}
+                dragPanY={dragPanY}
+                isDragging={isDragging}
+                onNavigate={(walletId) => onNavigateToWallet?.(walletId)}
+                onStartReordering={handleStartReordering}
+                onDragEnd={handleDragEnd}
             />
         ),
-        [onNavigateToWallet, openEditModal],
+        [
+            wallets.length,
+            defaultSlotHeight,
+            isReorderingWallets,
+            activeDragIndex,
+            activeTargetIndex,
+            dragPanY,
+            isDragging,
+            onNavigateToWallet,
+            handleStartReordering,
+            handleDragEnd,
+        ],
     );
 
     const keyExtractor = useCallback((item: Wallet) => item.id, []);
@@ -160,37 +255,76 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
         [addTransaction, refreshWallets],
     );
 
-    // ─── Header ───────────────────────────────────────────────────────────────
+    // ─── Header & Footer ──────────────────────────────────────────────────────
 
     const ListHeader = useMemo(
         () => (
-            <View style={styles.headerSection}>
+            <Pressable
+                onPress={handleExitReordering}
+                disabled={!isReorderingWallets}
+                style={styles.headerSection}
+            >
                 {wallets.length > 0 && (
-                    <>
-                        <View collapsable={false} style={styles.totalSection}>
-                            <View collapsable={false} style={styles.heroHeader}>
-                                <View style={styles.heroIconWrapper}>
-                                    <PieChart size={22} color="#FFFFFF" strokeWidth={2.5} />
-                                </View>
-                                <Text style={styles.heroLabel}>TỔNG TÀI SẢN</Text>
+                    <View collapsable={false} style={styles.totalSection}>
+                        <View collapsable={false} style={styles.heroHeader}>
+                            <View style={styles.heroIconWrapper}>
+                                <PieChart size={22} color="#FFFFFF" strokeWidth={2.5} />
                             </View>
-                            
-                            <View collapsable={false}>
-                                <Text style={styles.heroBalance} numberOfLines={1} adjustsFontSizeToFit>{formatVNDTruncated(totalBalance)}</Text>
-                            </View>
-                            
-                            <View style={styles.heroFooter}>
+                            <Text style={styles.heroLabel}>TỔNG TÀI SẢN</Text>
+                        </View>
+
+                        <View collapsable={false}>
+                            <Text style={styles.heroBalance} numberOfLines={1} adjustsFontSizeToFit>
+                                {formatVNDTruncated(totalBalance)}
+                            </Text>
+                        </View>
+
+                        <View style={styles.heroFooter}>
+                            {isReorderingWallets ? (
+                                <Animated.View
+                                    entering={FadeInDown.duration(250)}
+                                    exiting={FadeOutUp.duration(200)}
+                                    style={styles.reorderNoticeBadge}
+                                >
+                                    <Check size={14} color="#32D74B" strokeWidth={3} />
+                                    <Text style={styles.reorderNoticeText}>
+                                        Chạm chỗ trống để hoàn tất
+                                    </Text>
+                                </Animated.View>
+                            ) : (
                                 <View style={styles.badge}>
                                     <WalletIcon size={14} color="#FFFFFF" strokeWidth={2.5} />
                                     <Text style={styles.badgeText}>{wallets.length} ví hoạt động</Text>
                                 </View>
-                            </View>
+                            )}
                         </View>
-                    </>
+                    </View>
                 )}
-            </View>
+            </Pressable>
         ),
-        [wallets.length, totalBalance],
+        [wallets.length, totalBalance, isReorderingWallets, handleExitReordering],
+    );
+
+    const ListFooter = useMemo(
+        () => (
+            <Pressable
+                onPress={handleExitReordering}
+                disabled={!isReorderingWallets}
+                style={styles.listFooter}
+            />
+        ),
+        [isReorderingWallets, handleExitReordering],
+    );
+
+    const ItemSeparator = useCallback(
+        () => (
+            <Pressable
+                onPress={handleExitReordering}
+                disabled={!isReorderingWallets}
+                style={styles.separator}
+            />
+        ),
+        [isReorderingWallets, handleExitReordering],
     );
 
     // ─── Render ───────────────────────────────────────────────────────────────
@@ -208,43 +342,48 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
                 renderItem={renderWalletItem}
                 keyExtractor={keyExtractor}
                 ListHeaderComponent={ListHeader}
+                ListFooterComponent={ListFooter}
                 ListEmptyComponent={emptyState}
                 contentContainerStyle={[styles.listContent, { paddingTop: insets.top }]}
                 showsVerticalScrollIndicator={false}
                 ItemSeparatorComponent={ItemSeparator}
-                initialNumToRender={6}
-                maxToRenderPerBatch={5}
-                windowSize={5}
-                removeClippedSubviews={true}
+                initialNumToRender={8}
+                maxToRenderPerBatch={8}
+                windowSize={7}
+                removeClippedSubviews={false}
+                scrollEnabled={!isReorderingWallets}
                 // @ts-ignore: delaysContentTouches is a valid ScrollView prop but missing in FlatList types
                 delaysContentTouches={false}
                 refreshControl={
-                    <RefreshControl
-                        refreshing={refreshing}
-                        onRefresh={handleRefresh}
-                        tintColor="rgba(255,255,255,0.3)"
-                        colors={['#22d3ee']}
-                    />
+                    isReorderingWallets ? undefined : (
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={handleRefresh}
+                            tintColor="rgba(255,255,255,0.3)"
+                            colors={['#22d3ee']}
+                        />
+                    )
                 }
             />
 
-            {/* Add Wallet Button */}
-            <AppleIconButton 
-                icon={<Plus strokeWidth={1.5} color="#FFF" size={32} />}
-                size={60}
-                onPress={openCreateModal} 
-                style={{ 
-                    position: 'absolute', 
-                    bottom: 140, 
-                    right: 20, 
-                    zIndex: 9999,
-                    shadowColor: 'rgba(0, 0, 0, 0.6)',
-                    shadowOffset: { width: 0, height: 4 },
-                    shadowOpacity: 1,
-                    shadowRadius: 10,
-                    elevation: 0, // Fix Android low-poly shadow showing through translucent background
-                }} 
-            />
+            {/* Add Wallet Button with Reanimated Hide/Show Animation */}
+            <Animated.View
+                pointerEvents={isReorderingWallets ? 'none' : 'auto'}
+                style={[styles.fabWrapper, animatedFabStyle]}
+            >
+                <AppleIconButton 
+                    icon={<Plus strokeWidth={1.5} color="#FFF" size={32} />}
+                    size={60}
+                    onPress={openCreateModal} 
+                    style={{ 
+                        shadowColor: 'rgba(0, 0, 0, 0.6)',
+                        shadowOffset: { width: 0, height: 4 },
+                        shadowOpacity: 1,
+                        shadowRadius: 10,
+                        elevation: 0,
+                    }} 
+                />
+            </Animated.View>
 
             {/* Create wallet modal */}
             <WalletModal
@@ -346,8 +485,34 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
     },
+    reorderNoticeBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(50, 215, 75, 0.15)',
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: 'rgba(50, 215, 75, 0.35)',
+        paddingHorizontal: 14,
+        paddingVertical: 6,
+        borderRadius: 9999,
+    },
+    reorderNoticeText: {
+        marginLeft: 6,
+        color: '#FFFFFF',
+        fontSize: 13,
+        fontWeight: '600',
+    },
     separator: {
         height: 14,
+    },
+    listFooter: {
+        height: 260,
+        width: '100%',
+    },
+    fabWrapper: {
+        position: 'absolute',
+        bottom: 140,
+        right: 20,
+        zIndex: 9999,
     },
 });
 

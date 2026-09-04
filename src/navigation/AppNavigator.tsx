@@ -115,6 +115,7 @@ const AppNavigator: React.FC = () => {
     const { width, height } = useWindowDimensions();
     const isDeveloperMode = useStore(state => state.isDeveloperMode);
     const isFPSMonitorEnabled = useStore(state => state.isFPSMonitorEnabled);
+    const isReorderingWallets = useStore(state => state.isReorderingWallets);
 
     // ─── Navigation State ───────────────────────────────────────────────────────
     const [activeTab, setActiveTab] = useState<TabName>('home');
@@ -131,6 +132,16 @@ const AppNavigator: React.FC = () => {
 
     // Dev tab expansion (0 to 1)
     const devExpansionAnim = useSharedValue(isDeveloperMode ? 1 : 0);
+
+    // Reordering mode tab bar slide-down animation
+    const reorderHideAnim = useSharedValue(0);
+
+    useEffect(() => {
+        reorderHideAnim.value = withTiming(isReorderingWallets ? 1 : 0, {
+            duration: 350,
+            easing: Easing.out(Easing.cubic),
+        });
+    }, [isReorderingWallets, reorderHideAnim]);
 
     // Synchronization of Developer Mode logic
     useEffect(() => {
@@ -203,11 +214,14 @@ const AppNavigator: React.FC = () => {
     const activeWalletIdRef = useRef(activeWalletId);
     activeWalletIdRef.current = activeWalletId;
 
+    const isReorderingRef = useRef(isReorderingWallets);
+    isReorderingRef.current = isReorderingWallets;
+
     const panResponder = useMemo(
         () =>
             PanResponder.create({
                 onMoveShouldSetPanResponderCapture: (evt, gestureState) => {
-                    if (activeWalletIdRef.current) return false;
+                    if (activeWalletIdRef.current || isReorderingRef.current) return false;
                     const isHorizontalSwipe = Math.abs(gestureState.dx) > 25 && Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 1.5;
                     return isHorizontalSwipe;
                 },
@@ -230,6 +244,10 @@ const AppNavigator: React.FC = () => {
     // ─── Android Back Button ─────────────────────────────────────────────────
     useEffect(() => {
         const onBackPress = () => {
+            if (isReorderingWallets) {
+                useStore.getState().setIsReorderingWallets(false);
+                return true;
+            }
             if (activeWalletId) {
                 goBackFromWallet();
                 return true;
@@ -243,7 +261,7 @@ const AppNavigator: React.FC = () => {
 
         const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
         return () => sub.remove();
-    }, [activeWalletId, activeTab, goBackFromWallet]);
+    }, [isReorderingWallets, activeWalletId, activeTab, goBackFromWallet]);
 
     // ─── Calculations for Navbar (Mathematical Animation) ─────────────────────
 
@@ -278,9 +296,15 @@ const AppNavigator: React.FC = () => {
         opacity: interpolate(walletSlideAnim.value, [0, 1], [1, 0])
     }));
 
-    const animatedTabBarContainerStyle = useAnimatedStyle(() => ({
-        opacity: interpolate(walletSlideAnim.value, [0, 1], [1, 0])
-    }));
+    const animatedTabBarContainerStyle = useAnimatedStyle(() => {
+        const walletOpacity = interpolate(walletSlideAnim.value, [0, 1], [1, 0]);
+        const reorderOpacity = interpolate(reorderHideAnim.value, [0, 1], [1, 0]);
+        const reorderTranslateY = interpolate(reorderHideAnim.value, [0, 1], [0, 140]);
+        return {
+            opacity: walletOpacity * reorderOpacity,
+            transform: [{ translateY: reorderTranslateY }],
+        };
+    });
 
     const animatedWalletDetailStyle = useAnimatedStyle(() => ({
         transform: [{ translateX: interpolate(walletSlideAnim.value, [0, 1], [width, 0]) }]
@@ -317,7 +341,7 @@ const AppNavigator: React.FC = () => {
 
             {/* Floating Glass Tab Bar — stays behind Wallet Detail */}
             <Animated.View
-                pointerEvents={activeWalletId ? 'none' : 'box-none'}
+                pointerEvents={activeWalletId || isReorderingWallets ? 'none' : 'box-none'}
                 style={[
                     styles.tabBarContainer,
                     { 
