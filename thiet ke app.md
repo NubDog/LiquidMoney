@@ -83,8 +83,8 @@
 ### 4.1. Kiến trúc triển khai thực tế
 - **Bề mặt Widget (`RemoteViews`):**
   - XML Layout: `android/app/src/main/res/layout/widget_quick_transaction.xml` (thiết kế dạng viên thuốc bo tròn 24dp, nền tối kính mờ `#E61C1C1E`, viền trắng mảnh `#33FFFFFF`, icon tròn `+` và chữ *"Thêm giao dịch"*).
-  - XML Provider Info: `android/app/src/main/res/xml/widget_quick_transaction_info.xml`.
-  - Class Provider: `QuickTransactionWidgetProvider.kt` (gửi PendingIntent mở `TransparentOverlayActivity`).
+  - XML Provider Info: `android/app/src/main/res/xml/widget_quick_transaction_info.xml` (hỗ trợ `resizeMode="horizontal|vertical"`, cho phép kéo giãn chiều ngang lên tới full màn hình ~4-5 ô và chiều dọc thêm 1 ô lên tối đa 2 ô).
+  - Class Provider: `QuickTransactionWidgetProvider.kt` (gửi PendingIntent mở `TransparentOverlayActivity`, xử lý `onAppWidgetOptionsChanged` khi người dùng thay đổi kích thước widget).
 - **Activity Nổi Trong Suốt (Native Android):**
   - `TransparentOverlayActivity.kt` kế thừa `ReactActivity`, override `getMainComponentName()` trả về `"QuickWidgetOverlay"`.
   - Theme trong `styles.xml`: `Theme.LiquidMoney.TransparentActivity` (`windowBackground` trong suốt, `windowIsTranslucent = true`, `backgroundDimAmount = 0.45`).

@@ -11,7 +11,13 @@ import { StoreProvider, useStore } from '../store/useStore';
 import QuickTransactionModal from '../components/modals/QuickTransactionModal';
 import { closeOverlayActivity, updateWidget } from '../native/WidgetBridge';
 
+// Khởi tạo database đồng bộ ngay lập tức để Frame đầu tiên đã có sẵn danh sách ví (tránh delay của useEffect)
+if (!useStore.getState().isReady) {
+    useStore.getState().initialize();
+}
+
 function QuickWidgetContent(): React.JSX.Element {
+
     const isReady = useStore((state) => state.isReady);
     const wallets = useStore((state) => state.wallets);
     const addTransaction = useStore((state) => state.addTransaction);

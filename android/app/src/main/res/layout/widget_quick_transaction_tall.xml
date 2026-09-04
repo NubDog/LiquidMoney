@@ -4,22 +4,24 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/widget_bg"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     android:gravity="center"
-    android:paddingStart="14dp"
-    android:paddingEnd="16dp"
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
     android:clickable="true"
     android:focusable="true">
 
     <FrameLayout
         android:id="@+id/btn_add_transaction"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:background="@drawable/widget_plus_circle">
 
         <ImageView
-            android:layout_width="16dp"
-            android:layout_height="16dp"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
             android:layout_gravity="center"
             android:src="@drawable/ic_widget_add"
             android:contentDescription="@string/add_transaction" />
@@ -29,14 +31,14 @@
         android:id="@+id/widget_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
+        android:layout_marginTop="8dp"
         android:text="@string/add_transaction"
         android:textColor="#FFFFFF"
         android:textSize="14sp"
         android:textStyle="bold"
         android:fontFamily="sans-serif-medium"
+        android:gravity="center_horizontal"
         android:singleLine="true"
-        android:ellipsize="end"
-        android:gravity="center_vertical" />
+        android:ellipsize="end" />
 
 </LinearLayout>

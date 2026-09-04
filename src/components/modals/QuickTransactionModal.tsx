@@ -41,7 +41,7 @@ const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
     embedded = false,
 }) => {
     const insets = useSafeAreaInsets();
-    const [selectedWalletId, setSelectedWalletId] = useState<string>('');
+    const [selectedWalletId, setSelectedWalletId] = useState<string>(() => wallets[0]?.id || '');
     const [transactionType, setTransactionType] = useState<'OUT' | 'IN'>('OUT');
     const [amountText, setAmountText] = useState<string>('');
     const [reasonText, setReasonText] = useState<string>('');
@@ -60,7 +60,7 @@ const QuickTransactionModal: React.FC<QuickTransactionModalProps> = ({
     useEffect(() => {
         if (visible && !prevVisible.current) {
             cancelAnimation(translateY);
-            animateSheetIn(translateY);
+            animateSheetIn(translateY, { duration: 250 });
             setAmountText('');
             setReasonText('');
             setTransactionType('OUT');
