@@ -3,6 +3,7 @@ package com.liquidmoney.widget
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Intent
+import android.os.Build
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
@@ -15,7 +16,11 @@ class WidgetBridgeModule(private val reactContext: ReactApplicationContext) :
     @ReactMethod
     fun closeOverlayActivity() {
         reactApplicationContext.currentActivity?.let { activity ->
-            activity.finish()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                activity.finishAndRemoveTask()
+            } else {
+                activity.finish()
+            }
             @Suppress("DEPRECATION")
             activity.overridePendingTransition(0, 0)
         }

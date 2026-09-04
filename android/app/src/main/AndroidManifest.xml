@@ -29,7 +29,8 @@
       <activity
         android:name=".TransparentOverlayActivity"
         android:theme="@style/Theme.LiquidMoney.TransparentActivity"
-        android:launchMode="singleTask"
+        android:taskAffinity="com.liquidmoney.overlay"
+        android:launchMode="singleInstance"
         android:windowSoftInputMode="adjustResize"
         android:excludeFromRecents="true"
         android:exported="true"

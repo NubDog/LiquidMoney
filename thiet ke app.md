@@ -87,6 +87,8 @@
   - Class Provider: `QuickTransactionWidgetProvider.kt` (gửi PendingIntent mở `TransparentOverlayActivity`, xử lý `onAppWidgetOptionsChanged` khi người dùng thay đổi kích thước widget).
 - **Activity Nổi Trong Suốt (Native Android):**
   - `TransparentOverlayActivity.kt` kế thừa `ReactActivity`, override `getMainComponentName()` trả về `"QuickWidgetOverlay"`.
+  - Thiết lập `android:taskAffinity="com.liquidmoney.overlay"` và `android:launchMode="singleInstance"` để hoàn toàn cô lập Activity này khỏi Task của `MainActivity`. Khi app chính đang chạy ngầm, bấm Widget sẽ KHÔNG kéo app chính lên màn hình.
+  - Sử dụng `finishAndRemoveTask()` khi đóng để xóa sạch task overlay, đưa người dùng trở lại màn hình chính ngay lập tức.
   - Theme trong `styles.xml`: `Theme.LiquidMoney.TransparentActivity` (`windowBackground` trong suốt, `windowIsTranslucent = true`, `backgroundDimAmount = 0.45`).
   - Đã loại bỏ hiệu ứng chuyển cảnh window mặc định (`overridePendingTransition(0, 0)`) để hoạt ảnh Reanimated 120Hz trượt lên/xuống mượt mà không bị giật.
 - **Màn hình Nổi Độc Lập (React Native):**

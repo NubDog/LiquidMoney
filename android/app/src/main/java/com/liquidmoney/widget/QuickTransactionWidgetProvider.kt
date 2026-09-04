@@ -75,7 +75,7 @@ class QuickTransactionWidgetProvider : AppWidgetProvider() {
 
         private fun createLaunchPendingIntent(context: Context): PendingIntent {
             val intent = Intent(context, TransparentOverlayActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             }
             return PendingIntent.getActivity(
                 context,

@@ -28,7 +28,11 @@ class TransparentOverlayActivity : ReactActivity() {
   }
 
   override fun finish() {
-    super.finish()
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+      finishAndRemoveTask()
+    } else {
+      super.finish()
+    }
     @Suppress("DEPRECATION")
     overridePendingTransition(0, 0)
   }
