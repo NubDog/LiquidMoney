@@ -31,10 +31,8 @@ import { useShallow } from 'zustand/react/shallow';
 import { Wallet as WalletIcon, PieChart, Plus, Check } from 'lucide-react-native';
 import AppleEmptyState from '../components/ui/AppleEmptyState';
 import WalletModal from '../components/modals/WalletModal';
-import EditWalletModal from '../components/modals/EditWalletModal';
 import AppleIconButton from '../components/ui/AppleIconButton';
 import ReorderableWalletCard from '../components/ui/ReorderableWalletCard';
-import QuickTransactionModal from '../components/modals/QuickTransactionModal';
 import { formatVNDTruncated } from '../common/formatters';
 import { FontSizes, Spacing } from '../common/theme';
 import type { Wallet } from '../common/types';
@@ -53,24 +51,16 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
     const {
         wallets,
         addWallet,
-        adjustWalletBalance,
-        removeWallet,
         refreshWallets,
-        addTransaction,
         isReorderingWallets,
         setIsReorderingWallets,
-        reorderWallets,
         saveWalletOrderDirectly,
     } = useStore(useShallow(state => ({
         wallets: state.wallets,
         addWallet: state.addWallet,
-        adjustWalletBalance: state.adjustWalletBalance,
-        removeWallet: state.removeWallet,
         refreshWallets: state.refreshWallets,
-        addTransaction: state.addTransaction,
         isReorderingWallets: state.isReorderingWallets,
         setIsReorderingWallets: state.setIsReorderingWallets,
-        reorderWallets: state.reorderWallets,
         saveWalletOrderDirectly: state.saveWalletOrderDirectly,
     })));
 
@@ -125,9 +115,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
 
     // ─── Modal State ──────────────────────────────────────────────────────────
     const [modalVisible, setModalVisible] = useState(false);
-    const [editWalletVisible, setEditWalletVisible] = useState(false);
-    const [quickModalVisible, setQuickModalVisible] = useState(false);
-    const [editingWallet, setEditingWallet] = useState<Wallet | null>(null);
     const [refreshing, setRefreshing] = useState(false);
 
     // ─── Total balance ────────────────────────────────────────────────────────
@@ -139,13 +126,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
     // ─── Handlers ─────────────────────────────────────────────────────────────
 
     const openCreateModal = useCallback(() => {
-        setEditingWallet(null);
         setModalVisible(true);
-    }, []);
-
-    const openEditModal = useCallback((wallet: Wallet) => {
-        setEditingWallet(wallet);
-        setEditWalletVisible(true);
     }, []);
 
     const handleSave = useCallback(
@@ -153,36 +134,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
             addWallet(name, initialBalance, imageUri, icon);
         },
         [addWallet],
-    );
-
-    const handleSaveWalletBalance = useCallback(
-        async (name: string, currentBalance: number, imageUri: string | null) => {
-            if (editingWallet) {
-                let finalImageUri = editingWallet.image_uri;
-                if (imageUri !== undefined && imageUri !== editingWallet.image_uri) {
-                    const { imageService } = require('../services/imageService');
-                    if (imageUri) {
-                        finalImageUri = await imageService.saveImageToLocal(imageUri);
-                    } else {
-                        finalImageUri = null;
-                    }
-                    if (editingWallet.image_uri) {
-                        await imageService.deleteLocalImage(editingWallet.image_uri);
-                    }
-                }
-                
-                adjustWalletBalance(
-                    editingWallet.id,
-                    name,
-                    currentBalance,
-                    editingWallet.current_balance,
-                    editingWallet.initial_balance,
-                    editingWallet.icon,
-                    finalImageUri
-                );
-            }
-        },
-        [editingWallet, adjustWalletBalance],
     );
 
     // ─── Reorder & Drag Handlers ──────────────────────────────────────────────
@@ -262,14 +213,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
             />
         ),
         [],
-    );
-
-    const handleQuickSaveTransaction = useCallback(
-        async (walletId: string, type: 'IN' | 'OUT', amount: number, reason?: string) => {
-            addTransaction(walletId, type, amount, reason || null, null, new Date().toISOString());
-            refreshWallets();
-        },
-        [addTransaction, refreshWallets],
     );
 
     // ─── Header & Footer ──────────────────────────────────────────────────────
@@ -407,26 +350,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
                 onClose={() => setModalVisible(false)}
                 onSave={handleSave}
                 editData={null}
-            />
-
-            {/* Edit wallet modal */}
-            {editingWallet && (
-                <EditWalletModal
-                    visible={editWalletVisible}
-                    onClose={() => setEditWalletVisible(false)}
-                    onSave={handleSaveWalletBalance}
-                    walletName={editingWallet.name}
-                    walletBalance={editingWallet.current_balance}
-                    walletImageUri={editingWallet.image_uri}
-                />
-            )}
-
-            {/* Quick Add Transaction Modal */}
-            <QuickTransactionModal
-                visible={quickModalVisible}
-                wallets={wallets}
-                onClose={() => setQuickModalVisible(false)}
-                onSave={handleQuickSaveTransaction}
             />
         </View>
     );

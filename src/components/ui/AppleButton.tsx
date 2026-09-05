@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, Pressable, ViewStyle, TextStyle, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, Pressable, ViewStyle, TextStyle, ActivityIndicator } from 'react-native';
 
 interface AppleButtonProps {
     title: string;
@@ -7,6 +7,7 @@ interface AppleButtonProps {
     variant?: 'primary' | 'secondary' | 'danger';
     disabled?: boolean;
     loading?: boolean;
+    icon?: React.ReactNode;
     style?: ViewStyle | ViewStyle[];
     textStyle?: TextStyle | TextStyle[];
 }
@@ -17,6 +18,7 @@ const AppleButton: React.FC<AppleButtonProps> = ({
     variant = 'primary',
     disabled = false,
     loading = false,
+    icon,
     style,
     textStyle,
 }) => {
@@ -35,13 +37,16 @@ const AppleButton: React.FC<AppleButtonProps> = ({
             {loading ? (
                 <ActivityIndicator color={variant === 'secondary' ? '#0A84FF' : '#FFFFFF'} />
             ) : (
-                <Text style={[
-                    styles.text, 
-                    variant === 'secondary' && styles.secondaryText,
-                    textStyle
-                ]}>
-                    {title}
-                </Text>
+                <>
+                    {icon ? <View style={styles.iconContainer}>{icon}</View> : null}
+                    <Text style={[
+                        styles.text, 
+                        variant === 'secondary' && styles.secondaryText,
+                        textStyle
+                    ]}>
+                        {title}
+                    </Text>
+                </>
             )}
         </Pressable>
     );
@@ -55,6 +60,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         flexDirection: 'row',
         paddingHorizontal: 20,
+    },
+    iconContainer: {
+        marginRight: 8,
     },
     primary: {
         backgroundColor: '#0A84FF', // iOS default Blue

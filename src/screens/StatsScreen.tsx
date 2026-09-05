@@ -21,7 +21,6 @@ import {
     Dimensions,
     Easing,
     InteractionManager,
-    Pressable,
     RefreshControl,
     ScrollView,
     StyleSheet,
@@ -41,8 +40,16 @@ import TransactionModal from '../components/modals/TransactionModal';
 import { useStore } from '../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import { isDatabaseAvailable } from '../database/db';
-import type { DailyStat, OverallStat, Transaction, Wallet } from '../database/queries';
-import { formatVND, formatVNDShort } from '../common/formatters';
+import {
+    getAllWallets,
+    getDailyStats,
+    getOverallStats,
+    getRecentTransactions,
+    type DailyStat,
+    type OverallStat,
+    type Transaction,
+    type Wallet,
+} from '../database/queries';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -50,9 +57,6 @@ type Period = 'day' | 'week';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CHART_SIDE_PAD = Spacing.md * 2 + Spacing.lg * 2;
-const CHART_WIDTH = SCREEN_WIDTH - CHART_SIDE_PAD;
 const CHART_HEIGHT = 200;
 const VALUE_LABEL_HEIGHT = 22;
 const X_LABEL_HEIGHT = 22;
@@ -247,15 +251,8 @@ const StatsScreen: React.FC = () => {
     const loadData = useCallback((wId?: string, p: Period = 'day') => {
         if (!isDatabaseAvailable()) { return; }
         try {
-            const {
-                getAllWallets,
-                getDailyStats,
-                getOverallStats: getOvr,
-                getRecentTransactions,
-            } = require('../database/queries');
-
             setWallets(getAllWallets());
-            setOverallStats(getOvr(wId));
+            setOverallStats(getOverallStats(wId));
             
             setTxOffset(0);
             const newTxns = getRecentTransactions(12, 0, wId);
@@ -366,7 +363,6 @@ const StatsScreen: React.FC = () => {
         // Defer load block logic
         setTimeout(() => {
             try {
-                const { getRecentTransactions } = require('../database/queries');
                 const nextOffset = txOffset + 12;
                 const newTxns = getRecentTransactions(12, nextOffset, selectedWalletId);
                 

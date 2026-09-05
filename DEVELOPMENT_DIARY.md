@@ -4,6 +4,16 @@
 
 ---
 
+## 📅 Tháng 09/2026
+
+### 05/09: Khám Sức Khỏe Dự Án (Codebase Audit) & Dọn Dẹp Mã Nguồn (Clean Housekeeping)
+- **Codebase Audit & File Kỷ niệm:** Kiểm tra toàn bộ mã nguồn, bảo tồn 10 file code kỷ niệm theo yêu cầu vào `AGENTS.md` (Quy tắc 10).
+- **Chuẩn hóa TransactionDetailScreen:** Chuyển đổi 2 nút thao tác sang `AppleButton` chuẩn Apple UI (hỗ trợ thêm `icon` prop), dọn import thừa.
+- **Dọn dẹp HomeScreen:** Loại bỏ `EditWalletModal` và `QuickTransactionModal` không dùng tới, gỡ bỏ ~80 dòng code state/handlers thừa giúp màn hình thanh thoát, giữ nguyên 100% logic kéo thả và giao diện.
+- **Tối ưu WalletDetailScreen & StatsScreen:** Dọn các import rác (`LayoutAnimation`, `formatVND`, `Pressable`), chuyển đổi các câu lệnh dynamic `require` database queries sang top-level imports chuẩn mực giúp tăng tốc độ gọi hàm. TypeScript kiểm tra đạt 0 lỗi tuyệt đối.
+
+---
+
 ## 📅 Tháng 06/2026
 
 ### 01-02/06: Cá Nhân Hóa Ảnh Nền Ví & Tối ưu Trải nghiệm (UI/UX)

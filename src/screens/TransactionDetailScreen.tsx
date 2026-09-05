@@ -6,9 +6,8 @@
  * Refactored: Uses shared formatters, theme tokens.
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
-    Animated,
     Dimensions,
     Image,
     Pressable,
@@ -19,7 +18,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BackgroundLiquidGlass from '../components/layout/BackgroundLiquidGlass';
-import LiquidButton2 from '../components/buttons/LiquidButton2';
+import AppleButton from '../components/ui/AppleButton';
 import TransactionModal from '../components/modals/TransactionModal';
 import ConfirmDialog from '../components/modals/ConfirmDialog';
 import { formatVND, formatFullDate } from '../common/formatters';
@@ -110,7 +109,7 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
     // ─── Render ─────────────────────────────────────────────────────────────
 
     return (
-        <Animated.View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={[styles.container, { paddingTop: insets.top }]}>
             {/* Top Bar */}
             <View style={styles.topBar}>
                 <Pressable onPress={onGoBack} style={styles.backBtn}>
@@ -211,16 +210,18 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
 
                 {/* ── Action Buttons ── */}
                 <View style={styles.actionsContainer}>
-                    <LiquidButton2 
+                    <AppleButton 
                         onPress={handleOpenEdit}
                         title="Sửa giao dịch"
+                        variant="primary"
                         icon={<Pencil size={18} color="#FFFFFF" strokeWidth={2.5} />}
                     />
 
-                    <LiquidButton2 
+                    <AppleButton 
                         onPress={handleDeletePress}
                         title="Xóa giao dịch"
-                        icon={<Trash2 size={18} color="#ef4444" strokeWidth={2.5} />}
+                        variant="danger"
+                        icon={<Trash2 size={18} color="#FFFFFF" strokeWidth={2.5} />}
                     />
                 </View>
 
@@ -251,7 +252,7 @@ const TransactionDetailScreen: React.FC<TransactionDetailScreenProps> = ({
                 onCancel={() => setDeleteDialogVisible(false)}
                 onConfirm={handleConfirmDelete}
             />
-        </Animated.View>
+        </View>
     );
 };
 

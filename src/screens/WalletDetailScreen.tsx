@@ -14,7 +14,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
     FlatList,
     InteractionManager,
-    LayoutAnimation,
     Pressable,
     StyleSheet,
     Text,
@@ -35,7 +34,6 @@ import ConfirmDialog from '../components/modals/ConfirmDialog';
 import EditWalletModal from '../components/modals/EditWalletModal';
 import ApplePopupMenu from '../components/ui/ApplePopupMenu';
 import AppleIconButton from '../components/ui/AppleIconButton';
-import LiquidBackground from '../components/layout/LiquidBackground';
 import { WalletDetailSkeleton } from '../components/layout/skeletons/WalletDetailSkeleton';
 import AppleEmptyState from '../components/ui/AppleEmptyState';
 import AppleSummaryCard from '../components/ui/AppleSummaryCard';
@@ -43,7 +41,6 @@ import AppleSummaryCard from '../components/ui/AppleSummaryCard';
 // ─── Shared ───────────────────────────────────────────────────────────────────
 import { useStore } from '../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
-import { formatVND } from '../common/formatters';
 import { Colors, FontSizes, Radii, Spacing } from '../common/theme';
 import type { Transaction } from '../common/types';
 

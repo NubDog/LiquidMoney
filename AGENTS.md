@@ -49,4 +49,18 @@
   - Sẽ làm như thế nào và giao diện/trải nghiệm ra sao?
 - Đợi người dùng xem xét, gật đầu đồng ý với kế hoạch rồi mới chính thức bắt đầu viết code.
 
+---
 
+### 10. 📦 DANH SÁCH FILE KỶ NIỆM (KHÔNG ĐƯỢC XÓA, BỎ QUA KHI TỐI ƯU)
+- Các file sau là mã nguồn cũ được giữ lại làm kỷ niệm, **tuyệt đối không xóa**:
+  - `src/components/cards/TransactionRow2.tsx`
+  - `src/components/inputs/AmountInput2.tsx`
+  - `src/components/inputs/LiquidSegmentedControl2.tsx`
+  - `src/components/inputs/LiquidInput.tsx`
+  - `src/components/layout/EmptyState2.tsx`
+  - `src/components/overlays/PopupMenu.tsx`
+  - `src/components/LiquidContext.tsx`
+  - `src/components/buttons/LiquidButton2.tsx`
+  - `src/components/ui/AppleGlassBackground.tsx`
+  - `repomix-output.xml` (ở thư mục gốc)
+- Khi thực hiện Audit, Cleanup hay Refactoring, AI **bỏ qua các file trên**, không cố gắng tối ưu hay xóa chúng.
