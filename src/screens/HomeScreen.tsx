@@ -375,14 +375,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
                 // @ts-ignore: delaysContentTouches is a valid ScrollView prop but missing in FlatList types
                 delaysContentTouches={false}
                 refreshControl={
-                    isReorderingWallets ? undefined : (
-                        <RefreshControl
-                            refreshing={refreshing}
-                            onRefresh={handleRefresh}
-                            tintColor="rgba(255,255,255,0.3)"
-                            colors={['#22d3ee']}
-                        />
-                    )
+                    <RefreshControl
+                        enabled={!isReorderingWallets}
+                        refreshing={refreshing}
+                        onRefresh={handleRefresh}
+                        tintColor="rgba(255,255,255,0.3)"
+                        colors={['#22d3ee']}
+                    />
                 }
             />
 
