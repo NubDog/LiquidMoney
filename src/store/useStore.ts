@@ -78,6 +78,9 @@ interface StoreActions {
     /** Cập nhật thứ tự ví mới và lưu vào settings */
     reorderWallets: (newWallets: Wallet[]) => void;
 
+    /** Lưu thứ tự ví vào SQLite trực tiếp mà không cập nhật state FlatList ngay lập tức */
+    saveWalletOrderDirectly: (newWallets: Wallet[]) => void;
+
     /** Load lại danh sách ví từ DB */
     refreshWallets: () => void;
 
@@ -243,6 +246,16 @@ export const useStore = create<Store>((set, get) => ({
                 setSetting('wallet_order', JSON.stringify(newWallets.map(w => w.id)));
             } catch (err) {
                 console.error('[Store] reorderWallets save error:', err);
+            }
+        }
+    },
+
+    saveWalletOrderDirectly: (newWallets) => {
+        if (isDatabaseAvailable()) {
+            try {
+                setSetting('wallet_order', JSON.stringify(newWallets.map(w => w.id)));
+            } catch (err) {
+                console.error('[Store] saveWalletOrderDirectly save error:', err);
             }
         }
     },

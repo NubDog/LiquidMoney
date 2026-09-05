@@ -7,7 +7,7 @@
  * Cleaned: Removed empty cardWrapper style, duplicate FAB comment.
  */
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     FlatList,
     Pressable,
@@ -60,6 +60,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
         isReorderingWallets,
         setIsReorderingWallets,
         reorderWallets,
+        saveWalletOrderDirectly,
     } = useStore(useShallow(state => ({
         wallets: state.wallets,
         addWallet: state.addWallet,
@@ -70,13 +71,23 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
         isReorderingWallets: state.isReorderingWallets,
         setIsReorderingWallets: state.setIsReorderingWallets,
         reorderWallets: state.reorderWallets,
+        saveWalletOrderDirectly: state.saveWalletOrderDirectly,
     })));
 
     // ─── Reordering & Drag Shared Values ──────────────────────────────────────
+    const orderMap = useSharedValue<number[]>([]);
     const activeDragIndex = useSharedValue<number>(-1);
-    const activeTargetIndex = useSharedValue<number>(-1);
+    const activeTargetSlot = useSharedValue<number>(-1);
     const dragPanY = useSharedValue<number>(0);
     const isDragging = useSharedValue<boolean>(false);
+
+    // Latest reordered wallets reference
+    const currentOrderedWalletsRef = useRef<Wallet[]>(wallets);
+
+    useEffect(() => {
+        orderMap.value = wallets.map((_, i) => i);
+        currentOrderedWalletsRef.current = wallets;
+    }, [wallets, orderMap]);
 
     // Card aspect ratio is 2.2, Spacing.md * 2 = 32, separator is 14
     const defaultSlotHeight = useMemo(() => {
@@ -105,9 +116,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
     // Cleanup reorder mode on unmount
     useEffect(() => {
         return () => {
+            if (currentOrderedWalletsRef.current !== wallets) {
+                useStore.getState().reorderWallets(currentOrderedWalletsRef.current);
+            }
             useStore.getState().setIsReorderingWallets(false);
         };
-    }, []);
+    }, [wallets]);
 
     // ─── Modal State ──────────────────────────────────────────────────────────
     const [modalVisible, setModalVisible] = useState(false);
@@ -180,23 +194,27 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
     const handleExitReordering = useCallback(() => {
         if (isReorderingWallets) {
             setIsReorderingWallets(false);
-        }
-    }, [isReorderingWallets, setIsReorderingWallets]);
-
-    const handleDragEnd = useCallback(
-        (from: number, to: number) => {
-            if (from !== to && from >= 0 && to >= 0 && from < wallets.length && to < wallets.length) {
-                const updated = [...wallets];
-                const [moved] = updated.splice(from, 1);
-                updated.splice(to, 0, moved);
-                reorderWallets(updated);
+            if (currentOrderedWalletsRef.current !== wallets) {
+                reorderWallets(currentOrderedWalletsRef.current);
             }
-            isDragging.value = false;
-            activeDragIndex.value = -1;
-            activeTargetIndex.value = -1;
-            dragPanY.value = 0;
+        }
+    }, [isReorderingWallets, setIsReorderingWallets, reorderWallets, wallets]);
+
+    const handleDragCommit = useCallback(
+        (newOrderMap: number[]) => {
+            const sorted: Wallet[] = [];
+            for (let slot = 0; slot < wallets.length; slot++) {
+                const originalIdx = newOrderMap.findIndex((s) => s === slot);
+                if (originalIdx !== -1 && wallets[originalIdx]) {
+                    sorted.push(wallets[originalIdx]);
+                }
+            }
+            if (sorted.length === wallets.length) {
+                currentOrderedWalletsRef.current = sorted;
+                saveWalletOrderDirectly(sorted);
+            }
         },
-        [wallets, reorderWallets, isDragging, activeDragIndex, activeTargetIndex, dragPanY],
+        [wallets, saveWalletOrderDirectly],
     );
 
     // ─── Render Item ──────────────────────────────────────────────────────────
@@ -209,26 +227,28 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
                 totalCount={wallets.length}
                 slotHeight={defaultSlotHeight}
                 isReordering={isReorderingWallets}
+                orderMap={orderMap}
                 activeDragIndex={activeDragIndex}
-                activeTargetIndex={activeTargetIndex}
+                activeTargetSlot={activeTargetSlot}
                 dragPanY={dragPanY}
                 isDragging={isDragging}
                 onNavigate={(walletId) => onNavigateToWallet?.(walletId)}
                 onStartReordering={handleStartReordering}
-                onDragEnd={handleDragEnd}
+                onDragCommit={handleDragCommit}
             />
         ),
         [
             wallets.length,
             defaultSlotHeight,
             isReorderingWallets,
+            orderMap,
             activeDragIndex,
-            activeTargetIndex,
+            activeTargetSlot,
             dragPanY,
             isDragging,
             onNavigateToWallet,
             handleStartReordering,
-            handleDragEnd,
+            handleDragCommit,
         ],
     );
 
