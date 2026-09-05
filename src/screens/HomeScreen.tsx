@@ -78,7 +78,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
     const orderMap = useSharedValue<number[]>([]);
     const activeDragIndex = useSharedValue<number>(-1);
     const activeTargetSlot = useSharedValue<number>(-1);
-    const dragPanY = useSharedValue<number>(0);
+    const isDropping = useSharedValue<boolean>(false);
     const isDragging = useSharedValue<boolean>(false);
 
     // Latest reordered wallets reference
@@ -230,7 +230,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
                 orderMap={orderMap}
                 activeDragIndex={activeDragIndex}
                 activeTargetSlot={activeTargetSlot}
-                dragPanY={dragPanY}
+                isDropping={isDropping}
                 isDragging={isDragging}
                 onNavigate={(walletId) => onNavigateToWallet?.(walletId)}
                 onStartReordering={handleStartReordering}
@@ -244,7 +244,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
             orderMap,
             activeDragIndex,
             activeTargetSlot,
-            dragPanY,
+            isDropping,
             isDragging,
             onNavigateToWallet,
             handleStartReordering,

@@ -37,7 +37,7 @@ interface ReorderableWalletCardProps {
     orderMap: SharedValue<number[]>;
     activeDragIndex: SharedValue<number>;
     activeTargetSlot: SharedValue<number>;
-    dragPanY: SharedValue<number>;
+    isDropping: SharedValue<boolean>;
     isDragging: SharedValue<boolean>;
     onNavigate: (walletId: string) => void;
     onStartReordering: () => void;
@@ -53,13 +53,14 @@ const ReorderableWalletCard: React.FC<ReorderableWalletCardProps> = ({
     orderMap,
     activeDragIndex,
     activeTargetSlot,
-    dragPanY,
+    isDropping,
     isDragging,
     onNavigate,
     onStartReordering,
     onDragCommit,
 }) => {
     const isDroppingRef = useRef(false);
+    const dragPanY = useSharedValue(0);
     const onDragCommitRef = useRef(onDragCommit);
     onDragCommitRef.current = onDragCommit;
     const initialIndexRef = useRef(index);
@@ -110,8 +111,10 @@ const ReorderableWalletCard: React.FC<ReorderableWalletCardProps> = ({
             dragScale.value = 1;
             dragElevation.value = 4;
             currentShiftY.value = 0;
+            dragPanY.value = 0;
+            isDroppingRef.current = false;
         }
-    }, [isReordering, jiggleRotation, isThisCardActive, dragScale, dragElevation, currentShiftY]);
+    }, [isReordering, jiggleRotation, isThisCardActive, dragScale, dragElevation, currentShiftY, dragPanY]);
 
     // ─── Live Slot Shift Calculation (UI Thread) ──────────────────────────────
     useAnimatedReaction(
@@ -176,14 +179,18 @@ const ReorderableWalletCard: React.FC<ReorderableWalletCardProps> = ({
         isDroppingRef.current = false;
     };
 
+    const handleFinishTerminate = () => {
+        isDroppingRef.current = false;
+    };
+
     // ─── PanResponder for Drag & Drop ─────────────────────────────────────────
     const panResponder = useMemo(() => {
         return PanResponder.create({
-            onStartShouldSetPanResponderCapture: () => isReordering && !isDroppingRef.current,
-            onMoveShouldSetPanResponderCapture: () => isReordering && !isDroppingRef.current,
+            onStartShouldSetPanResponderCapture: () => isReordering && !isDropping.value && !isDroppingRef.current,
+            onMoveShouldSetPanResponderCapture: () => isReordering && !isDropping.value && !isDroppingRef.current,
             onPanResponderTerminationRequest: () => false,
             onPanResponderGrant: () => {
-                if (!isReordering || isDroppingRef.current) return;
+                if (!isReordering || isDropping.value || isDroppingRef.current) return;
                 const myIdx = currentIndexShared.value;
                 const map = orderMap.value;
                 const mySlot = map && map.length > myIdx ? map[myIdx] : myIdx;
@@ -197,7 +204,7 @@ const ReorderableWalletCard: React.FC<ReorderableWalletCardProps> = ({
                 isDragging.value = true;
             },
             onPanResponderMove: (_, gestureState) => {
-                if (!isReordering || isDroppingRef.current) return;
+                if (!isReordering || isDropping.value || isDroppingRef.current) return;
                 dragPanY.value = gestureState.dy;
 
                 const currentSlotHeight = slotHeightShared.value;
@@ -213,8 +220,9 @@ const ReorderableWalletCard: React.FC<ReorderableWalletCardProps> = ({
                 }
             },
             onPanResponderRelease: (_, gestureState) => {
-                if (!isReordering || isDroppingRef.current) return;
+                if (!isReordering || isDropping.value || isDroppingRef.current) return;
 
+                isDropping.value = true;
                 isDroppingRef.current = true;
                 const currentSlotHeight = slotHeightShared.value;
                 const currentTotal = totalCountShared.value;
@@ -233,48 +241,48 @@ const ReorderableWalletCard: React.FC<ReorderableWalletCardProps> = ({
                 dragPanY.value = withTiming(
                     targetOffset,
                     { duration: 180, easing: Easing.out(Easing.cubic) },
-                    (finished) => {
+                    () => {
                         'worklet';
-                        if (finished) {
-                            // Compute new order map on UI thread
-                            const fromSlot = mySlot;
-                            const toSlot = finalTarget;
-                            const currentMap = orderMap.value;
-                            const newMap = [];
-                            for (let i = 0; i < currentMap.length; i++) {
-                                if (i === myIdx) {
-                                    newMap.push(toSlot);
-                                } else if (fromSlot < toSlot) {
-                                    if (currentMap[i] > fromSlot && currentMap[i] <= toSlot) {
-                                        newMap.push(currentMap[i] - 1);
-                                    } else {
-                                        newMap.push(currentMap[i]);
-                                    }
-                                } else if (fromSlot > toSlot) {
-                                    if (currentMap[i] >= toSlot && currentMap[i] < fromSlot) {
-                                        newMap.push(currentMap[i] + 1);
-                                    } else {
-                                        newMap.push(currentMap[i]);
-                                    }
+                        // Compute new order map on UI thread
+                        const fromSlot = mySlot;
+                        const toSlot = finalTarget;
+                        const currentMap = orderMap.value;
+                        const newMap = [];
+                        for (let i = 0; i < currentMap.length; i++) {
+                            if (i === myIdx) {
+                                newMap.push(toSlot);
+                            } else if (fromSlot < toSlot) {
+                                if (currentMap[i] > fromSlot && currentMap[i] <= toSlot) {
+                                    newMap.push(currentMap[i] - 1);
                                 } else {
                                     newMap.push(currentMap[i]);
                                 }
+                            } else if (fromSlot > toSlot) {
+                                if (currentMap[i] >= toSlot && currentMap[i] < fromSlot) {
+                                    newMap.push(currentMap[i] + 1);
+                                } else {
+                                    newMap.push(currentMap[i]);
+                                }
+                            } else {
+                                newMap.push(currentMap[i]);
                             }
-                            orderMap.value = newMap;
-                            // Seamless handoff: resting offset matches dropped position with 0 deviation
-                            currentShiftY.value = (toSlot - myIdx) * currentSlotHeight;
-                            isThisCardActive.value = false;
-                            activeDragIndex.value = -1;
-                            activeTargetSlot.value = -1;
-                            dragPanY.value = 0;
-                            isDragging.value = false;
-                            runOnJS(handleFinishDrop)(newMap);
                         }
+                        orderMap.value = newMap;
+                        // Seamless handoff: resting offset matches dropped position with 0 deviation
+                        currentShiftY.value = (toSlot - myIdx) * currentSlotHeight;
+                        isThisCardActive.value = false;
+                        activeDragIndex.value = -1;
+                        activeTargetSlot.value = -1;
+                        dragPanY.value = 0;
+                        isDragging.value = false;
+                        isDropping.value = false;
+                        runOnJS(handleFinishDrop)(newMap);
                     }
                 );
             },
             onPanResponderTerminate: () => {
                 if (!isReordering) return;
+                isDropping.value = true;
                 isDroppingRef.current = true;
                 const myIdx = currentIndexShared.value;
                 const map = orderMap.value;
@@ -283,17 +291,16 @@ const ReorderableWalletCard: React.FC<ReorderableWalletCardProps> = ({
 
                 dragScale.value = withTiming(1.0, { duration: 150 });
                 dragElevation.value = withTiming(4, { duration: 150 });
-                dragPanY.value = withTiming(0, { duration: 150 }, (finished) => {
+                dragPanY.value = withTiming(0, { duration: 150 }, () => {
                     'worklet';
-                    if (finished) {
-                        currentShiftY.value = (mySlot - myIdx) * currentSlotHeight;
-                        isThisCardActive.value = false;
-                        activeDragIndex.value = -1;
-                        activeTargetSlot.value = -1;
-                        dragPanY.value = 0;
-                        isDragging.value = false;
-                        isDroppingRef.current = false;
-                    }
+                    currentShiftY.value = (mySlot - myIdx) * currentSlotHeight;
+                    isThisCardActive.value = false;
+                    activeDragIndex.value = -1;
+                    activeTargetSlot.value = -1;
+                    dragPanY.value = 0;
+                    isDragging.value = false;
+                    isDropping.value = false;
+                    runOnJS(handleFinishTerminate)();
                 });
             },
         });
@@ -302,7 +309,7 @@ const ReorderableWalletCard: React.FC<ReorderableWalletCardProps> = ({
         orderMap,
         activeDragIndex,
         activeTargetSlot,
-        dragPanY,
+        isDropping,
         isDragging,
         slotHeightShared,
         totalCountShared,
@@ -311,6 +318,7 @@ const ReorderableWalletCard: React.FC<ReorderableWalletCardProps> = ({
         dragScale,
         dragElevation,
         currentShiftY,
+        dragPanY,
     ]);
 
     // ─── Animated Style ───────────────────────────────────────────────────────
