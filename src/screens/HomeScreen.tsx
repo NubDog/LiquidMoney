@@ -194,11 +194,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToWallet }) => {
     const handleExitReordering = useCallback(() => {
         if (isReorderingWallets) {
             setIsReorderingWallets(false);
-            if (currentOrderedWalletsRef.current !== wallets) {
-                reorderWallets(currentOrderedWalletsRef.current);
-            }
         }
-    }, [isReorderingWallets, setIsReorderingWallets, reorderWallets, wallets]);
+    }, [isReorderingWallets, setIsReorderingWallets]);
 
     const handleDragCommit = useCallback(
         (newOrderMap: number[]) => {

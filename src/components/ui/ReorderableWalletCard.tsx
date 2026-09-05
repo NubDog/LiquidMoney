@@ -110,18 +110,15 @@ const ReorderableWalletCard: React.FC<ReorderableWalletCardProps> = ({
             isThisCardActive.value = false;
             dragScale.value = 1;
             dragElevation.value = 4;
-            currentShiftY.value = 0;
             dragPanY.value = 0;
             isDroppingRef.current = false;
         }
-    }, [isReordering, jiggleRotation, isThisCardActive, dragScale, dragElevation, currentShiftY, dragPanY]);
+    }, [isReordering, jiggleRotation, isThisCardActive, dragScale, dragElevation, dragPanY]);
 
     // ─── Live Slot Shift Calculation (UI Thread) ──────────────────────────────
     useAnimatedReaction(
         () => {
             'worklet';
-            if (!isReordering) return 0;
-
             const myIdx = currentIndexShared.value;
             const h = slotHeightShared.value;
             const map = orderMap.value;
@@ -135,7 +132,7 @@ const ReorderableWalletCard: React.FC<ReorderableWalletCardProps> = ({
             const myRestingSlot = map[myIdx];
 
             // If another card is actively being dragged, calculate displacement to open gap
-            if (activeDragIndex.value !== -1 && activeDragIndex.value !== myIdx && activeTargetSlot.value !== -1) {
+            if (isReordering && activeDragIndex.value !== -1 && activeDragIndex.value !== myIdx && activeTargetSlot.value !== -1) {
                 const dragIdx = activeDragIndex.value;
                 const startSlot = map[dragIdx];
                 const targetSlot = activeTargetSlot.value;
