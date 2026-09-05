@@ -2,7 +2,7 @@
  * ReorderableWalletCard.tsx — Draggable Wallet Card with Jiggle & Reorder Animation
  *
  * Features:
- * - 1.5s long-press to activate reordering mode
+ * - 0.5s long-press to activate reordering mode
  * - Natural iOS-style subtle jiggle/wiggle animation (staggered by index)
  * - 60/120 FPS UI-thread slot displacement with snappy springs
  * - Elevation & scale-up on active drag
@@ -181,6 +181,7 @@ const ReorderableWalletCard: React.FC<ReorderableWalletCardProps> = ({
         return PanResponder.create({
             onStartShouldSetPanResponderCapture: () => isReordering && !isDroppingRef.current,
             onMoveShouldSetPanResponderCapture: () => isReordering && !isDroppingRef.current,
+            onPanResponderTerminationRequest: () => false,
             onPanResponderGrant: () => {
                 if (!isReordering || isDroppingRef.current) return;
                 const myIdx = currentIndexShared.value;
@@ -368,7 +369,7 @@ const ReorderableWalletCard: React.FC<ReorderableWalletCardProps> = ({
                 imageUri={item.image_uri}
                 onPress={() => onNavigate(item.id)}
                 onLongPress={onStartReordering}
-                delayLongPress={1500}
+                delayLongPress={500}
                 disabled={isReordering}
             />
         </Animated.View>
